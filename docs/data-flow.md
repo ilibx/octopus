@@ -609,7 +609,16 @@ func (o *AgentOrchestrator) OnTaskCompleted(zoneID, taskID string) {
 
 ## 6. 周期任务触发流程
 
-### 6.1 流程图
+### 6.1 设计说明
+
+**重要变更**：Cron 服务触发的任务不再直接创建看板任务，而是先发送到主 Agent，由主 Agent 根据任务性质智能选择通知渠道。
+
+**流程优势**：
+- 主 Agent 可以分析任务内容，决定使用哪些 Channel（单个或多个）进行通知
+- 实现更灵活的通知策略，避免硬编码的通知逻辑
+- 支持动态调整通知渠道组合
+
+### 6.2 流程图
 
 ```
 CronService.runLoop()
@@ -648,16 +657,34 @@ CronService.runLoop()
          │
          ▼
 ┌─────────────────┐
-│ 创建看板任务     │
+│ 发送到主 Agent   │◄────── 新增步骤
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ 主 Agent 分析    │
+│ 任务性质         │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ 智能选择 Channel │
+│ (单个或多个)     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ 通过选定渠道     │
+│ 发送通知         │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
 │ 计算下次运行时间 │
-└────────┬────────┘
+└─────────────────┘
 ```
 
-### 6.2 集成示例
+### 6.3 集成示例
 
 ```go
 // 设置 Cron 任务处理器
@@ -666,20 +693,50 @@ cronService.SetOnJob(func(job *CronJob) (string, error) {
     var payload CronPayload
     json.Unmarshal([]byte(job.Payload.Message), &payload)
     
-    // 创建看板任务
-    kanbanService.CreateTaskWithEvent(
-        "scheduled",           // zone
-        generateTaskID(),      // taskID
-        payload.Message,       // title
-        "Scheduled task",      // description
-        0,                     // priority
-        map[string]string{
+    // 发送到主 Agent，由主 Agent 处理通知逻辑
+    mainAgent.ProcessCronTask(&CronTask{
+        ID:      job.ID,
+        Message: payload.Message,
+        Metadata: map[string]string{
             "cron_job_id": job.ID,
+            "schedule":    job.Schedule,
         },
-    )
+    })
     
-    return "Task created", nil
+    return "Task sent to main agent", nil
 })
+
+// 主 Agent 处理 Cron 任务的示例逻辑
+func (a *MainAgent) ProcessCronTask(task *CronTask) error {
+    // 1. 分析任务性质
+    channels := a.selectChannelsForTask(task)
+    
+    // 2. 通过选定的渠道发送通知
+    for _, ch := range channels {
+        ch.SendNotification(task.Message)
+    }
+    
+    return nil
+}
+
+// 智能选择渠道的逻辑
+func (a *MainAgent) selectChannelsForTask(task *CronTask) []Channel {
+    var selected []Channel
+    
+    // 根据任务元数据或内容选择合适的渠道
+    if task.Metadata["priority"] == "high" {
+        // 高优先级任务：使用所有可用渠道
+        selected = a.allChannels
+    } else if task.Metadata["type"] == "alert" {
+        // 告警类任务：使用即时通讯渠道
+        selected = a.instantChannels // Telegram, Discord, etc.
+    } else {
+        // 普通任务：使用默认渠道
+        selected = a.defaultChannels
+    }
+    
+    return selected
+}
 ```
 
 ---
