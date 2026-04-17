@@ -49,12 +49,12 @@ type Zone struct {
 
 // KanbanBoard represents the main kanban board for task management
 type KanbanBoard struct {
-	ID          string            `json:"id"`
-	Name        string            `json:"name"`
-	Zones       map[string]*Zone  `json:"zones"`
-	MainAgentID string            `json:"main_agent_id"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Zones       map[string]*Zone `json:"zones"`
+	MainAgentID string           `json:"main_agent_id"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
 	mu          sync.RWMutex
 }
 
