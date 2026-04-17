@@ -1,55 +1,60 @@
 ```
-# Go build artifacts
+# Compiled and build artifacts
 *.o
-*.a
-*.so
-*.exe
-*.dll
-*.dylib
-
-# Go cache and test
-*.test
-*.prof
-go.mod.lock
+*.obj
+*.out
 
 # Dependencies
 vendor/
 
-# Logs
+# Logs and temp files
 *.log
-
-# Temporary files
 *.tmp
-*.temp
-*~
-.DS_Store
-Thumbs.db
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Coverage
-coverage.out
-cover/
-
-# Test artifacts
-testdata/
-
-# IDE
+# Editors
 .vscode/
 .idea/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Build systems
+target/
+build/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+
+# Temporary files
 *.swp
 *.swo
-
-# Build output
-bin/
-_dist/
-_output/
-
-# OS
+*~
 .DS_Store
-ehthumbs.db
+Thumbs.db
 
+# Cache
+.mypy_cache/
+.pytest_cache/
+.gradle/
 ```
