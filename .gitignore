@@ -1,5 +1,7 @@
 ```
 # Compiled and build artifacts
+*.pyc
+__pycache__/
 *.o
 *.obj
 *.exe
@@ -9,9 +11,12 @@
 *.out
 
 # Dependencies
-vendor/
-*.mod
-*.sum
+node_modules/
+venv/
+.venv/
+.env
+.env.local
+.env.*
 
 # Logs and temp files
 *.log
@@ -22,42 +27,22 @@ vendor/
 .vscode/
 .idea/
 
-# Coverage reports
+# Coverage
 coverage/
 htmlcov/
-*.coverage
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# OS generated files
-.DS_Store
-Thumbs.db
+.coverage
 
 # Build directories
 dist/
 build/
 target/
-bin/
+.gradle/
 
 # Python specific
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.nox/
+.mypy_cache/
+.pytest_cache/
 
-# Go specific
-*.test
-*.prof
+# System files
+.DS_Store
+Thumbs.db
 ```

@@ -22,13 +22,23 @@ import (
 )
 
 func NewOctopusCommand() *cobra.Command {
+	var configPath string
+
 	short := fmt.Sprintf("%s octopus - Personal AI Assistant v%s\n\n", internal.Logo, config.GetVersion())
 
 	cmd := &cobra.Command{
 		Use:     "octopus",
 		Short:   short,
-		Example: "octopus version",
+		Example: "octopus gateway --config /path/to/config.json",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if configPath != "" {
+				internal.SetConfigPath(configPath)
+			}
+			return nil
+		},
 	}
+
+	cmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Path to config file (default: $OCTOPUS_CONFIG or ~/.octopus/config.json)")
 
 	cmd.AddCommand(
 		onboard.NewOnboardCommand(),
@@ -50,12 +60,18 @@ const (
 	colorBlue = "\033[1;38;2;62;93;185m"
 	colorRed  = "\033[1;38;2;213;70;70m"
 	banner    = "\r\n" +
-		colorBlue + "██████╗ ██╗ ██████╗ ██████╗ " + colorRed + " ██████╗██╗      █████╗ ██╗    ██╗\n" +
-		colorBlue + "██╔══██╗██║██╔════╝██╔═══██╗" + colorRed + "██╔════╝██║     ██╔══██╗██║    ██║\n" +
-		colorBlue + "██████╔╝██║██║     ██║   ██║" + colorRed + "██║     ██║     ███████║██║ █╗ ██║\n" +
-		colorBlue + "██╔═══╝ ██║██║     ██║   ██║" + colorRed + "██║     ██║     ██╔══██║██║███╗██║\n" +
-		colorBlue + "██║     ██║╚██████╗╚██████╔╝" + colorRed + "╚██████╗███████╗██║  ██║╚███╔███╔╝\n" +
-		colorBlue + "╚═╝     ╚═╝ ╚═════╝ ╚═════╝ " + colorRed + " ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝\n " +
+		colorBlue + " ██████╗ ██╗   ██╗██████╗ \n" +
+		colorBlue + "██╔═══██╗██║   ██║██╔══██╗\n" +
+		colorBlue + "██║   ██║██║   ██║██║  ██║\n" +
+		colorBlue + "██║▄▄ ██║██║   ██║██║  ██║\n" +
+		colorBlue + "╚██████╔╝╚██████╔╝██████╔╝\n" +
+		colorBlue + " ╚══▀▀═╝  ╚═════╝ ╚═════╝ \n" +
+		colorRed + "██████╗ ██╗ ██████╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗\n" +
+		colorRed + "██╔══██╗██║██╔════╝██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║\n" +
+		colorRed + "██████╔╝██║██║     ██║   ██║██║     ██║     ███████║██║ █╗ ██║\n" +
+		colorRed + "██╔═══╝ ██║██║     ██║   ██║██║     ██║     ██╔══██║██║███╗██║\n" +
+		colorRed + "██║     ██║╚██████╗╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝\n" +
+		colorRed + "╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ \n" +
 		"\033[0m\r\n"
 )
 
