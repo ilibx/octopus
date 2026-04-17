@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/providers"
+	"github.com/ilibx/octopus/pkg/providers"
 )
 
 type SubagentTask struct {

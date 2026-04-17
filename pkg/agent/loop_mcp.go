@@ -1,8 +1,3 @@
-// PicoClaw - Ultra-lightweight personal AI agent
-// Inspired by and based on nanobot: https://github.com/HKUDS/nanobot
-// License: MIT
-//
-// Copyright (c) 2026 PicoClaw contributors
 
 package agent
 
@@ -11,9 +6,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/mcp"
-	"github.com/sipeed/picoclaw/pkg/tools"
+	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/mcp"
+	"github.com/ilibx/octopus/pkg/tools"
 )
 
 type mcpRuntime struct {

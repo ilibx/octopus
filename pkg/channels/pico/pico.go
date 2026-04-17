@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/channels"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/identity"
-	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/channels"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/identity"
+	"github.com/ilibx/octopus/pkg/logger"
 )
 
 // picoConn represents a single WebSocket connection.

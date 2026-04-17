@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sipeed/picoclaw/pkg/memory"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/session"
+	"github.com/ilibx/octopus/pkg/memory"
+	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/session"
 )
 
 // Compile-time interface satisfaction checks.

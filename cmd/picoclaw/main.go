@@ -1,8 +1,3 @@
-// PicoClaw - Ultra-lightweight personal AI agent
-// Inspired by and based on nanobot: https://github.com/HKUDS/nanobot
-// License: MIT
-//
-// Copyright (c) 2026 PicoClaw contributors
 
 package main
 
@@ -12,27 +7,27 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/agent"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/auth"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/cron"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/gateway"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/migrate"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/model"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/onboard"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/skills"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/status"
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal/version"
-	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/ilibx/octopus/cmd/octopus/internal"
+	"github.com/ilibx/octopus/cmd/octopus/internal/agent"
+	"github.com/ilibx/octopus/cmd/octopus/internal/auth"
+	"github.com/ilibx/octopus/cmd/octopus/internal/cron"
+	"github.com/ilibx/octopus/cmd/octopus/internal/gateway"
+	"github.com/ilibx/octopus/cmd/octopus/internal/migrate"
+	"github.com/ilibx/octopus/cmd/octopus/internal/model"
+	"github.com/ilibx/octopus/cmd/octopus/internal/onboard"
+	"github.com/ilibx/octopus/cmd/octopus/internal/skills"
+	"github.com/ilibx/octopus/cmd/octopus/internal/status"
+	"github.com/ilibx/octopus/cmd/octopus/internal/version"
+	"github.com/ilibx/octopus/pkg/config"
 )
 
 func NewPicoclawCommand() *cobra.Command {
-	short := fmt.Sprintf("%s picoclaw - Personal AI Assistant v%s\n\n", internal.Logo, config.GetVersion())
+	short := fmt.Sprintf("%s octopus - Personal AI Assistant v%s\n\n", internal.Logo, config.GetVersion())
 
 	cmd := &cobra.Command{
-		Use:     "picoclaw",
+		Use:     "octopus",
 		Short:   short,
-		Example: "picoclaw version",
+		Example: "octopus version",
 	}
 
 	cmd.AddCommand(

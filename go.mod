@@ -1,6 +1,6 @@
-module github.com/sipeed/picoclaw
+module github.com/ilibx/octopus
 
-go 1.25.7
+go 1.19
 
 require (
 	github.com/adhocore/gronx v1.19.6

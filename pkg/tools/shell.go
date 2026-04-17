@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/constants"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/constants"
 )
 
 type ExecTool struct {

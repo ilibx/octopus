@@ -1,7 +1,3 @@
-// PicoClaw - Ultra-lightweight personal AI agent
-// License: MIT
-//
-// Copyright (c) 2026 PicoClaw contributors
 
 package config
 
@@ -10,16 +6,16 @@ import (
 	"path/filepath"
 )
 
-// DefaultConfig returns the default configuration for PicoClaw.
+// DefaultConfig returns the default configuration for Octopus.
 func DefaultConfig() *Config {
 	// Determine the base path for the workspace.
-	// Priority: $PICOCLAW_HOME > ~/.picoclaw
+	// Priority: $PICOCLAW_HOME > ~/.octopus
 	var homePath string
-	if picoclawHome := os.Getenv("PICOCLAW_HOME"); picoclawHome != "" {
-		homePath = picoclawHome
+	if octopusHome := os.Getenv("PICOCLAW_HOME"); octopusHome != "" {
+		homePath = octopusHome
 	} else {
 		userHome, _ := os.UserHomeDir()
-		homePath = filepath.Join(userHome, ".picoclaw")
+		homePath = filepath.Join(userHome, ".octopus")
 	}
 	workspacePath := filepath.Join(homePath, "workspace")
 

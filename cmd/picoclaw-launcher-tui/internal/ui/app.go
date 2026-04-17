@@ -10,15 +10,15 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	configstore "github.com/sipeed/picoclaw/cmd/picoclaw-launcher-tui/internal/config"
-	picoclawconfig "github.com/sipeed/picoclaw/pkg/config"
+	configstore "github.com/ilibx/octopus/cmd/octopus-launcher-tui/internal/config"
+	octopusconfig "github.com/ilibx/octopus/pkg/config"
 )
 
 type appState struct {
 	app         *tview.Application
 	pages       *tview.Pages
 	stack       []string
-	config      *picoclawconfig.Config
+	config      *octopusconfig.Config
 	configPath  string
 	gatewayCmd  *exec.Cmd
 	menus       map[string]*Menu
@@ -41,7 +41,7 @@ func Run() error {
 	}
 
 	if cfg == nil {
-		cfg = picoclawconfig.DefaultConfig()
+		cfg = octopusconfig.DefaultConfig()
 	}
 
 	originalData, hasOriginal := loadOriginalConfig(path)
@@ -207,7 +207,7 @@ func refreshMainMenu(menu *Menu, s *appState) {
 		},
 		{
 			Label:       "Start Talk",
-			Description: "Open picoclaw agent in terminal",
+			Description: "Open octopus agent in terminal",
 			Action: func() {
 				s.requestStartTalk()
 			},
@@ -362,7 +362,7 @@ func (s *appState) startTalk() {
 		return
 	}
 	s.app.Suspend(func() {
-		cmd := exec.Command("picoclaw", "agent")
+		cmd := exec.Command("octopus", "agent")
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -383,7 +383,7 @@ func (s *appState) startGateway() {
 		return
 	}
 	_ = stopGatewayProcess()
-	cmd := exec.Command("picoclaw", "gateway")
+	cmd := exec.Command("octopus", "gateway")
 	logFile, err := os.OpenFile(s.logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		s.showMessage("Gateway failed", err.Error())

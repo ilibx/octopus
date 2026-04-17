@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/providers"
+	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/providers"
 )
 
 type ToolEntry struct {

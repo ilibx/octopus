@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/utils"
+	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/utils"
 )
 
 func NewGatewayCommand() *cobra.Command {
@@ -16,7 +16,7 @@ func NewGatewayCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "gateway",
 		Aliases: []string{"g"},
-		Short:   "Start picoclaw gateway",
+		Short:   "Start octopus gateway",
 		Args:    cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if noTruncate && !debug {

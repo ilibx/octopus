@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sipeed/picoclaw/pkg/providers"
+	"github.com/ilibx/octopus/pkg/providers"
 )
 
 // MockLLMProvider is a test implementation of LLMProvider

@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	picoclawconfig "github.com/sipeed/picoclaw/pkg/config"
+	octopusconfig "github.com/ilibx/octopus/pkg/config"
 )
 
 const (
-	configDirName  = ".picoclaw"
+	configDirName  = ".octopus"
 	configFileName = "config.json"
 )
 
@@ -29,15 +29,15 @@ func ConfigDir() (string, error) {
 	return filepath.Join(home, configDirName), nil
 }
 
-func Load() (*picoclawconfig.Config, error) {
+func Load() (*octopusconfig.Config, error) {
 	path, err := ConfigPath()
 	if err != nil {
 		return nil, err
 	}
-	return picoclawconfig.LoadConfig(path)
+	return octopusconfig.LoadConfig(path)
 }
 
-func Save(cfg *picoclawconfig.Config) error {
+func Save(cfg *octopusconfig.Config) error {
 	if cfg == nil {
 		return errors.New("config is nil")
 	}
@@ -45,5 +45,5 @@ func Save(cfg *picoclawconfig.Config) error {
 	if err != nil {
 		return err
 	}
-	return picoclawconfig.SaveConfig(path, cfg)
+	return octopusconfig.SaveConfig(path, cfg)
 }

@@ -10,8 +10,8 @@ import (
 
 	"github.com/caarlos0/env/v11"
 
-	"github.com/sipeed/picoclaw/pkg/credential"
-	"github.com/sipeed/picoclaw/pkg/fileutil"
+	"github.com/ilibx/octopus/pkg/credential"
+	"github.com/ilibx/octopus/pkg/fileutil"
 )
 
 // rrCounter is a global counter for round-robin load balancing across models.
@@ -86,7 +86,6 @@ type Config struct {
 	Gateway   GatewayConfig   `json:"gateway"`
 	Tools     ToolsConfig     `json:"tools"`
 	Heartbeat HeartbeatConfig `json:"heartbeat"`
-	Devices   DevicesConfig   `json:"devices"`
 	Voice     VoiceConfig     `json:"voice"`
 	// BuildInfo contains build-time version information
 	BuildInfo BuildInfo `json:"build_info,omitempty"`
@@ -497,11 +496,6 @@ type HeartbeatConfig struct {
 	Interval int  `json:"interval" env:"PICOCLAW_HEARTBEAT_INTERVAL"` // minutes, min 5
 }
 
-type DevicesConfig struct {
-	Enabled    bool `json:"enabled"     env:"PICOCLAW_DEVICES_ENABLED"`
-	MonitorUSB bool `json:"monitor_usb" env:"PICOCLAW_DEVICES_MONITOR_USB"`
-}
-
 type VoiceConfig struct {
 	EchoTranscription bool `json:"echo_transcription" env:"PICOCLAW_VOICE_ECHO_TRANSCRIPTION"`
 }
@@ -625,7 +619,7 @@ func (c *ModelConfig) Validate() error {
 }
 
 type GatewayConfig struct {
-	Host string `json:"host" env:"PICOCLAW_GATEWAY_HOST"`
+	Host string `json:"host" env:"OCTOPUS_GATEWAY_HOST"`
 	Port int    `json:"port" env:"PICOCLAW_GATEWAY_PORT"`
 }
 
@@ -844,7 +838,7 @@ func LoadConfig(path string) (*Config, error) {
 		for _, m := range cfg.ModelList {
 			if m.APIKey != "" && !strings.HasPrefix(m.APIKey, "enc://") && !strings.HasPrefix(m.APIKey, "file://") {
 				fmt.Fprintf(os.Stderr,
-					"picoclaw: warning: model %q has a plaintext api_key; call SaveConfig to encrypt it\n",
+					"octopus: warning: model %q has a plaintext api_key; call SaveConfig to encrypt it\n",
 					m.ModelName)
 			}
 		}

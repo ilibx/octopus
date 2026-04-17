@@ -1,0 +1,55 @@
+```
+# Go build artifacts
+*.o
+*.a
+*.so
+*.exe
+*.dll
+*.dylib
+
+# Go cache and test
+*.test
+*.prof
+go.mod.lock
+
+# Dependencies
+vendor/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage
+coverage.out
+cover/
+
+# Test artifacts
+testdata/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build output
+bin/
+_dist/
+_output/
+
+# OS
+.DS_Store
+ehthumbs.db
+
+```

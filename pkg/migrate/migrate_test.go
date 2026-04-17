@@ -11,11 +11,11 @@ import (
 
 func TestNewMigrateInstance(t *testing.T) {
 	opts := Options{
-		Source: "openclaw",
+		Source: "octopus",
 	}
 	instance := NewMigrateInstance(opts)
 	require.NotNil(t, instance)
-	assert.Equal(t, "openclaw", instance.options.Source)
+	assert.Equal(t, "octopus", instance.options.Source)
 }
 
 func TestMigrateInstanceRegister(t *testing.T) {
@@ -32,7 +32,7 @@ func TestMigrateInstanceRegister(t *testing.T) {
 
 func TestMigrateInstanceGetCurrentHandler(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -42,17 +42,17 @@ func TestMigrateInstanceGetCurrentHandler(t *testing.T) {
 	handler, err := instance.getCurrentHandler()
 	require.NoError(t, err)
 	require.NotNil(t, handler)
-	assert.Equal(t, "openclaw", handler.GetSourceName())
+	assert.Equal(t, "octopus", handler.GetSourceName())
 }
 
 func TestMigrateInstanceGetCurrentHandlerWithSource(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
 	opts := Options{
-		Source:     "openclaw",
+		Source:     "octopus",
 		SourceHome: tmpDir,
 	}
 	instance := NewMigrateInstance(opts)
@@ -60,7 +60,7 @@ func TestMigrateInstanceGetCurrentHandlerWithSource(t *testing.T) {
 	handler, err := instance.getCurrentHandler()
 	require.NoError(t, err)
 	require.NotNil(t, handler)
-	assert.Equal(t, "openclaw", handler.GetSourceName())
+	assert.Equal(t, "octopus", handler.GetSourceName())
 }
 
 func TestMigrateInstanceGetCurrentHandlerNotFound(t *testing.T) {
@@ -86,7 +86,7 @@ func TestMigrateInstancePlanWithInvalidSource(t *testing.T) {
 
 func TestMigrateInstancePlanConfigOnlyAndWorkspaceOnlyMutuallyExclusive(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 

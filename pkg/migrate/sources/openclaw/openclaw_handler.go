@@ -1,4 +1,4 @@
-package openclaw
+package octopus
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/migrate/internal"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/migrate/internal"
 )
 
 var providerMapping = map[string]string{
@@ -62,7 +62,7 @@ func NewOpenclawHandler(opts Options) (Operation, error) {
 }
 
 func (o *OpenclawHandler) GetSourceName() string {
-	return "openclaw"
+	return "octopus"
 }
 
 func (o *OpenclawHandler) GetSourceHome() (string, error) {
@@ -86,12 +86,12 @@ func (o *OpenclawHandler) GetMigrateableDirs() []string {
 }
 
 func (o *OpenclawHandler) ExecuteConfigMigration(srcConfigPath, dstConfigPath string) error {
-	openclawCfg, err := LoadOpenClawConfig(srcConfigPath)
+	octopusCfg, err := LoadOctopusConfig(srcConfigPath)
 	if err != nil {
 		return err
 	}
 
-	picoCfg, warnings, err := openclawCfg.ConvertToPicoClaw(o.opts.SourceHome)
+	picoCfg, warnings, err := octopusCfg.ConvertToOctopus(o.opts.SourceHome)
 	if err != nil {
 		return err
 	}
@@ -119,12 +119,12 @@ func resolveSourceHome(override string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolving home directory: %w", err)
 	}
-	return filepath.Join(home, ".openclaw"), nil
+	return filepath.Join(home, ".octopus"), nil
 }
 
 func findSourceConfig(sourceHome string) (string, error) {
 	candidates := []string{
-		filepath.Join(sourceHome, "openclaw.json"),
+		filepath.Join(sourceHome, "octopus.json"),
 		filepath.Join(sourceHome, "config.json"),
 	}
 	for _, p := range candidates {
@@ -132,11 +132,11 @@ func findSourceConfig(sourceHome string) (string, error) {
 			return p, nil
 		}
 	}
-	return "", fmt.Errorf("no config file found in %s (tried openclaw.json, config.json)", sourceHome)
+	return "", fmt.Errorf("no config file found in %s (tried octopus.json, config.json)", sourceHome)
 }
 
 func rewriteWorkspacePath(path string) string {
-	path = strings.Replace(path, ".openclaw", ".picoclaw", 1)
+	path = strings.Replace(path, ".octopus", ".octopus", 1)
 	return path
 }
 

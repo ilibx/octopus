@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/media"
-	"github.com/sipeed/picoclaw/pkg/memory"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/routing"
-	"github.com/sipeed/picoclaw/pkg/session"
-	"github.com/sipeed/picoclaw/pkg/tools"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/media"
+	"github.com/ilibx/octopus/pkg/memory"
+	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/routing"
+	"github.com/ilibx/octopus/pkg/session"
+	"github.com/ilibx/octopus/pkg/tools"
 )
 
 // AgentInstance represents a fully configured agent with its own workspace,

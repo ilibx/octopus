@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/utils"
+	"github.com/ilibx/octopus/pkg/utils"
 )
 
 // GitHubContent represents a file or directory in GitHub API response

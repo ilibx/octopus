@@ -1,6 +1,6 @@
 # Credential Encryption
 
-PicoClaw supports encrypting `api_key` values in `model_list` configuration entries.
+Octopus supports encrypting `api_key` values in `model_list` configuration entries.
 Encrypted keys are stored as `enc://<base64>` strings and decrypted automatically at startup.
 
 ---
@@ -15,7 +15,7 @@ export PICOCLAW_KEY_PASSPHRASE="your-passphrase"
 
 **2. Encrypt an API key**
 
-Run `picoclaw onboard` — it prompts for your passphrase and generates the SSH key,
+Run `octopus onboard` — it prompts for your passphrase and generates the SSH key,
 then automatically re-encrypts any plaintext `api_key` entries in your config on
 the next `SaveConfig` call. The resulting `enc://` value will look like:
 
@@ -60,14 +60,14 @@ Encryption uses **HKDF-SHA256** with an optional SSH private key as a second fac
 Without SSH key (passphrase only):
 
   ikm     = SHA256(passphrase)
-  aes_key = HKDF-SHA256(ikm, salt, info="picoclaw-credential-v1", 32 bytes)
+  aes_key = HKDF-SHA256(ikm, salt, info="octopus-credential-v1", 32 bytes)
 
 
 With SSH key (recommended):
 
   sshHash = SHA256(ssh_private_key_file_bytes)
   ikm     = HMAC-SHA256(key=sshHash, message=passphrase)
-  aes_key = HKDF-SHA256(ikm, salt, info="picoclaw-credential-v1", 32 bytes)
+  aes_key = HKDF-SHA256(ikm, salt, info="octopus-credential-v1", 32 bytes)
 ```
 
 ### Encryption
@@ -129,14 +129,14 @@ This means a leaked config file alone is not sufficient to recover the API key, 
 
 ### SSH Key Auto-Detection
 
-If `PICOCLAW_SSH_KEY_PATH` is not set, PicoClaw looks for the picoclaw-specific key:
+If `PICOCLAW_SSH_KEY_PATH` is not set, Octopus looks for the octopus-specific key:
 
 ```
-~/.ssh/picoclaw_ed25519.key
+~/.ssh/octopus_ed25519.key
 ```
 
 This dedicated file avoids conflicts with the user's existing SSH keys.
-Run `picoclaw onboard` to generate it automatically.
+Run `octopus onboard` to generate it automatically.
 
 `os.UserHomeDir()` is used for cross-platform home directory resolution (reads `USERPROFILE` on Windows, `HOME` on Unix/macOS).
 
@@ -163,6 +163,6 @@ No re-encryption is needed.
 ## Security Considerations
 
 - **Passphrase strength matters in passphrase-only mode.** Without an SSH key, a weak passphrase can be brute-forced offline. Use `PICOCLAW_SSH_KEY_PATH=""` only in environments where no SSH key is available and the passphrase is sufficiently strong (≥ 32 random characters).
-- **The SSH key is read-only at runtime.** PicoClaw never writes to or modifies the SSH key file.
+- **The SSH key is read-only at runtime.** Octopus never writes to or modifies the SSH key file.
 - **Plaintext keys remain supported.** Existing configs without `enc://` are unaffected.
-- **The `enc://` format is versioned** via the HKDF `info` field (`picoclaw-credential-v1`), allowing future algorithm upgrades without breaking existing encrypted values.
+- **The `enc://` format is versioned** via the HKDF `info` field (`octopus-credential-v1`), allowing future algorithm upgrades without breaking existing encrypted values.

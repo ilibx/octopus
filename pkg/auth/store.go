@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/fileutil"
+	"github.com/ilibx/octopus/pkg/fileutil"
 )
 
 type AuthCredential struct {
@@ -43,7 +43,7 @@ func authFilePath() string {
 		return filepath.Join(home, "auth.json")
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".picoclaw", "auth.json")
+	return filepath.Join(home, ".octopus", "auth.json")
 }
 
 func LoadStore() (*AuthStore, error) {

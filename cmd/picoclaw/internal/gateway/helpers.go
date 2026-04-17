@@ -10,36 +10,35 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sipeed/picoclaw/cmd/picoclaw/internal"
-	"github.com/sipeed/picoclaw/pkg/agent"
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/channels"
-	_ "github.com/sipeed/picoclaw/pkg/channels/dingtalk"
-	_ "github.com/sipeed/picoclaw/pkg/channels/discord"
-	_ "github.com/sipeed/picoclaw/pkg/channels/feishu"
-	_ "github.com/sipeed/picoclaw/pkg/channels/irc"
-	_ "github.com/sipeed/picoclaw/pkg/channels/line"
-	_ "github.com/sipeed/picoclaw/pkg/channels/maixcam"
-	_ "github.com/sipeed/picoclaw/pkg/channels/matrix"
-	_ "github.com/sipeed/picoclaw/pkg/channels/onebot"
-	_ "github.com/sipeed/picoclaw/pkg/channels/pico"
-	_ "github.com/sipeed/picoclaw/pkg/channels/qq"
-	_ "github.com/sipeed/picoclaw/pkg/channels/slack"
-	_ "github.com/sipeed/picoclaw/pkg/channels/telegram"
-	_ "github.com/sipeed/picoclaw/pkg/channels/wecom"
-	_ "github.com/sipeed/picoclaw/pkg/channels/whatsapp"
-	_ "github.com/sipeed/picoclaw/pkg/channels/whatsapp_native"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/cron"
-	"github.com/sipeed/picoclaw/pkg/devices"
-	"github.com/sipeed/picoclaw/pkg/health"
-	"github.com/sipeed/picoclaw/pkg/heartbeat"
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/media"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/state"
-	"github.com/sipeed/picoclaw/pkg/tools"
-	"github.com/sipeed/picoclaw/pkg/voice"
+	"github.com/ilibx/octopus/cmd/octopus/internal"
+	"github.com/ilibx/octopus/pkg/agent"
+	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/channels"
+	_ "github.com/ilibx/octopus/pkg/channels/dingtalk"
+	_ "github.com/ilibx/octopus/pkg/channels/discord"
+	_ "github.com/ilibx/octopus/pkg/channels/feishu"
+	_ "github.com/ilibx/octopus/pkg/channels/irc"
+	_ "github.com/ilibx/octopus/pkg/channels/line"
+	_ "github.com/ilibx/octopus/pkg/channels/maixcam"
+	_ "github.com/ilibx/octopus/pkg/channels/matrix"
+	_ "github.com/ilibx/octopus/pkg/channels/onebot"
+	_ "github.com/ilibx/octopus/pkg/channels/pico"
+	_ "github.com/ilibx/octopus/pkg/channels/qq"
+	_ "github.com/ilibx/octopus/pkg/channels/slack"
+	_ "github.com/ilibx/octopus/pkg/channels/telegram"
+	_ "github.com/ilibx/octopus/pkg/channels/wecom"
+	_ "github.com/ilibx/octopus/pkg/channels/whatsapp"
+	_ "github.com/ilibx/octopus/pkg/channels/whatsapp_native"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/cron"
+	"github.com/ilibx/octopus/pkg/health"
+	"github.com/ilibx/octopus/pkg/heartbeat"
+	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/media"
+	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/state"
+	"github.com/ilibx/octopus/pkg/tools"
+	"github.com/ilibx/octopus/pkg/voice"
 )
 
 // Timeout constants for service operations
@@ -55,7 +54,6 @@ type gatewayServices struct {
 	HeartbeatService *heartbeat.HeartbeatService
 	MediaStore       media.MediaStore
 	ChannelManager   *channels.Manager
-	DeviceService    *devices.Service
 	HealthServer     *health.Server
 }
 
@@ -229,19 +227,6 @@ func setupAndStartServices(
 
 	fmt.Printf("✓ Health endpoints available at http://%s:%d/health and /ready\n", cfg.Gateway.Host, cfg.Gateway.Port)
 
-	// Setup state manager and device service
-	stateManager := state.NewManager(cfg.WorkspacePath())
-	services.DeviceService = devices.NewService(devices.Config{
-		Enabled:    cfg.Devices.Enabled,
-		MonitorUSB: cfg.Devices.MonitorUSB,
-	}, stateManager)
-	services.DeviceService.SetBus(msgBus)
-	if err = services.DeviceService.Start(context.Background()); err != nil {
-		logger.ErrorCF("device", "Error starting device service", map[string]any{"error": err.Error()})
-	} else if cfg.Devices.Enabled {
-		fmt.Println("✓ Device event service started")
-	}
-
 	return services, nil
 }
 
@@ -255,9 +240,6 @@ func stopAndCleanupServices(
 
 	if services.ChannelManager != nil {
 		services.ChannelManager.StopAll(shutdownCtx)
-	}
-	if services.DeviceService != nil {
-		services.DeviceService.Stop()
 	}
 	if services.HeartbeatService != nil {
 		services.HeartbeatService.Stop()
@@ -446,19 +428,6 @@ func restartServices(
 		cfg.Gateway.Host,
 		cfg.Gateway.Port,
 	)
-
-	// Re-create device service with new config
-	stateManager := state.NewManager(cfg.WorkspacePath())
-	services.DeviceService = devices.NewService(devices.Config{
-		Enabled:    cfg.Devices.Enabled,
-		MonitorUSB: cfg.Devices.MonitorUSB,
-	}, stateManager)
-	services.DeviceService.SetBus(msgBus)
-	if err := services.DeviceService.Start(context.Background()); err != nil {
-		logger.WarnCF("device", "Failed to restart device service", map[string]any{"error": err.Error()})
-	} else if cfg.Devices.Enabled {
-		fmt.Println("  ✓ Device event service restarted")
-	}
 
 	// Wire up voice transcription with new config
 	transcriber := voice.DetectTranscriber(cfg)

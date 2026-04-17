@@ -1,8 +1,3 @@
-// PicoClaw - Ultra-lightweight personal AI agent
-// Inspired by and based on nanobot: https://github.com/HKUDS/nanobot
-// License: MIT
-//
-// Copyright (c) 2026 PicoClaw contributors
 
 package agent
 
@@ -19,20 +14,20 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/channels"
-	"github.com/sipeed/picoclaw/pkg/commands"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/constants"
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/media"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/routing"
-	"github.com/sipeed/picoclaw/pkg/skills"
-	"github.com/sipeed/picoclaw/pkg/state"
-	"github.com/sipeed/picoclaw/pkg/tools"
-	"github.com/sipeed/picoclaw/pkg/utils"
-	"github.com/sipeed/picoclaw/pkg/voice"
+	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/channels"
+	"github.com/ilibx/octopus/pkg/commands"
+	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/constants"
+	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/media"
+	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/routing"
+	"github.com/ilibx/octopus/pkg/skills"
+	"github.com/ilibx/octopus/pkg/state"
+	"github.com/ilibx/octopus/pkg/tools"
+	"github.com/ilibx/octopus/pkg/utils"
+	"github.com/ilibx/octopus/pkg/voice"
 )
 
 type AgentLoop struct {

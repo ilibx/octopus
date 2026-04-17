@@ -1,4 +1,4 @@
-package openclaw
+package octopus
 
 import (
 	"encoding/json"
@@ -8,9 +8,9 @@ import (
 	"testing"
 )
 
-func TestLoadOpenClawConfig(t *testing.T) {
+func TestLoadOctopusConfig(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"agents": {
@@ -18,7 +18,7 @@ func TestLoadOpenClawConfig(t *testing.T) {
 				"model": {
 					"primary": "anthropic/claude-sonnet-4-20250514"
 				},
-				"workspace": "~/.openclaw/workspace"
+				"workspace": "~/.octopus/workspace"
 			},
 			"list": [
 				{
@@ -60,7 +60,7 @@ func TestLoadOpenClawConfig(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
@@ -82,8 +82,8 @@ func TestLoadOpenClawConfig(t *testing.T) {
 	}
 
 	workspace := cfg.GetDefaultWorkspace()
-	if workspace != "~/.picoclaw/workspace" {
-		t.Errorf("expected workspace '~/.picoclaw/workspace', got '%s'", workspace)
+	if workspace != "~/.octopus/workspace" {
+		t.Errorf("expected workspace '~/.octopus/workspace', got '%s'", workspace)
 	}
 
 	agents := cfg.GetAgents()
@@ -107,7 +107,7 @@ func TestLoadOpenClawConfig(t *testing.T) {
 
 func TestGetProviderConfig(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"models": {
@@ -130,7 +130,7 @@ func TestGetProviderConfig(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
@@ -160,9 +160,9 @@ func TestGetProviderConfig(t *testing.T) {
 	}
 }
 
-func TestConvertToPicoClaw(t *testing.T) {
+func TestConvertToOctopus(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"agents": {
@@ -170,7 +170,7 @@ func TestConvertToPicoClaw(t *testing.T) {
 				"model": {
 					"primary": "anthropic/claude-sonnet-4-20250514"
 				},
-				"workspace": "~/.openclaw/workspace"
+				"workspace": "~/.octopus/workspace"
 			},
 			"list": [
 				{
@@ -232,12 +232,12 @@ func TestConvertToPicoClaw(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
 
-	picoCfg, warnings, err := cfg.ConvertToPicoClaw("")
+	picoCfg, warnings, err := cfg.ConvertToOctopus("")
 	if err != nil {
 		t.Fatalf("failed to convert config: %v", err)
 	}
@@ -245,8 +245,8 @@ func TestConvertToPicoClaw(t *testing.T) {
 	if picoCfg.Agents.Defaults.ModelName != "claude-sonnet-4-20250514" {
 		t.Errorf("expected model 'claude-sonnet-4-20250514', got '%s'", picoCfg.Agents.Defaults.ModelName)
 	}
-	if picoCfg.Agents.Defaults.Workspace != "~/.picoclaw/workspace" {
-		t.Errorf("expected workspace '~/.picoclaw/workspace', got '%s'", picoCfg.Agents.Defaults.Workspace)
+	if picoCfg.Agents.Defaults.Workspace != "~/.octopus/workspace" {
+		t.Errorf("expected workspace '~/.octopus/workspace', got '%s'", picoCfg.Agents.Defaults.Workspace)
 	}
 
 	if len(picoCfg.Agents.List) != 2 {
@@ -291,7 +291,7 @@ func TestConvertToPicoClaw(t *testing.T) {
 }
 
 func TestToStandardConfig_ExecAllowRemoteDefaultsTrue(t *testing.T) {
-	cfg := (&PicoClawConfig{
+	cfg := (&OctopusConfig{
 		Tools: ToolsConfig{
 			Exec: ExecConfig{
 				EnableDenyPatterns: true,
@@ -304,9 +304,9 @@ func TestToStandardConfig_ExecAllowRemoteDefaultsTrue(t *testing.T) {
 	}
 }
 
-func TestConvertToPicoClawWithQQAndDingTalk(t *testing.T) {
+func TestConvertToOctopusWithQQAndDingTalk(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"agents": {
@@ -345,12 +345,12 @@ func TestConvertToPicoClawWithQQAndDingTalk(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
 
-	picoCfg, _, err := cfg.ConvertToPicoClaw("")
+	picoCfg, _, err := cfg.ConvertToOctopus("")
 	if err != nil {
 		t.Fatalf("failed to convert config: %v", err)
 	}
@@ -390,9 +390,9 @@ func TestConvertToPicoClawWithQQAndDingTalk(t *testing.T) {
 	}
 }
 
-func TestConvertToPicoClawWithMatrix(t *testing.T) {
+func TestConvertToOctopusWithMatrix(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"channels": {
@@ -411,12 +411,12 @@ func TestConvertToPicoClawWithMatrix(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
 
-	picoCfg, warnings, err := cfg.ConvertToPicoClaw("")
+	picoCfg, warnings, err := cfg.ConvertToOctopus("")
 	if err != nil {
 		t.Fatalf("failed to convert config: %v", err)
 	}
@@ -445,9 +445,9 @@ func TestConvertToPicoClawWithMatrix(t *testing.T) {
 	}
 }
 
-func TestConvertToPicoClawWithMatrixDisabled(t *testing.T) {
+func TestConvertToOctopusWithMatrixDisabled(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{
 		"channels": {
@@ -465,12 +465,12 @@ func TestConvertToPicoClawWithMatrixDisabled(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfig(configPath)
+	cfg, err := LoadOctopusConfig(configPath)
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
 	}
 
-	picoCfg, _, err := cfg.ConvertToPicoClaw("")
+	picoCfg, _, err := cfg.ConvertToOctopus("")
 	if err != nil {
 		t.Fatalf("failed to convert config: %v", err)
 	}
@@ -480,8 +480,8 @@ func TestConvertToPicoClawWithMatrixDisabled(t *testing.T) {
 	}
 }
 
-func TestOpenClawAgentModel(t *testing.T) {
-	model := &OpenClawAgentModel{
+func TestOctopusAgentModel(t *testing.T) {
+	model := &OctopusAgentModel{
 		Primary:   strPtr("anthropic/claude-3-opus"),
 		Fallbacks: []string{"claude-3-sonnet", "claude-3-haiku"},
 	}
@@ -496,7 +496,7 @@ func TestOpenClawAgentModel(t *testing.T) {
 		t.Errorf("expected 2 fallbacks, got %d", len(fallbacks))
 	}
 
-	model2 := &OpenClawAgentModel{
+	model2 := &OctopusAgentModel{
 		Simple: "claude-3-opus",
 	}
 
@@ -507,15 +507,15 @@ func TestOpenClawAgentModel(t *testing.T) {
 }
 
 func TestChannelEnabled(t *testing.T) {
-	cfg := &OpenClawConfig{
-		Channels: &OpenClawChannels{
-			Telegram: &OpenClawTelegramConfig{
+	cfg := &OctopusConfig{
+		Channels: &OctopusChannels{
+			Telegram: &OctopusTelegramConfig{
 				Enabled: boolPtr(true),
 			},
-			Discord: &OpenClawDiscordConfig{
+			Discord: &OctopusDiscordConfig{
 				Enabled: boolPtr(false),
 			},
-			Slack: &OpenClawSlackConfig{
+			Slack: &OctopusSlackConfig{
 				Enabled: boolPtr(true),
 			},
 		},
@@ -539,10 +539,10 @@ func TestChannelEnabled(t *testing.T) {
 }
 
 func TestGetDefaultModel(t *testing.T) {
-	cfg := &OpenClawConfig{
-		Agents: &OpenClawAgents{
-			Defaults: &OpenClawAgentDefaults{
-				Model: &OpenClawAgentModel{
+	cfg := &OctopusConfig{
+		Agents: &OctopusAgents{
+			Defaults: &OctopusAgentDefaults{
+				Model: &OctopusAgentModel{
 					Primary: strPtr("openai/gpt-4"),
 				},
 			},
@@ -559,7 +559,7 @@ func TestGetDefaultModel(t *testing.T) {
 }
 
 func TestGetDefaultModelWithNoDefaults(t *testing.T) {
-	cfg := &OpenClawConfig{}
+	cfg := &OctopusConfig{}
 
 	provider, model := cfg.GetDefaultModel()
 	if provider != "anthropic" {
@@ -571,13 +571,13 @@ func TestGetDefaultModelWithNoDefaults(t *testing.T) {
 }
 
 func TestHasFunctions(t *testing.T) {
-	cfg := &OpenClawConfig{
-		Skills:  &OpenClawSkills{Entries: map[string]json.RawMessage{"skill1": nil}},
+	cfg := &OctopusConfig{
+		Skills:  &OctopusSkills{Entries: map[string]json.RawMessage{"skill1": nil}},
 		Memory:  json.RawMessage(`{"enabled": true}`),
 		Cron:    json.RawMessage(`{"enabled": true}`),
 		Hooks:   json.RawMessage(`{"enabled": true}`),
 		Session: json.RawMessage(`{"enabled": true}`),
-		Auth:    &OpenClawAuth{Profiles: json.RawMessage(`{"profile1": {}}`)},
+		Auth:    &OctopusAuth{Profiles: json.RawMessage(`{"profile1": {}}`)},
 	}
 
 	if !cfg.HasSkills() {
@@ -599,7 +599,7 @@ func TestHasFunctions(t *testing.T) {
 		t.Error("should have auth profiles")
 	}
 
-	cfg2 := &OpenClawConfig{}
+	cfg2 := &OctopusConfig{}
 	if cfg2.HasSkills() {
 		t.Error("should not have skills")
 	}
@@ -608,9 +608,9 @@ func TestHasFunctions(t *testing.T) {
 	}
 }
 
-func TestLoadOpenClawConfigFromDir(t *testing.T) {
+func TestLoadOctopusConfigFromDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 
 	testConfig := `{"agents": {}}`
 	err := os.WriteFile(configPath, []byte(testConfig), 0o644)
@@ -618,7 +618,7 @@ func TestLoadOpenClawConfigFromDir(t *testing.T) {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
-	cfg, err := LoadOpenClawConfigFromDir(tmpDir)
+	cfg, err := LoadOctopusConfigFromDir(tmpDir)
 	if err != nil {
 		t.Fatalf("failed to load config from dir: %v", err)
 	}
@@ -627,19 +627,19 @@ func TestLoadOpenClawConfigFromDir(t *testing.T) {
 		t.Error("agents should not be nil")
 	}
 
-	_, err = LoadOpenClawConfigFromDir("/nonexistent/dir")
+	_, err = LoadOctopusConfigFromDir("/nonexistent/dir")
 	if err == nil {
 		t.Error("should return error for nonexistent dir")
 	}
 }
 
 func TestToStandardConfig(t *testing.T) {
-	picoCfg := &PicoClawConfig{
+	picoCfg := &OctopusConfig{
 		Agents: AgentsConfig{
 			Defaults: AgentDefaults{
 				Provider:  "anthropic",
 				ModelName: "claude-sonnet-4-20250514",
-				Workspace: "~/.picoclaw/workspace",
+				Workspace: "~/.octopus/workspace",
 			},
 			List: []AgentConfig{
 				{
@@ -681,8 +681,8 @@ func TestToStandardConfig(t *testing.T) {
 	if stdCfg.Agents.Defaults.ModelName != "claude-sonnet-4-20250514" {
 		t.Errorf("expected model name 'claude-sonnet-4-20250514', got '%s'", stdCfg.Agents.Defaults.ModelName)
 	}
-	if stdCfg.Agents.Defaults.Workspace != "~/.picoclaw/workspace" {
-		t.Errorf("expected workspace '~/.picoclaw/workspace', got '%s'", stdCfg.Agents.Defaults.Workspace)
+	if stdCfg.Agents.Defaults.Workspace != "~/.octopus/workspace" {
+		t.Errorf("expected workspace '~/.octopus/workspace', got '%s'", stdCfg.Agents.Defaults.Workspace)
 	}
 
 	if len(stdCfg.Agents.List) != 1 {

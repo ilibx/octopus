@@ -3,14 +3,14 @@ package skills
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/sipeed/picoclaw/pkg/skills"
+	"github.com/ilibx/octopus/pkg/skills"
 )
 
 func newListCommand(loaderFn func() (*skills.SkillsLoader, error)) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List installed skills",
-		Example: `picoclaw skills list`,
+		Example: `octopus skills list`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			loader, err := loaderFn()
 			if err != nil {
