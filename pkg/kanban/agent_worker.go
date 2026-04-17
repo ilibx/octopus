@@ -114,9 +114,10 @@ func (w *AgentWorker) tryProcessNextTask(workerNum int) {
 	go w.executeTask(task, workerNum)
 }
 
-// fetchNextPendingTask gets the next pending task from the zone
+// fetchNextPendingTask gets the next pending task from the zone respecting DAG dependencies
 func (w *AgentWorker) fetchNextPendingTask() *Task {
-	tasks := w.board.GetTasksByStatus(w.zoneID, TaskPending)
+	// Get ready tasks (pending tasks with satisfied dependencies)
+	tasks := w.board.GetReadyTasks(w.zoneID)
 	if len(tasks) == 0 {
 		return nil
 	}
@@ -153,19 +154,21 @@ func (w *AgentWorker) releaseTask(taskID string) {
 	delete(w.currentTasks, taskID)
 }
 
-// executeTask executes a single task
+// executeTask executes a single task using the sub-agent
+// The sub-agent reports status back to the Main Agent via the KanbanService
 func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 	defer w.releaseTask(task.ID)
 
-	logger.InfoCF("agent_worker", "Executing task",
+	logger.InfoCF("agent_worker", "Sub-agent executing task",
 		map[string]any{
-			"zone_id":    w.zoneID,
-			"task_id":    task.ID,
-			"title":      task.Title,
-			"worker_num": workerNum,
+			"zone_id":     w.zoneID,
+			"sub_agent_id": w.agentID,
+			"task_id":     task.ID,
+			"title":       task.Title,
+			"worker_num":  workerNum,
 		})
 
-	// Update task status to running
+	// Update task status to running - this notifies the Main Agent
 	err := w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskRunning, "", "")
 	if err != nil {
 		logger.ErrorCF("agent_worker", "Failed to update task status to running",
@@ -173,13 +176,17 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 		return
 	}
 
-	// Execute the task using the agent instance
+	// Execute the task using the sub-agent instance
 	result, err := w.runTaskExecution(task)
 
-	// Update task status based on result
+	// Update task status based on result - this notifies the Main Agent
 	if err != nil {
-		logger.ErrorCF("agent_worker", "Task execution failed",
-			map[string]any{"task_id": task.ID, "error": err.Error()})
+		logger.ErrorCF("agent_worker", "Sub-agent task execution failed",
+			map[string]any{
+				"sub_agent_id": w.agentID,
+				"task_id":      task.ID,
+				"error":        err.Error(),
+			})
 		
 		err = w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskFailed, "", err.Error())
 		if err != nil {
@@ -187,8 +194,12 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 				map[string]any{"task_id": task.ID, "error": err.Error()})
 		}
 	} else {
-		logger.InfoCF("agent_worker", "Task completed successfully",
-			map[string]any{"task_id": task.ID, "result": result})
+		logger.InfoCF("agent_worker", "Sub-agent task completed successfully",
+			map[string]any{
+				"sub_agent_id": w.agentID,
+				"task_id":      task.ID,
+				"result":       result,
+			})
 		
 		err = w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskCompleted, result, "")
 		if err != nil {
