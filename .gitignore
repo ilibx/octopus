@@ -1,33 +1,40 @@
 ```
-# Logs and temp files
+# Test coverage
+*.test
+*.prof
+
+# Go build artifacts
+*.o
+*.a
+*.so
+*.exe
+*.out
+
+# Go cache directories
+_gopath/
+pkg/
+bin/
+
+# Logs
 *.log
+
+# Temporary files
 *.tmp
 *.swp
+*.swo
 
 # Environment
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 
-# Dependencies
-vendor/
-
-# Build artifacts
-*.o
-*.obj
-*.a
-*.so
-*.dylib
-*.dll
-*.exe
-*.out
-
-# Go specific
-*.test
-*.prof
-cover.out
+# OS generated files
+.DS_Store
+Thumbs.db
 ```
