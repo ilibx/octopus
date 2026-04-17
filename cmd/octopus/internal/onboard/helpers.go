@@ -83,8 +83,8 @@ func onboard(encrypt bool) {
 	fmt.Println("\nNext steps:")
 	if encrypt {
 		fmt.Println("  1. Set your encryption passphrase before starting octopus:")
-		fmt.Println("       export PICOCLAW_KEY_PASSPHRASE=<your-passphrase>   # Linux/macOS")
-		fmt.Println("       set PICOCLAW_KEY_PASSPHRASE=<your-passphrase>      # Windows cmd")
+		fmt.Println("       export OCTOPUS_KEY_PASSPHRASE=<your-passphrase>   # Linux/macOS")
+		fmt.Println("       set OCTOPUS_KEY_PASSPHRASE=<your-passphrase>      # Windows cmd")
 		fmt.Println("")
 		fmt.Println("  2. Add your API key to", configPath)
 	} else {

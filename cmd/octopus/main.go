@@ -7,21 +7,21 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ilibx/octopus/cmd/picoclaw/internal"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/agent"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/auth"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/cron"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/gateway"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/migrate"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/model"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/onboard"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/skills"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/status"
-	"github.com/ilibx/octopus/cmd/picoclaw/internal/version"
+	"github.com/ilibx/octopus/cmd/octopus/internal"
+	"github.com/ilibx/octopus/cmd/octopus/internal/agent"
+	"github.com/ilibx/octopus/cmd/octopus/internal/auth"
+	"github.com/ilibx/octopus/cmd/octopus/internal/cron"
+	"github.com/ilibx/octopus/cmd/octopus/internal/gateway"
+	"github.com/ilibx/octopus/cmd/octopus/internal/migrate"
+	"github.com/ilibx/octopus/cmd/octopus/internal/model"
+	"github.com/ilibx/octopus/cmd/octopus/internal/onboard"
+	"github.com/ilibx/octopus/cmd/octopus/internal/skills"
+	"github.com/ilibx/octopus/cmd/octopus/internal/status"
+	"github.com/ilibx/octopus/cmd/octopus/internal/version"
 	"github.com/ilibx/octopus/pkg/config"
 )
 
-func NewPicoclawCommand() *cobra.Command {
+func NewOctopusCommand() *cobra.Command {
 	short := fmt.Sprintf("%s octopus - Personal AI Assistant v%s\n\n", internal.Logo, config.GetVersion())
 
 	cmd := &cobra.Command{
@@ -61,7 +61,7 @@ const (
 
 func main() {
 	fmt.Printf("%s", banner)
-	cmd := NewPicoclawCommand()
+	cmd := NewOctopusCommand()
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}

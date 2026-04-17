@@ -50,4 +50,4 @@ Discussions: https://github.com/ilibx/octopus/discussions
 ---
 
 "Every bit helps, every bit matters."
-- Picoclaw
+- Octopus

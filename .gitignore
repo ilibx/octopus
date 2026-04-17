@@ -3,35 +3,49 @@
 *.o
 *.obj
 *.out
-*.a
-*.so
-*.dll
-*.exe
 
 # Dependencies
 vendor/
-Godeps/
 
 # Logs and temp files
 *.log
 *.tmp
-*.swp
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Go-specific
+# Build directories
+bin/
+dist/
+build/
+target/
+
+# Package manager caches
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Go specific
 *.test
 *.prof
+go.mod
+go.sum
 ```

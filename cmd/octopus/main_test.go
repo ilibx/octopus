@@ -12,8 +12,8 @@ import (
 	"github.com/ilibx/octopus/pkg/config"
 )
 
-func TestNewPicoclawCommand(t *testing.T) {
-	cmd := NewPicoclawCommand()
+func TestNewOctopusCommand(t *testing.T) {
+	cmd := NewOctopusCommand()
 
 	require.NotNil(t, cmd)
 

@@ -39,7 +39,7 @@ func (c *AuthCredential) NeedsRefresh() bool {
 }
 
 func authFilePath() string {
-	if home := os.Getenv("PICOCLAW_HOME"); home != "" {
+	if home := os.Getenv("OCTOPUS_HOME"); home != "" {
 		return filepath.Join(home, "auth.json")
 	}
 	home, _ := os.UserHomeDir()

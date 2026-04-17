@@ -51,7 +51,7 @@ func (cb *ContextBuilder) WithToolDiscovery(useBM25, useRegex bool) *ContextBuil
 }
 
 func getGlobalConfigDir() string {
-	if home := os.Getenv("PICOCLAW_HOME"); home != "" {
+	if home := os.Getenv("OCTOPUS_HOME"); home != "" {
 		return home
 	}
 	home, err := os.UserHomeDir()
@@ -64,7 +64,7 @@ func getGlobalConfigDir() string {
 func NewContextBuilder(workspace string) *ContextBuilder {
 	// builtin skills: skills directory in current project
 	// Use the skills/ directory under the current working directory
-	builtinSkillsDir := strings.TrimSpace(os.Getenv("PICOCLAW_BUILTIN_SKILLS"))
+	builtinSkillsDir := strings.TrimSpace(os.Getenv("OCTOPUS_BUILTIN_SKILLS"))
 	if builtinSkillsDir == "" {
 		wd, _ := os.Getwd()
 		builtinSkillsDir = filepath.Join(wd, "skills")
