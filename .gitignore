@@ -1,40 +1,54 @@
 ```
-# Test coverage
-*.test
-*.prof
-
-# Go build artifacts
+# Compiled and build artifacts
 *.o
-*.a
-*.so
-*.exe
+*.obj
 *.out
 
-# Go cache directories
-_gopath/
-pkg/
-bin/
+# Dependencies
+vendor/
 
-# Logs
+# Logs and temp files
 *.log
-
-# Temporary files
 *.tmp
 *.swp
-*.swo
+
+# Editors
+.vscode/
+.idea/
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Go specific
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Build directories
+dist/
+build/
+target/
+bin/
+
+# Cache directories
+.cache/
+.mypy_cache/
+.pytest_cache/
+.gradle/
 ```

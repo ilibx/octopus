@@ -78,6 +78,19 @@ func NewCronService(storePath string, onJob JobHandler) *CronService {
 	return cs
 }
 
+// NewCronService creates a new cron service with default empty store (for testing)
+func NewCronService() *CronService {
+	return &CronService{
+		storePath: "",
+		onJob:     nil,
+		gronx:     gronx.New(),
+		store: &CronStore{
+			Version: 1,
+			Jobs:    []CronJob{},
+		},
+	}
+}
+
 func (cs *CronService) Start() error {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
@@ -336,6 +349,13 @@ func (cs *CronService) SetOnJob(handler JobHandler) {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
 	cs.onJob = handler
+}
+
+// GetOnJob returns the current job handler (for testing)
+func (cs *CronService) GetOnJob() JobHandler {
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
+	return cs.onJob
 }
 
 func (cs *CronService) loadStore() error {

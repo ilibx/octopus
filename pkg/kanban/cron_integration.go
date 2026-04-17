@@ -282,3 +282,8 @@ func (i *CronKanbanIntegration) ImportCronConfig(configData []byte) error {
 
 	return nil
 }
+
+// HandleCronJobForTest exports handleCronJob for testing purposes
+func (i *CronKanbanIntegration) HandleCronJobForTest(job *cron.CronJob) (string, error) {
+	return i.handleCronJob(job)
+}
