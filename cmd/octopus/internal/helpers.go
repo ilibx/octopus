@@ -9,6 +9,9 @@ import (
 
 const Logo = "🦞"
 
+// configPath is the global config path, can be set via SetConfigPath()
+var configPath string
+
 // GetOctopusHome returns the octopus home directory.
 // Priority: $OCTOPUS_HOME > ~/.octopus
 func GetOctopusHome() string {
@@ -19,7 +22,17 @@ func GetOctopusHome() string {
 	return filepath.Join(home, ".octopus")
 }
 
+// SetConfigPath sets the config path globally
+func SetConfigPath(path string) {
+	configPath = path
+}
+
+// GetConfigPath returns the config file path.
+// Priority: --config flag > $OCTOPUS_CONFIG > ~/.octopus/config.json
 func GetConfigPath() string {
+	if configPath != "" {
+		return configPath
+	}
 	if configPath := os.Getenv("OCTOPUS_CONFIG"); configPath != "" {
 		return configPath
 	}

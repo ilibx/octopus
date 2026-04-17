@@ -28,12 +28,23 @@ type ResolvedRoute struct {
 
 // RouteResolver determines which agent handles a message based on config bindings.
 type RouteResolver struct {
-	cfg *config.Config
+	cfg           *config.Config
+	agentRegistry *AgentRegistryCache
+}
+
+// AgentRegistryCache caches the list of registered agents for routing decisions
+type AgentRegistryCache struct {
+	agents []string
 }
 
 // NewRouteResolver creates a new route resolver.
 func NewRouteResolver(cfg *config.Config) *RouteResolver {
 	return &RouteResolver{cfg: cfg}
+}
+
+// SetAgentRegistry sets the agent registry cache for routing decisions
+func (r *RouteResolver) SetAgentRegistry(registry *AgentRegistryCache) {
+	r.agentRegistry = registry
 }
 
 // ResolveRoute determines which agent handles the message and constructs session keys.
@@ -220,33 +231,32 @@ func (r *RouteResolver) pickAgentID(agentID string) string {
 		return NormalizeAgentID(r.resolveDefaultAgentID())
 	}
 	normalized := NormalizeAgentID(trimmed)
-	agents := r.cfg.Agents.List
-	if len(agents) == 0 {
-		return normalized
-	}
-	for _, a := range agents {
-		if NormalizeAgentID(a.ID) == normalized {
-			return normalized
+	
+	// Check against registered agents if available
+	if r.agentRegistry != nil && len(r.agentRegistry.agents) > 0 {
+		for _, id := range r.agentRegistry.agents {
+			if id == normalized {
+				return normalized
+			}
 		}
+		return NormalizeAgentID(r.resolveDefaultAgentID())
 	}
-	return NormalizeAgentID(r.resolveDefaultAgentID())
+	
+	// Fallback: allow any agent ID (for dynamic registration)
+	return normalized
 }
 
 func (r *RouteResolver) resolveDefaultAgentID() string {
-	agents := r.cfg.Agents.List
-	if len(agents) == 0 {
-		return DefaultAgentID
-	}
-	for _, a := range agents {
-		if a.Default {
-			id := strings.TrimSpace(a.ID)
-			if id != "" {
-				return NormalizeAgentID(id)
+	// If we have a registry, use the first agent or "main"
+	if r.agentRegistry != nil && len(r.agentRegistry.agents) > 0 {
+		// Check for "main" agent first
+		for _, id := range r.agentRegistry.agents {
+			if id == "main" {
+				return "main"
 			}
 		}
-	}
-	if id := strings.TrimSpace(agents[0].ID); id != "" {
-		return NormalizeAgentID(id)
+		// Otherwise return first registered agent
+		return r.agentRegistry.agents[0]
 	}
 	return DefaultAgentID
 }
