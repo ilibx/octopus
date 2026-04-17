@@ -3,7 +3,6 @@ package telegram
 import (
 	"context"
 	"math/rand"
-	"slices"
 	"time"
 
 	"github.com/mymmrac/telego"
@@ -47,7 +46,7 @@ func (c *TelegramChannel) RegisterCommands(ctx context.Context, defs []commands.
 		// If we can't read current commands, fall through to set them.
 		logger.WarnCF("telegram", "Failed to get current commands, will set unconditionally",
 			map[string]any{"error": err.Error()})
-	} else if slices.Equal(current, botCommands) {
+	} else if slicesEqual(current, botCommands) {
 		logger.DebugCF("telegram", "Bot commands are up to date", nil)
 		return nil
 	}
@@ -55,6 +54,19 @@ func (c *TelegramChannel) RegisterCommands(ctx context.Context, defs []commands.
 	return c.bot.SetMyCommands(ctx, &telego.SetMyCommandsParams{
 		Commands: botCommands,
 	})
+}
+
+// slicesEqual compares two slices of BotCommand for equality.
+func slicesEqual(a, b []telego.BotCommand) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].Command != b[i].Command || a[i].Description != b[i].Description {
+			return false
+		}
+	}
+	return true
 }
 
 func (c *TelegramChannel) startCommandRegistration(ctx context.Context, defs []commands.Definition) {

@@ -1,3 +1,19 @@
-Nothing should be ignored in this case, as the changes only include Go source files (.go) which are source code files that should be tracked in version control. There are no build artifacts, dependencies, temporary files, or other items that need to be ignored.
-
-Output: (empty)
+```
+# Compiled and build artifacts
+*.o
+*.obj
+*.out
+# Dependencies
+vendor/
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+# Environment
+.env
+.env.local
+.env.*
+# Editors
+.vscode/
+.idea/
+```

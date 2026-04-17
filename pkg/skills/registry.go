@@ -3,9 +3,10 @@ package skills
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/ilibx/octopus/pkg/logger"
 )
 
 const (
@@ -166,7 +167,11 @@ func (rm *RegistryManager) SearchAll(ctx context.Context, query string, limit in
 
 			results, err := r.Search(searchCtx, query, limit)
 			if err != nil {
-				slog.Warn("registry search failed", "registry", r.Name(), "error", err)
+				logger.WarnCF("skills", "registry search failed",
+					map[string]any{
+						"registry": r.Name(),
+						"error":    err.Error(),
+					})
 				resultsCh <- regResult{err: err}
 				return
 			}
