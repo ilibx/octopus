@@ -55,6 +55,74 @@ func NewAgentRegistry(
 	return registry
 }
 
+// AddAgent dynamically adds a new agent instance to the registry.
+// Returns error if agent already exists.
+func (r *AgentRegistry) AddAgent(
+	agentCfg *config.AgentConfig,
+	defaults *config.AgentDefaults,
+	cfg *config.Config,
+	provider providers.LLMProvider,
+) (string, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	id := routing.NormalizeAgentID(agentCfg.ID)
+	if _, exists := r.agents[id]; exists {
+		return "", fmt.Errorf("agent %s already exists", id)
+	}
+
+	instance := NewAgentInstance(agentCfg, defaults, cfg, provider)
+	r.agents[id] = instance
+	logger.InfoCF("agent", "Dynamically added agent",
+		map[string]any{
+			"agent_id":  id,
+			"name":      agentCfg.Name,
+			"workspace": instance.Workspace,
+			"model":     instance.Model,
+		})
+
+	return id, nil
+}
+
+// RemoveAgent dynamically removes an agent instance from the registry.
+// Returns error if agent is the main agent or doesn't exist.
+func (r *AgentRegistry) RemoveAgent(agentID string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	id := routing.NormalizeAgentID(agentID)
+
+	// Never allow removal of the main agent
+	if id == "main" {
+		return fmt.Errorf("cannot remove main agent")
+	}
+
+	agent, exists := r.agents[id]
+	if !exists {
+		return fmt.Errorf("agent %s not found", id)
+	}
+
+	// Close the agent to release resources
+	if err := agent.Close(); err != nil {
+		logger.WarnCF("agent", "Failed to close agent during removal",
+			map[string]any{"agent_id": id, "error": err.Error()})
+	}
+
+	delete(r.agents, id)
+	logger.InfoCF("agent", "Removed agent",
+		map[string]any{"agent_id": id})
+
+	return nil
+}
+
+// IsMainAgent checks if the given agent ID is the main agent
+func (r *AgentRegistry) IsMainAgent(agentID string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	id := routing.NormalizeAgentID(agentID)
+	return id == "main"
+}
+
 // GetAgent returns the agent instance for a given ID.
 func (r *AgentRegistry) GetAgent(agentID string) (*AgentInstance, bool) {
 	r.mu.RLock()

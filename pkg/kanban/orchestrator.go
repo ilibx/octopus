@@ -8,7 +8,9 @@ import (
 
 	"github.com/ilibx/octopus/pkg/agent"
 	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/config"
 	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/providers"
 )
 
 // AgentOrchestrator manages the lifecycle of sub-agents based on kanban board state
@@ -18,15 +20,19 @@ type AgentOrchestrator struct {
 	msgBus        *bus.MessageBus
 	activeAgents  map[string]string // zoneID -> agentID
 	mu            sync.RWMutex
+	cfg           *config.Config
+	provider      providers.LLMProvider
 }
 
 // NewAgentOrchestrator creates a new orchestrator
-func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msgBus *bus.MessageBus) *AgentOrchestrator {
+func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msgBus *bus.MessageBus, cfg *config.Config, provider providers.LLMProvider) *AgentOrchestrator {
 	return &AgentOrchestrator{
 		board:         board,
 		agentRegistry: registry,
 		msgBus:        msgBus,
 		activeAgents:  make(map[string]string),
+		cfg:           cfg,
+		provider:      provider,
 	}
 }
 
@@ -53,6 +59,27 @@ func (o *AgentOrchestrator) checkAndSpawnAgents() {
 	defer o.mu.Unlock()
 
 	pendingTasks := o.board.GetPendingTasks()
+
+	// If no pending tasks at all, release all sub-agents
+	if len(pendingTasks) == 0 {
+		// Release all active sub-agents when board is empty
+		for zoneID, agentID := range o.activeAgents {
+			logger.InfoCF("orchestrator", "Kanban board empty, releasing sub-agent",
+				map[string]any{"zone_id": zoneID, "agent_id": agentID})
+
+			// Remove the agent from the registry (but never the main agent)
+			if err := o.agentRegistry.RemoveAgent(agentID); err != nil {
+				logger.WarnCF("orchestrator", "Failed to remove agent from registry",
+					map[string]any{"zone_id": zoneID, "agent_id": agentID, "error": err.Error()})
+			} else {
+				logger.InfoCF("orchestrator", "Agent successfully released due to empty board",
+					map[string]any{"zone_id": zoneID, "agent_id": agentID})
+			}
+			delete(o.activeAgents, zoneID)
+		}
+		return
+	}
+
 	for zoneID, tasks := range pendingTasks {
 		if len(tasks) == 0 {
 			continue
@@ -97,23 +124,28 @@ func (o *AgentOrchestrator) spawnAgentForZone(zoneID, agentType string) error {
 		return nil
 	}
 
-	// TODO: Implement dynamic agent spawning logic
-	// This would involve:
-	// 1. Loading agent.md configuration from a template or file
-	// 2. Creating a new AgentInstance with the appropriate configuration
-	// 3. Registering it with the agent registry
-	// 4. Starting the agent loop
+	// Create agent configuration dynamically
+	agentCfg := &config.AgentConfig{
+		ID:      agentID,
+		Name:    fmt.Sprintf("Subagent for zone %s", zoneID),
+		Default: false,
+	}
+
+	// Add the agent to the registry
+	addedID, err := o.agentRegistry.AddAgent(agentCfg, &o.cfg.Agents.Defaults, o.cfg, o.provider)
+	if err != nil {
+		return fmt.Errorf("failed to add agent: %w", err)
+	}
 
 	logger.InfoCF("orchestrator", "Spawning new agent for zone",
 		map[string]any{
 			"zone_id":    zoneID,
-			"agent_id":   agentID,
+			"agent_id":   addedID,
 			"agent_type": agentType,
 		})
 
-	// For now, just mark the zone as having an active agent
-	// In a full implementation, we would actually create and start the agent
-	o.activeAgents[zoneID] = agentID
+	// Mark the zone as having an active agent
+	o.activeAgents[zoneID] = addedID
 
 	return nil
 }
@@ -140,13 +172,44 @@ func (o *AgentOrchestrator) OnTaskCompleted(zoneID, taskID string) {
 	}
 
 	if allCompleted {
-		// Remove the agent from active agents
+		// Remove the agent from active agents and release it
 		if agentID, exists := o.activeAgents[zoneID]; exists {
 			logger.InfoCF("orchestrator", "All tasks completed in zone, releasing agent",
 				map[string]any{"zone_id": zoneID, "agent_id": agentID})
+
+			// Remove from active agents map
 			delete(o.activeAgents, zoneID)
-			// TODO: Actually stop/shutdown the agent instance
+
+			// Actually remove the agent from the registry (but never the main agent)
+			if err := o.agentRegistry.RemoveAgent(agentID); err != nil {
+				logger.WarnCF("orchestrator", "Failed to remove agent from registry",
+					map[string]any{"zone_id": zoneID, "agent_id": agentID, "error": err.Error()})
+			} else {
+				logger.InfoCF("orchestrator", "Agent successfully released from registry",
+					map[string]any{"zone_id": zoneID, "agent_id": agentID})
+			}
 		}
+	}
+}
+
+// ReleaseAllAgents releases all sub-agents when the kanban board is empty
+func (o *AgentOrchestrator) ReleaseAllAgents() {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	logger.InfoCF("orchestrator", "Releasing all sub-agents due to empty kanban board",
+		map[string]any{"active_agents_count": len(o.activeAgents)})
+
+	for zoneID, agentID := range o.activeAgents {
+		// Remove the agent from the registry (but never the main agent)
+		if err := o.agentRegistry.RemoveAgent(agentID); err != nil {
+			logger.WarnCF("orchestrator", "Failed to remove agent from registry",
+				map[string]any{"zone_id": zoneID, "agent_id": agentID, "error": err.Error()})
+		} else {
+			logger.InfoCF("orchestrator", "Agent successfully released",
+				map[string]any{"zone_id": zoneID, "agent_id": agentID})
+		}
+		delete(o.activeAgents, zoneID)
 	}
 }
 
