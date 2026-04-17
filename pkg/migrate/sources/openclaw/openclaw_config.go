@@ -1,4 +1,4 @@
-package openclaw
+package octopus
 
 import (
 	"encoding/json"
@@ -7,28 +7,28 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/ilibx/octopus/pkg/config"
 )
 
-type OpenClawConfig struct {
-	Auth     *OpenClawAuth     `json:"auth"`
-	Models   *OpenClawModels   `json:"models"`
-	Agents   *OpenClawAgents   `json:"agents"`
-	Tools    *OpenClawTools    `json:"tools"`
-	Channels *OpenClawChannels `json:"channels"`
+type OctopusConfig struct {
+	Auth     *OctopusAuth     `json:"auth"`
+	Models   *OctopusModels   `json:"models"`
+	Agents   *OctopusAgents   `json:"agents"`
+	Tools    *OctopusTools    `json:"tools"`
+	Channels *OctopusChannels `json:"channels"`
 	Cron     json.RawMessage   `json:"cron"`
 	Hooks    json.RawMessage   `json:"hooks"`
-	Skills   *OpenClawSkills   `json:"skills"`
+	Skills   *OctopusSkills   `json:"skills"`
 	Memory   json.RawMessage   `json:"memory"`
 	Session  json.RawMessage   `json:"session"`
 }
 
-type OpenClawAuth struct {
+type OctopusAuth struct {
 	Profiles json.RawMessage `json:"profiles"`
 	Order    json.RawMessage `json:"order"`
 }
 
-type OpenClawModels struct {
+type OctopusModels struct {
 	Providers map[string]json.RawMessage `json:"providers"`
 }
 
@@ -39,7 +39,7 @@ type ProviderConfig struct {
 	ApiKey  string        `json:"apiKey"`
 }
 
-type OpenClawModelConfig struct {
+type OctopusModelConfig struct {
 	ID            string   `json:"id"`
 	Name          string   `json:"name"`
 	Reasoning     bool     `json:"reasoning"`
@@ -57,31 +57,31 @@ type Cost struct {
 	CacheWrite float64 `json:"cacheWrite"`
 }
 
-type OpenClawTools struct {
+type OctopusTools struct {
 	Profile *string  `json:"profile"`
 	Allow   []string `json:"allow"`
 	Deny    []string `json:"deny"`
 }
 
-type OpenClawAgents struct {
-	Defaults *OpenClawAgentDefaults `json:"defaults"`
-	List     []OpenClawAgentEntry   `json:"list"`
+type OctopusAgents struct {
+	Defaults *OctopusAgentDefaults `json:"defaults"`
+	List     []OctopusAgentEntry   `json:"list"`
 }
 
-type OpenClawAgentDefaults struct {
-	Model     *OpenClawAgentModel `json:"model"`
+type OctopusAgentDefaults struct {
+	Model     *OctopusAgentModel `json:"model"`
 	Workspace *string             `json:"workspace"`
-	Tools     *OpenClawAgentTools `json:"tools"`
+	Tools     *OctopusAgentTools `json:"tools"`
 	Identity  *string             `json:"identity"`
 }
 
-type OpenClawAgentModel struct {
+type OctopusAgentModel struct {
 	Simple    string   `json:"-"`
 	Primary   *string  `json:"primary"`
 	Fallbacks []string `json:"fallbacks"`
 }
 
-func (m *OpenClawAgentModel) GetPrimary() string {
+func (m *OctopusAgentModel) GetPrimary() string {
 	if m.Simple != "" {
 		return m.Simple
 	}
@@ -91,47 +91,47 @@ func (m *OpenClawAgentModel) GetPrimary() string {
 	return ""
 }
 
-func (m *OpenClawAgentModel) GetFallbacks() []string {
+func (m *OctopusAgentModel) GetFallbacks() []string {
 	return m.Fallbacks
 }
 
-type OpenClawAgentEntry struct {
+type OctopusAgentEntry struct {
 	ID        string              `json:"id"`
 	Name      *string             `json:"name"`
-	Model     *OpenClawAgentModel `json:"model"`
-	Tools     *OpenClawAgentTools `json:"tools"`
+	Model     *OctopusAgentModel `json:"model"`
+	Tools     *OctopusAgentTools `json:"tools"`
 	Workspace *string             `json:"workspace"`
 	Skills    []string            `json:"skills"`
 	Identity  *string             `json:"identity"`
 }
 
-type OpenClawAgentTools struct {
+type OctopusAgentTools struct {
 	Profile   *string  `json:"profile"`
 	Allow     []string `json:"allow"`
 	Deny      []string `json:"deny"`
 	AlsoAllow []string `json:"alsoAllow"`
 }
 
-type OpenClawChannels struct {
-	Telegram    *OpenClawTelegramConfig    `json:"telegram"`
-	Discord     *OpenClawDiscordConfig     `json:"discord"`
-	Slack       *OpenClawSlackConfig       `json:"slack"`
-	WhatsApp    *OpenClawWhatsAppConfig    `json:"whatsapp"`
-	Signal      *OpenClawSignalConfig      `json:"signal"`
-	Matrix      *OpenClawMatrixConfig      `json:"matrix"`
-	GoogleChat  *OpenClawGoogleChatConfig  `json:"googlechat"`
-	Teams       *OpenClawTeamsConfig       `json:"msteams"`
-	IRC         *OpenClawIrcConfig         `json:"irc"`
-	Mattermost  *OpenClawMattermostConfig  `json:"mattermost"`
-	Feishu      *OpenClawFeishuConfig      `json:"feishu"`
-	IMessage    *OpenClawIMessageConfig    `json:"imessage"`
-	BlueBubbles *OpenClawBlueBubblesConfig `json:"bluebubbles"`
-	QQ          *OpenClawQQConfig          `json:"qq"`
-	DingTalk    *OpenClawDingTalkConfig    `json:"dingtalk"`
-	MaixCam     *OpenClawMaixCamConfig     `json:"maixcam"`
+type OctopusChannels struct {
+	Telegram    *OctopusTelegramConfig    `json:"telegram"`
+	Discord     *OctopusDiscordConfig     `json:"discord"`
+	Slack       *OctopusSlackConfig       `json:"slack"`
+	WhatsApp    *OctopusWhatsAppConfig    `json:"whatsapp"`
+	Signal      *OctopusSignalConfig      `json:"signal"`
+	Matrix      *OctopusMatrixConfig      `json:"matrix"`
+	GoogleChat  *OctopusGoogleChatConfig  `json:"googlechat"`
+	Teams       *OctopusTeamsConfig       `json:"msteams"`
+	IRC         *OctopusIrcConfig         `json:"irc"`
+	Mattermost  *OctopusMattermostConfig  `json:"mattermost"`
+	Feishu      *OctopusFeishuConfig      `json:"feishu"`
+	IMessage    *OctopusIMessageConfig    `json:"imessage"`
+	BlueBubbles *OctopusBlueBubblesConfig `json:"bluebubbles"`
+	QQ          *OctopusQQConfig          `json:"qq"`
+	DingTalk    *OctopusDingTalkConfig    `json:"dingtalk"`
+	MaixCam     *OctopusMaixCamConfig     `json:"maixcam"`
 }
 
-type OpenClawTelegramConfig struct {
+type OctopusTelegramConfig struct {
 	BotToken    *string  `json:"botToken"`
 	AllowFrom   []string `json:"allowFrom"`
 	GroupPolicy *string  `json:"groupPolicy"`
@@ -139,7 +139,7 @@ type OpenClawTelegramConfig struct {
 	Enabled     *bool    `json:"enabled"`
 }
 
-type OpenClawDiscordConfig struct {
+type OctopusDiscordConfig struct {
 	Token       *string         `json:"token"`
 	Guilds      json.RawMessage `json:"guilds"`
 	DmPolicy    *string         `json:"dmPolicy"`
@@ -148,7 +148,7 @@ type OpenClawDiscordConfig struct {
 	Enabled     *bool           `json:"enabled"`
 }
 
-type OpenClawSlackConfig struct {
+type OctopusSlackConfig struct {
 	BotToken    *string  `json:"botToken"`
 	AppToken    *string  `json:"appToken"`
 	DmPolicy    *string  `json:"dmPolicy"`
@@ -157,7 +157,7 @@ type OpenClawSlackConfig struct {
 	Enabled     *bool    `json:"enabled"`
 }
 
-type OpenClawWhatsAppConfig struct {
+type OctopusWhatsAppConfig struct {
 	AuthDir     *string  `json:"authDir"`
 	DmPolicy    *string  `json:"dmPolicy"`
 	AllowFrom   []string `json:"allowFrom"`
@@ -166,7 +166,7 @@ type OpenClawWhatsAppConfig struct {
 	BridgeURL   *string  `json:"bridgeUrl"`
 }
 
-type OpenClawSignalConfig struct {
+type OctopusSignalConfig struct {
 	HttpUrl   *string  `json:"httpUrl"`
 	HttpHost  *string  `json:"httpHost"`
 	HttpPort  *int     `json:"httpPort"`
@@ -176,7 +176,7 @@ type OpenClawSignalConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawMatrixConfig struct {
+type OctopusMatrixConfig struct {
 	Homeserver  *string  `json:"homeserver"`
 	UserID      *string  `json:"userId"`
 	AccessToken *string  `json:"accessToken"`
@@ -186,7 +186,7 @@ type OpenClawMatrixConfig struct {
 	Enabled     *bool    `json:"enabled"`
 }
 
-type OpenClawGoogleChatConfig struct {
+type OctopusGoogleChatConfig struct {
 	ServiceAccountFile *string `json:"serviceAccountFile"`
 	WebhookPath        *string `json:"webhookPath"`
 	BotUser            *string `json:"botUser"`
@@ -194,7 +194,7 @@ type OpenClawGoogleChatConfig struct {
 	Enabled            *bool   `json:"enabled"`
 }
 
-type OpenClawTeamsConfig struct {
+type OctopusTeamsConfig struct {
 	AppID       *string  `json:"appId"`
 	AppPassword *string  `json:"appPassword"`
 	TenantID    *string  `json:"tenantId"`
@@ -203,7 +203,7 @@ type OpenClawTeamsConfig struct {
 	Enabled     *bool    `json:"enabled"`
 }
 
-type OpenClawIrcConfig struct {
+type OctopusIrcConfig struct {
 	Host      *string  `json:"host"`
 	Port      *int     `json:"port"`
 	TLS       *bool    `json:"tls"`
@@ -215,7 +215,7 @@ type OpenClawIrcConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawMattermostConfig struct {
+type OctopusMattermostConfig struct {
 	BotToken  *string  `json:"botToken"`
 	BaseURL   *string  `json:"baseUrl"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -223,7 +223,7 @@ type OpenClawMattermostConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawFeishuConfig struct {
+type OctopusFeishuConfig struct {
 	AppID             *string  `json:"appId"`
 	AppSecret         *string  `json:"appSecret"`
 	Domain            *string  `json:"domain"`
@@ -234,7 +234,7 @@ type OpenClawFeishuConfig struct {
 	AllowFrom         []string `json:"allowFrom"`
 }
 
-type OpenClawIMessageConfig struct {
+type OctopusIMessageConfig struct {
 	CliPath   *string  `json:"cliPath"`
 	DbPath    *string  `json:"dbPath"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -242,7 +242,7 @@ type OpenClawIMessageConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawBlueBubblesConfig struct {
+type OctopusBlueBubblesConfig struct {
 	ServerURL *string  `json:"serverUrl"`
 	Password  *string  `json:"password"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -250,7 +250,7 @@ type OpenClawBlueBubblesConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawQQConfig struct {
+type OctopusQQConfig struct {
 	AppID     *string  `json:"appId"`
 	AppSecret *string  `json:"appSecret"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -258,7 +258,7 @@ type OpenClawQQConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawDingTalkConfig struct {
+type OctopusDingTalkConfig struct {
 	AppID     *string  `json:"appId"`
 	AppSecret *string  `json:"appSecret"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -266,7 +266,7 @@ type OpenClawDingTalkConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawMaixCamConfig struct {
+type OctopusMaixCamConfig struct {
 	Host      *string  `json:"host"`
 	Port      *int     `json:"port"`
 	DmPolicy  *string  `json:"dmPolicy"`
@@ -274,27 +274,27 @@ type OpenClawMaixCamConfig struct {
 	Enabled   *bool    `json:"enabled"`
 }
 
-type OpenClawSkills struct {
+type OctopusSkills struct {
 	Entries map[string]json.RawMessage `json:"entries"`
 	Load    json.RawMessage            `json:"load"`
 }
 
-type OpenClawProviderConfig struct {
+type OctopusProviderConfig struct {
 	APIKey  string `json:"api_key"`
 	BaseURL string `json:"base_url"`
 }
 
-func (c *OpenClawConfig) GetEnabled() bool {
+func (c *OctopusConfig) GetEnabled() bool {
 	return true
 }
 
-func LoadOpenClawConfig(path string) (*OpenClawConfig, error) {
+func LoadOctopusConfig(path string) (*OctopusConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
 
-	var config OpenClawConfig
+	var config OctopusConfig
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
@@ -302,29 +302,29 @@ func LoadOpenClawConfig(path string) (*OpenClawConfig, error) {
 	return &config, nil
 }
 
-func LoadOpenClawConfigFromDir(dir string) (*OpenClawConfig, error) {
+func LoadOctopusConfigFromDir(dir string) (*OctopusConfig, error) {
 	candidates := []string{
-		filepath.Join(dir, "openclaw.json"),
+		filepath.Join(dir, "octopus.json"),
 		filepath.Join(dir, "config.json"),
 	}
 
 	for _, p := range candidates {
 		if _, err := os.Stat(p); err == nil {
-			return LoadOpenClawConfig(p)
+			return LoadOctopusConfig(p)
 		}
 	}
 
 	return nil, fmt.Errorf("no config file found in %s", dir)
 }
 
-func GetProviderConfig(models *OpenClawModels) map[string]OpenClawProviderConfig {
-	result := make(map[string]OpenClawProviderConfig)
+func GetProviderConfig(models *OctopusModels) map[string]OctopusProviderConfig {
+	result := make(map[string]OctopusProviderConfig)
 	if models == nil || models.Providers == nil {
 		return result
 	}
 
 	for name, raw := range models.Providers {
-		var prov OpenClawProviderConfig
+		var prov OctopusProviderConfig
 		if err := json.Unmarshal(raw, &prov); err != nil {
 			continue
 		}
@@ -347,7 +347,7 @@ func GetProviderConfigFromDir(dir string) map[string]ProviderConfig {
 	if err != nil {
 		return result
 	}
-	var models OpenClawModels
+	var models OctopusModels
 	if err := json.Unmarshal(data, &models); err != nil {
 		return result
 	}
@@ -363,7 +363,7 @@ func GetProviderConfigFromDir(dir string) map[string]ProviderConfig {
 	return result
 }
 
-func (c *OpenClawConfig) IsChannelEnabled(name string) bool {
+func (c *OctopusConfig) IsChannelEnabled(name string) bool {
 	switch name {
 	case "telegram":
 		return c.Channels.Telegram == nil || c.Channels.Telegram.Enabled == nil || *c.Channels.Telegram.Enabled
@@ -384,32 +384,32 @@ func (c *OpenClawConfig) IsChannelEnabled(name string) bool {
 
 func GetChannelAllowFrom(ch any) []string {
 	switch c := ch.(type) {
-	case *OpenClawTelegramConfig:
+	case *OctopusTelegramConfig:
 		if c == nil {
 			return nil
 		}
 		return c.AllowFrom
-	case *OpenClawDiscordConfig:
+	case *OctopusDiscordConfig:
 		if c == nil {
 			return nil
 		}
 		return c.AllowFrom
-	case *OpenClawSlackConfig:
+	case *OctopusSlackConfig:
 		if c == nil {
 			return nil
 		}
 		return c.AllowFrom
-	case *OpenClawMatrixConfig:
+	case *OctopusMatrixConfig:
 		if c == nil {
 			return nil
 		}
 		return c.AllowFrom
-	case *OpenClawWhatsAppConfig:
+	case *OctopusWhatsAppConfig:
 		if c == nil {
 			return nil
 		}
 		return c.AllowFrom
-	case *OpenClawFeishuConfig:
+	case *OctopusFeishuConfig:
 		if c == nil {
 			return nil
 		}
@@ -419,7 +419,7 @@ func GetChannelAllowFrom(ch any) []string {
 	}
 }
 
-func (c *OpenClawConfig) GetDefaultModel() (provider, model string) {
+func (c *OctopusConfig) GetDefaultModel() (provider, model string) {
 	if c.Agents == nil || c.Agents.Defaults == nil || c.Agents.Defaults.Model == nil {
 		return "anthropic", "claude-sonnet-4-20250514"
 	}
@@ -437,46 +437,46 @@ func (c *OpenClawConfig) GetDefaultModel() (provider, model string) {
 	return "anthropic", primary
 }
 
-func (c *OpenClawConfig) GetDefaultWorkspace() string {
+func (c *OctopusConfig) GetDefaultWorkspace() string {
 	if c.Agents == nil || c.Agents.Defaults == nil || c.Agents.Defaults.Workspace == nil {
 		return ""
 	}
 	return rewriteWorkspacePath(*c.Agents.Defaults.Workspace)
 }
 
-func (c *OpenClawConfig) GetAgents() []OpenClawAgentEntry {
+func (c *OctopusConfig) GetAgents() []OctopusAgentEntry {
 	if c.Agents == nil {
 		return nil
 	}
 	return c.Agents.List
 }
 
-func (c *OpenClawConfig) HasSkills() bool {
+func (c *OctopusConfig) HasSkills() bool {
 	return c.Skills != nil && c.Skills.Entries != nil && len(c.Skills.Entries) > 0
 }
 
-func (c *OpenClawConfig) HasMemory() bool {
+func (c *OctopusConfig) HasMemory() bool {
 	return c.Memory != nil && len(c.Memory) > 0
 }
 
-func (c *OpenClawConfig) HasCron() bool {
+func (c *OctopusConfig) HasCron() bool {
 	return c.Cron != nil && len(c.Cron) > 0
 }
 
-func (c *OpenClawConfig) HasHooks() bool {
+func (c *OctopusConfig) HasHooks() bool {
 	return c.Hooks != nil && len(c.Hooks) > 0
 }
 
-func (c *OpenClawConfig) HasSession() bool {
+func (c *OctopusConfig) HasSession() bool {
 	return c.Session != nil && len(c.Session) > 0
 }
 
-func (c *OpenClawConfig) HasAuthProfiles() bool {
+func (c *OctopusConfig) HasAuthProfiles() bool {
 	return c.Auth != nil && c.Auth.Profiles != nil && len(c.Auth.Profiles) > 0
 }
 
-func (c *OpenClawConfig) ConvertToPicoClaw(sourceHome string) (*PicoClawConfig, []string, error) {
-	cfg := &PicoClawConfig{}
+func (c *OctopusConfig) ConvertToOctopus(sourceHome string) (*OctopusConfig, []string, error) {
+	cfg := &OctopusConfig{}
 	var warnings []string
 
 	provider, modelName := c.GetDefaultModel()
@@ -527,25 +527,25 @@ func (c *OpenClawConfig) ConvertToPicoClaw(sourceHome string) (*PicoClawConfig, 
 		warnings = append(
 			warnings,
 			fmt.Sprintf(
-				"Skills (%d entries) not automatically migrated - reinstall via picoclaw CLI",
+				"Skills (%d entries) not automatically migrated - reinstall via octopus CLI",
 				len(c.Skills.Entries),
 			),
 		)
 	}
 	if c.HasMemory() {
-		warnings = append(warnings, "Memory backend config not migrated - PicoClaw uses SQLite with vector embeddings")
+		warnings = append(warnings, "Memory backend config not migrated - Octopus uses SQLite with vector embeddings")
 	}
 	if c.HasCron() {
 		warnings = append(
 			warnings,
-			"Cron job scheduling not supported in PicoClaw - consider using external schedulers",
+			"Cron job scheduling not supported in Octopus - consider using external schedulers",
 		)
 	}
 	if c.HasHooks() {
-		warnings = append(warnings, "Webhook hooks not supported in PicoClaw - use event system instead")
+		warnings = append(warnings, "Webhook hooks not supported in Octopus - use event system instead")
 	}
 	if c.HasSession() {
-		warnings = append(warnings, "Session scope config differs - PicoClaw uses per-agent sessions by default")
+		warnings = append(warnings, "Session scope config differs - Octopus uses per-agent sessions by default")
 	}
 	if c.HasAuthProfiles() {
 		warnings = append(
@@ -565,7 +565,7 @@ type ModelConfig struct {
 	Proxy     string `json:"proxy,omitempty"`
 }
 
-type PicoClawConfig struct {
+type OctopusConfig struct {
 	Agents    AgentsConfig   `json:"agents"`
 	Bindings  []AgentBinding `json:"bindings,omitempty"`
 	Channels  ChannelsConfig `json:"channels"`
@@ -768,7 +768,7 @@ type ExecConfig struct {
 	CustomDenyPatterns []string `json:"custom_deny_patterns"`
 }
 
-func (c *OpenClawConfig) convertChannels(warnings *[]string) ChannelsConfig {
+func (c *OctopusConfig) convertChannels(warnings *[]string) ChannelsConfig {
 	channels := ChannelsConfig{}
 
 	if c.Channels == nil {
@@ -899,13 +899,13 @@ func (c *OpenClawConfig) convertChannels(warnings *[]string) ChannelsConfig {
 	}
 
 	if c.Channels.Signal != nil {
-		*warnings = append(*warnings, "Channel 'signal': No PicoClaw adapter available")
+		*warnings = append(*warnings, "Channel 'signal': No Octopus adapter available")
 	}
 	if c.Channels.IRC != nil {
-		*warnings = append(*warnings, "Channel 'irc': No PicoClaw adapter available")
+		*warnings = append(*warnings, "Channel 'irc': No Octopus adapter available")
 	}
 	if c.Channels.Mattermost != nil {
-		*warnings = append(*warnings, "Channel 'mattermost': No PicoClaw adapter available")
+		*warnings = append(*warnings, "Channel 'mattermost': No Octopus adapter available")
 	}
 	if c.Channels.IMessage != nil {
 		*warnings = append(*warnings, "Channel 'imessage': macOS-only channel - requires manual setup")
@@ -913,14 +913,14 @@ func (c *OpenClawConfig) convertChannels(warnings *[]string) ChannelsConfig {
 	if c.Channels.BlueBubbles != nil {
 		*warnings = append(
 			*warnings,
-			"Channel 'bluebubbles': No PicoClaw adapter available - consider iMessage instead",
+			"Channel 'bluebubbles': No Octopus adapter available - consider iMessage instead",
 		)
 	}
 
 	return channels
 }
 
-func (c *OpenClawConfig) convertAgents(warnings *[]string) []AgentConfig {
+func (c *OctopusConfig) convertAgents(warnings *[]string) []AgentConfig {
 	var agents []AgentConfig
 
 	if c.Agents == nil {
@@ -968,7 +968,7 @@ func (c *OpenClawConfig) convertAgents(warnings *[]string) []AgentConfig {
 	return agents
 }
 
-func (c *PicoClawConfig) ToStandardConfig() *config.Config {
+func (c *OctopusConfig) ToStandardConfig() *config.Config {
 	cfg := config.DefaultConfig()
 
 	cfg.Agents.Defaults.Workspace = c.Agents.Defaults.Workspace

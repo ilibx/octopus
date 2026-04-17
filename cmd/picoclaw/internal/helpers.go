@@ -4,19 +4,19 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/ilibx/octopus/pkg/config"
 )
 
 const Logo = "🦞"
 
-// GetPicoclawHome returns the picoclaw home directory.
-// Priority: $PICOCLAW_HOME > ~/.picoclaw
+// GetPicoclawHome returns the octopus home directory.
+// Priority: $PICOCLAW_HOME > ~/.octopus
 func GetPicoclawHome() string {
 	if home := os.Getenv("PICOCLAW_HOME"); home != "" {
 		return home
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".picoclaw")
+	return filepath.Join(home, ".octopus")
 }
 
 func GetConfigPath() string {

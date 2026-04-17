@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sipeed/picoclaw/cmd/picoclaw-launcher-tui/internal/ui"
+	"github.com/ilibx/octopus/cmd/octopus-launcher-tui/internal/ui"
 )
 
 func main() {

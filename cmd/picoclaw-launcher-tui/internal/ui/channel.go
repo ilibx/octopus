@@ -7,7 +7,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	picoclawconfig "github.com/sipeed/picoclaw/pkg/config"
+	octopusconfig "github.com/ilibx/octopus/pkg/config"
 )
 
 func (s *appState) buildChannelMenuItems() []MenuItem {
@@ -357,7 +357,7 @@ func (s *appState) makeChannelOnEnabled(enabledPtr *bool) func(bool) {
 	}
 }
 
-func addAllowFromField(form *tview.Form, allowFrom *picoclawconfig.FlexibleStringSlice) {
+func addAllowFromField(form *tview.Form, allowFrom *octopusconfig.FlexibleStringSlice) {
 	form.AddInputField("Allow From", strings.Join(*allowFrom, ","), 128, nil, func(text string) {
 		*allowFrom = splitCSV(text)
 	})
@@ -388,7 +388,7 @@ func wrapWithBack(form *tview.Form, s *appState) tview.Primitive {
 	return form
 }
 
-func splitCSV(input string) picoclawconfig.FlexibleStringSlice {
+func splitCSV(input string) octopusconfig.FlexibleStringSlice {
 	parts := strings.Split(strings.TrimSpace(input), ",")
 	cleaned := make([]string, 0, len(parts))
 	for _, part := range parts {

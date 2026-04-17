@@ -3,9 +3,9 @@ package whatsapp
 import (
 	"path/filepath"
 
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/channels"
-	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/channels"
+	"github.com/ilibx/octopus/pkg/config"
 )
 
 func init() {

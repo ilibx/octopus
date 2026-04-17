@@ -3,7 +3,7 @@ package migrate
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/sipeed/picoclaw/pkg/migrate"
+	"github.com/ilibx/octopus/pkg/migrate"
 )
 
 func NewMigrateCommand() *cobra.Command {
@@ -11,13 +11,13 @@ func NewMigrateCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "migrate",
-		Short: "Migrate from xxxclaw(openclaw, etc.) to picoclaw",
+		Short: "Migrate from xxxclaw(octopus, etc.) to octopus",
 		Args:  cobra.NoArgs,
-		Example: `  picoclaw migrate
-  picoclaw migrate --from openclaw
-  picoclaw migrate --dry-run
-  picoclaw migrate --refresh
-  picoclaw migrate --force`,
+		Example: `  octopus migrate
+  octopus migrate --from octopus
+  octopus migrate --dry-run
+  octopus migrate --refresh
+  octopus migrate --force`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			m := migrate.NewMigrateInstance(opts)
 			result, err := m.Run(opts)
@@ -33,10 +33,10 @@ func NewMigrateCommand() *cobra.Command {
 
 	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false,
 		"Show what would be migrated without making changes")
-	cmd.Flags().StringVar(&opts.Source, "from", "openclaw",
-		"Source to migrate from (e.g., openclaw)")
+	cmd.Flags().StringVar(&opts.Source, "from", "octopus",
+		"Source to migrate from (e.g., octopus)")
 	cmd.Flags().BoolVar(&opts.Refresh, "refresh", false,
-		"Re-sync workspace files from OpenClaw (repeatable)")
+		"Re-sync workspace files from Octopus (repeatable)")
 	cmd.Flags().BoolVar(&opts.ConfigOnly, "config-only", false,
 		"Only migrate config, skip workspace files")
 	cmd.Flags().BoolVar(&opts.WorkspaceOnly, "workspace-only", false,
@@ -44,9 +44,9 @@ func NewMigrateCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&opts.Force, "force", false,
 		"Skip confirmation prompts")
 	cmd.Flags().StringVar(&opts.SourceHome, "source-home", "",
-		"Override source home directory (default: ~/.openclaw)")
+		"Override source home directory (default: ~/.octopus)")
 	cmd.Flags().StringVar(&opts.TargetHome, "target-home", "",
-		"Override target home directory (default: ~/.picoclaw)")
+		"Override target home directory (default: ~/.octopus)")
 
 	return cmd
 }

@@ -1,4 +1,4 @@
-package openclaw
+package octopus
 
 var migrateableFiles = []string{
 	"AGENTS.md",

@@ -10,7 +10,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	picoclawconfig "github.com/sipeed/picoclaw/pkg/config"
+	octopusconfig "github.com/ilibx/octopus/pkg/config"
 )
 
 func (s *appState) modelMenu() tview.Primitive {
@@ -49,7 +49,7 @@ func (s *appState) modelMenu() tview.Primitive {
 			Action: func() {
 				newName := s.nextAvailableModelName("new-model")
 				s.addModel(
-					picoclawconfig.ModelConfig{ModelName: newName, Model: "openai/gpt-5.4"},
+					octopusconfig.ModelConfig{ModelName: newName, Model: "openai/gpt-5.4"},
 				)
 				s.push(
 					fmt.Sprintf("model-%d", len(s.config.ModelList)-1),
@@ -215,7 +215,7 @@ func addIntInput(form *tview.Form, label string, value int, onChange func(int)) 
 	})
 }
 
-func (s *appState) addModel(model picoclawconfig.ModelConfig) {
+func (s *appState) addModel(model octopusconfig.ModelConfig) {
 	s.config.ModelList = append(s.config.ModelList, model)
 }
 
@@ -236,7 +236,7 @@ func modelStatusColor(valid bool, selected bool) *tcell.Color {
 	return &color
 }
 
-func refreshModelMenu(menu *Menu, currentModel string, models []picoclawconfig.ModelConfig) {
+func refreshModelMenu(menu *Menu, currentModel string, models []octopusconfig.ModelConfig) {
 	for i, model := range models {
 		row := i
 		label := fmt.Sprintf("%s (%s)", model.ModelName, model.Model)
@@ -291,7 +291,7 @@ func refreshModelMenuFromState(menu *Menu, s *appState) {
 			Action: func() {
 				newName := s.nextAvailableModelName("new-model")
 				s.addModel(
-					picoclawconfig.ModelConfig{ModelName: newName, Model: "openai/gpt-5.4"},
+					octopusconfig.ModelConfig{ModelName: newName, Model: "openai/gpt-5.4"},
 				)
 				s.push(fmt.Sprintf("model-%d", len(s.config.ModelList)-1), s.modelForm(len(s.config.ModelList)-1))
 			},
@@ -300,7 +300,7 @@ func refreshModelMenuFromState(menu *Menu, s *appState) {
 	menu.applyItems(items)
 }
 
-func isModelValid(model picoclawconfig.ModelConfig) bool {
+func isModelValid(model octopusconfig.ModelConfig) bool {
 	hasKey := strings.TrimSpace(model.APIKey) != "" ||
 		strings.TrimSpace(model.AuthMethod) == "oauth"
 	hasModel := strings.TrimSpace(model.Model) != ""
@@ -339,7 +339,7 @@ func (s *appState) nextAvailableModelName(base string) string {
 	}
 }
 
-func (s *appState) testModel(model *picoclawconfig.ModelConfig) {
+func (s *appState) testModel(model *octopusconfig.ModelConfig) {
 	if model == nil {
 		return
 	}

@@ -1,4 +1,4 @@
-package openclaw
+package octopus
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 
 func TestNewOpenclawHandler(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -33,7 +33,7 @@ func TestNewOpenclawHandlerNoConfig(t *testing.T) {
 
 func TestOpenclawHandlerGetSourceName(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -42,12 +42,12 @@ func TestOpenclawHandlerGetSourceName(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, "openclaw", handler.GetSourceName())
+	assert.Equal(t, "octopus", handler.GetSourceName())
 }
 
 func TestOpenclawHandlerGetSourceHome(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -63,7 +63,7 @@ func TestOpenclawHandlerGetSourceHome(t *testing.T) {
 
 func TestOpenclawHandlerGetSourceWorkspace(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -79,7 +79,7 @@ func TestOpenclawHandlerGetSourceWorkspace(t *testing.T) {
 
 func TestOpenclawHandlerGetSourceConfigFile(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -111,7 +111,7 @@ func TestOpenclawHandlerGetSourceConfigFileWithConfigJson(t *testing.T) {
 
 func TestOpenclawHandlerGetMigrateableFiles(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -129,7 +129,7 @@ func TestOpenclawHandlerGetMigrateableFiles(t *testing.T) {
 
 func TestOpenclawHandlerGetMigrateableDirs(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -162,14 +162,14 @@ func TestResolveSourceHomeWithTilde(t *testing.T) {
 	home, err := os.UserHomeDir()
 	require.NoError(t, err)
 
-	result, err := resolveSourceHome("~/openclaw")
+	result, err := resolveSourceHome("~/octopus")
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(home, "openclaw"), result)
+	assert.Equal(t, filepath.Join(home, "octopus"), result)
 }
 
 func TestFindSourceConfig(t *testing.T) {
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "openclaw.json")
+	configPath := filepath.Join(tmpDir, "octopus.json")
 	err := os.WriteFile(configPath, []byte("{}"), 0o644)
 	require.NoError(t, err)
 
@@ -234,9 +234,9 @@ func TestRewriteWorkspacePath(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"~/.openclaw/workspace", "~/.picoclaw/workspace"},
-		{"/home/user/.openclaw/workspace", "/home/user/.picoclaw/workspace"},
-		{"/path/without/openclaw/change", "/path/without/openclaw/change"},
+		{"~/.octopus/workspace", "~/.octopus/workspace"},
+		{"/home/user/.octopus/workspace", "/home/user/.octopus/workspace"},
+		{"/path/without/octopus/change", "/path/without/octopus/change"},
 		{"", ""},
 	}
 

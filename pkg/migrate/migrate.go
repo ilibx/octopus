@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sipeed/picoclaw/pkg/migrate/internal"
-	"github.com/sipeed/picoclaw/pkg/migrate/sources/openclaw"
+	"github.com/ilibx/octopus/pkg/migrate/internal"
+	"github.com/ilibx/octopus/pkg/migrate/sources/octopus"
 )
 
 type (
@@ -39,9 +39,9 @@ func NewMigrateInstance(opts Options) *MigrateInstance {
 		handlers: make(map[string]Operation),
 	}
 
-	openclaw_handler, err := openclaw.NewOpenclawHandler(opts)
+	octopus_handler, err := octopus.NewOpenclawHandler(opts)
 	if err == nil {
-		instance.Register(openclaw_handler.GetSourceName(), openclaw_handler)
+		instance.Register(octopus_handler.GetSourceName(), octopus_handler)
 	}
 
 	return instance
@@ -54,7 +54,7 @@ func (m *MigrateInstance) Register(moduleName string, module Operation) {
 func (m *MigrateInstance) getCurrentHandler() (Operation, error) {
 	source := m.options.Source
 	if source == "" {
-		source = "openclaw"
+		source = "octopus"
 	}
 	handler, ok := m.handlers[source]
 	if !ok {
@@ -96,7 +96,7 @@ func (m *MigrateInstance) Run(opts Options) (*Result, error) {
 		return nil, err
 	}
 
-	fmt.Println("Migrating from Source to PicoClaw")
+	fmt.Println("Migrating from Source to Octopus")
 	fmt.Printf("  Source:      %s\n", sourceHome)
 	fmt.Printf("  Target: %s\n", targetHome)
 	fmt.Println()
@@ -142,7 +142,7 @@ func (m *MigrateInstance) Plan(opts Options, sourceHome, targetHome string) ([]A
 				Type:        ActionConvertConfig,
 				Source:      configPath,
 				Target:      filepath.Join(targetHome, "config.json"),
-				Description: "convert Source config to PicoClaw format",
+				Description: "convert Source config to Octopus format",
 			})
 		}
 	}
