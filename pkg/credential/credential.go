@@ -27,7 +27,6 @@ package credential
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/hkdf"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -38,6 +37,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ilibx/octopus/pkg/credential/hkdfcompat"
 )
 
 // PassphraseEnvVar is the environment variable that holds the encryption passphrase.
@@ -297,7 +298,7 @@ func deriveKey(passphrase, sshKeyPath string, salt []byte) ([]byte, error) {
 	mac.Write([]byte(passphrase))
 	ikm := mac.Sum(nil)
 
-	key, err := hkdf.Key(sha256.New, ikm, salt, hkdfInfo, keyLen)
+	key, err := hkdfcompat.Key(sha256.New, ikm, salt, hkdfInfo, keyLen)
 	if err != nil {
 		return nil, fmt.Errorf("credential: HKDF expand failed: %w", err)
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	configstore "github.com/ilibx/octopus/cmd/octopus-launcher-tui/internal/config"
+	configstore "github.com/ilibx/octopus/cmd/picoclaw-launcher-tui/internal/config"
 	octopusconfig "github.com/ilibx/octopus/pkg/config"
 )
 
