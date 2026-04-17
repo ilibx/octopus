@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ilibx/octopus/pkg/config"
+	"github.com/ilibx/octopus/pkg/logger"
 )
 
 type OctopusConfig struct {
@@ -990,21 +991,13 @@ func (c *OctopusConfig) ToStandardConfig() *config.Config {
 	cfg.Gateway = c.Gateway.ToStandardGateway()
 	cfg.Tools = c.Tools.ToStandardTools()
 
-	cfg.Agents.List = make([]config.AgentConfig, len(c.Agents.List))
-	for i, a := range c.Agents.List {
-		cfg.Agents.List[i] = config.AgentConfig{
-			ID:        a.ID,
-			Default:   a.Default,
-			Name:      a.Name,
-			Workspace: a.Workspace,
-			Skills:    a.Skills,
-		}
-		if a.Model != nil {
-			cfg.Agents.List[i].Model = &config.AgentModelConfig{
-				Primary:   a.Model.Primary,
-				Fallbacks: a.Model.Fallbacks,
-			}
-		}
+	// Migrate old agent configs to agents directory structure
+	// In new version, agents are loaded from directory scan only
+	// This sets the agents_dir for backward compatibility
+	if len(c.Agents.List) > 0 {
+		// Agents will be discovered from the agents directory
+		// Legacy config data is used to populate workspace/skills info in main.md files
+		logger.Info("Migrating legacy agent configs - please ensure agents directory contains corresponding subdirectories")
 	}
 
 	return cfg

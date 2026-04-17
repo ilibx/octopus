@@ -8,6 +8,7 @@ import (
 	"github.com/ilibx/octopus/pkg/logger"
 	"github.com/ilibx/octopus/pkg/providers"
 	"github.com/ilibx/octopus/pkg/routing"
+	"github.com/ilibx/octopus/pkg/scanner"
 	"github.com/ilibx/octopus/pkg/tools"
 )
 
@@ -28,7 +29,21 @@ func NewAgentRegistry(
 		resolver: routing.NewRouteResolver(cfg),
 	}
 
-	agentConfigs := cfg.Agents.List
+	// Scan agents directory for auto-discovered agents
+	var scannedAgents []scanner.AgentMetadata
+	if cfg.Agents.AgentsDir != "" {
+		sc := scanner.NewAgentScanner(cfg.Agents.AgentsDir)
+		var err error
+		scannedAgents, err = sc.ScanAgents()
+		if err != nil {
+			logger.WarnCF("agent", "Failed to scan agents directory",
+				map[string]any{"path": cfg.Agents.AgentsDir, "error": err.Error()})
+		}
+	}
+
+	// Build final agent configs from scanned agents only (no manual config)
+	agentConfigs := scanner.BuildAgentConfigsFromScannedAgents(scannedAgents, nil)
+
 	if len(agentConfigs) == 0 {
 		implicitAgent := &config.AgentConfig{
 			ID:      "main",
@@ -36,7 +51,7 @@ func NewAgentRegistry(
 		}
 		instance := NewAgentInstance(implicitAgent, &cfg.Agents.Defaults, cfg, provider)
 		registry.agents["main"] = instance
-		logger.InfoCF("agent", "Created implicit main agent (no agents.list configured)", nil)
+		logger.InfoCF("agent", "Created implicit main agent (no agents found in directory)", nil)
 	} else {
 		for i := range agentConfigs {
 			ac := &agentConfigs[i]
@@ -52,6 +67,12 @@ func NewAgentRegistry(
 				})
 		}
 	}
+
+	// Update resolver with registered agent list for routing decisions
+	agentIDs := registry.ListAgentIDs()
+	registry.resolver.SetAgentRegistry(&routing.AgentRegistryCache{
+		agents: agentIDs,
+	})
 
 	return registry
 }

@@ -77,7 +77,7 @@ func TestAgentModelConfig_MarshalObject(t *testing.T) {
 	}
 }
 
-func TestAgentConfig_FullParse(t *testing.T) {
+func TestConfig_AgentsWithList(t *testing.T) {
 	jsonData := `{
 		"agents": {
 			"defaults": {
@@ -178,6 +178,29 @@ func TestAgentConfig_FullParse(t *testing.T) {
 	}
 }
 
+func TestConfig_AgentsDirOnly(t *testing.T) {
+	jsonData := `{
+		"agents": {
+			"defaults": {
+				"workspace": "~/.octopus/workspace",
+				"model": "glm-4.7",
+				"max_tokens": 8192,
+				"max_tool_iterations": 20
+			},
+			"agents_dir": "./agents"
+		}
+	}`
+
+	cfg := DefaultConfig()
+	if err := json.Unmarshal([]byte(jsonData), cfg); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	if cfg.Agents.AgentsDir != "./agents" {
+		t.Errorf("agents.agents_dir = %q, want ./agents", cfg.Agents.AgentsDir)
+	}
+}
+
 func TestConfig_BackwardCompat_NoAgentsList(t *testing.T) {
 	jsonData := `{
 		"agents": {
@@ -195,8 +218,8 @@ func TestConfig_BackwardCompat_NoAgentsList(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if len(cfg.Agents.List) != 0 {
-		t.Errorf("agents.list should be empty for backward compat, got %d", len(cfg.Agents.List))
+	if cfg.Agents.AgentsDir == "" {
+		t.Error("agents.agents_dir should be set (can be empty string for no scanning)")
 	}
 	if len(cfg.Bindings) != 0 {
 		t.Errorf("bindings should be empty, got %d", len(cfg.Bindings))

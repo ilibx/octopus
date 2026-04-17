@@ -125,8 +125,8 @@ func (c Config) MarshalJSON() ([]byte, error) {
 }
 
 type AgentsConfig struct {
-	Defaults AgentDefaults `json:"defaults"`
-	List     []AgentConfig `json:"list,omitempty"`
+	Defaults  AgentDefaults `json:"defaults"`
+	AgentsDir string        `json:"agents_dir" env:"OCTOPUS_AGENTS_DIR"`
 }
 
 // AgentModelConfig supports both string and structured model config.
