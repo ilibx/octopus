@@ -205,13 +205,21 @@ func (t *CronTool) addJob(ctx context.Context, args map[string]any) *ToolResult 
 	// Truncate message for job name (max 30 chars)
 	messagePreview := utils.Truncate(message, 30)
 
+	// Build metadata for channel routing
+	metadata := map[string]string{
+		"channel": channel,
+		"chat_id": chatID,
+	}
+	if command != "" {
+		metadata["command"] = command
+	}
+
 	job, err := t.cronService.AddJob(
 		messagePreview,
 		schedule,
 		message,
 		deliver,
-		channel,
-		chatID,
+		metadata,
 	)
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("Error adding job: %v", err))
