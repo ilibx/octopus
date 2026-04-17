@@ -2,56 +2,62 @@
 # Compiled and build artifacts
 *.o
 *.obj
-*.out
 *.exe
 *.dll
 *.so
 *.a
+*.out
 
 # Dependencies
 vendor/
-node_modules/
-__pycache__/
-*.egg-info/
-.Python
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-coverage/
-htmlcov/
-.nox/
+*.mod
+*.sum
 
-# Build directories
-build/
-dist/
-*.egg
-*.pyc
-*.pyo
-*~
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-.env.local
-.env.*
-.env~*
+# Logs and temp files
+*.log
+*.tmp
+*.swp
 
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.tmp
 
-# Logs
-*.log
+# Coverage reports
+coverage/
+htmlcov/
+*.coverage
 
-# Test and coverage
-.mypy_cache/
-.pytest_cache/
-.hypothesis/
-.coverage*
-coverage.xml
+# Environment
+.env
+.env.local
+*.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build directories
+dist/
+build/
+target/
+bin/
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.nox/
+
+# Go specific
+*.test
+*.prof
 ```

@@ -137,10 +137,11 @@ func (s *KanbanService) GetBoard() *KanbanBoard {
 }
 
 // HTTPHandler returns an HTTP handler for kanban API endpoints
+// Note: Direct task creation via HTTP is disabled to enforce that only cron and channels can submit tasks to the main agent
 func (s *KanbanService) HTTPHandler() http.Handler {
 	mux := http.NewServeMux()
 
-	// GET /kanban - Get board status
+	// GET /kanban - Get board status (read-only)
 	mux.HandleFunc("/kanban", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -155,7 +156,7 @@ func (s *KanbanService) HTTPHandler() http.Handler {
 		json.NewEncoder(w).Encode(board)
 	})
 
-	// GET /kanban/zones/{zoneID} - Get zone details
+	// GET /kanban/zones/{zoneID} - Get zone details (read-only)
 	mux.HandleFunc("/kanban/zones/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -178,7 +179,7 @@ func (s *KanbanService) HTTPHandler() http.Handler {
 		json.NewEncoder(w).Encode(zone)
 	})
 
-	// GET /kanban/zones/{zoneID}/tasks - Get tasks in a zone
+	// GET /kanban/tasks/{zoneID} - Get tasks in a zone (read-only)
 	mux.HandleFunc("/kanban/tasks/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -210,10 +211,16 @@ func (s *KanbanService) HTTPHandler() http.Handler {
 		json.NewEncoder(w).Encode(tasks)
 	})
 
-	// WebSocket endpoint for real-time updates
+	// WebSocket endpoint for real-time updates (read-only subscription)
 	if s.wsEnabled {
 		mux.HandleFunc("/kanban/ws", s.wsHub.HandleWebSocket)
 	}
+
+	// NOTE: Task creation endpoints are intentionally NOT provided here.
+	// Tasks can ONLY be created through:
+	// 1. Cron jobs (via CronKanbanIntegration)
+	// 2. Channel commands (via Channel Integration Layer)
+	// This ensures strict control over task submission to the Main Agent.
 
 	return mux
 }
