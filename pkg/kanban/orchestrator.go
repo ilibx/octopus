@@ -37,24 +37,36 @@ func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msg
 }
 
 // MonitorBoard continuously monitors the kanban board for pending tasks
-// and spawns agents as needed
+// and spawns agents as needed with dynamic polling interval
 func (o *AgentOrchestrator) MonitorBoard(ctx context.Context) {
-	ticker := time.NewTicker(2 * time.Second)
-	defer ticker.Stop()
+	baseInterval := 2 * time.Second
+	maxInterval := 10 * time.Second
+	currentInterval := baseInterval
 
 	for {
 		select {
 		case <-ctx.Done():
 			logger.InfoCF("orchestrator", "Stopping board monitor", nil)
 			return
-		case <-ticker.C:
-			o.checkAndSpawnAgents()
+		case <-time.After(currentInterval):
+			hasWork := o.checkAndSpawnAgents()
+			if !hasWork {
+				// No work found, increase interval exponentially
+				currentInterval = currentInterval * 2
+				if currentInterval > maxInterval {
+					currentInterval = maxInterval
+				}
+			} else {
+				// Work found, reset to base interval
+				currentInterval = baseInterval
+			}
 		}
 	}
 }
 
 // checkAndSpawnAgents checks all zones for pending tasks and spawns agents if needed
-func (o *AgentOrchestrator) checkAndSpawnAgents() {
+// Returns true if there is work to do, false otherwise
+func (o *AgentOrchestrator) checkAndSpawnAgents() bool {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -77,13 +89,16 @@ func (o *AgentOrchestrator) checkAndSpawnAgents() {
 			}
 			delete(o.activeAgents, zoneID)
 		}
-		return
+		return false
 	}
 
+	hasWork := false
 	for zoneID, tasks := range pendingTasks {
 		if len(tasks) == 0 {
 			continue
 		}
+
+		hasWork = true
 
 		// Check if zone already has an active agent
 		if _, exists := o.activeAgents[zoneID]; exists {
@@ -109,6 +124,8 @@ func (o *AgentOrchestrator) checkAndSpawnAgents() {
 				map[string]any{"zone_id": zoneID, "agent_type": agentType, "error": err.Error()})
 		}
 	}
+
+	return hasWork
 }
 
 // spawnAgentForZone creates and starts a new agent instance for a specific zone

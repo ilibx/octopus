@@ -27,19 +27,35 @@ type TaskEvent struct {
 
 // KanbanService manages the kanban board and publishes events
 type KanbanService struct {
-	board   *KanbanBoard
-	msgBus  *bus.MessageBus
-	mu      sync.RWMutex
-	subject string
+	board     *KanbanBoard
+	msgBus    *bus.MessageBus
+	mu        sync.RWMutex
+	subject   string
+	wsHub     *WSHub
+	wsEnabled bool
 }
 
 // NewKanbanService creates a new kanban service
 func NewKanbanService(board *KanbanBoard, msgBus *bus.MessageBus) *KanbanService {
 	return &KanbanService{
-		board:   board,
-		msgBus:  msgBus,
-		subject: "kanban.events",
+		board:     board,
+		msgBus:    msgBus,
+		subject:   "kanban.events",
+		wsEnabled: false,
 	}
+}
+
+// EnableWebSocket enables WebSocket support for real-time updates
+func (s *KanbanService) EnableWebSocket() {
+	s.wsHub = NewWSHub(s.msgBus)
+	s.wsEnabled = true
+	go s.wsHub.Run()
+	logger.InfoCF("kanban", "WebSocket support enabled", nil)
+}
+
+// GetWSHub returns the WebSocket hub if enabled
+func (s *KanbanService) GetWSHub() *WSHub {
+	return s.wsHub
 }
 
 // PublishTaskEvent publishes a task event to the message bus
@@ -193,6 +209,11 @@ func (s *KanbanService) HTTPHandler() http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(tasks)
 	})
+
+	// WebSocket endpoint for real-time updates
+	if s.wsEnabled {
+		mux.HandleFunc("/kanban/ws", s.wsHub.HandleWebSocket)
+	}
 
 	return mux
 }

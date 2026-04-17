@@ -49,13 +49,14 @@ type Zone struct {
 
 // KanbanBoard represents the main kanban board for task management
 type KanbanBoard struct {
-	ID          string           `json:"id"`
-	Name        string           `json:"name"`
-	Zones       map[string]*Zone `json:"zones"`
-	MainAgentID string           `json:"main_agent_id"`
-	CreatedAt   time.Time        `json:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at"`
+	ID          string                   `json:"id"`
+	Name        string                   `json:"name"`
+	Zones       map[string]*Zone         `json:"zones"`
+	MainAgentID string                   `json:"main_agent_id"`
+	CreatedAt   time.Time                `json:"created_at"`
+	UpdatedAt   time.Time                `json:"updated_at"`
 	mu          sync.RWMutex
+	zoneLocks   map[string]*sync.RWMutex // Per-zone locks for fine-grained concurrency
 }
 
 // NewKanbanBoard creates a new kanban board
@@ -67,7 +68,19 @@ func NewKanbanBoard(id, name, mainAgentID string) *KanbanBoard {
 		MainAgentID: mainAgentID,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		zoneLocks:   make(map[string]*sync.RWMutex),
 	}
+}
+
+// getZoneLock returns the lock for a specific zone, creating it if necessary
+func (k *KanbanBoard) getZoneLock(zoneID string) *sync.RWMutex {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	if _, exists := k.zoneLocks[zoneID]; !exists {
+		k.zoneLocks[zoneID] = &sync.RWMutex{}
+	}
+	return k.zoneLocks[zoneID]
 }
 
 // CreateZone creates a new zone in the kanban board
@@ -99,15 +112,21 @@ func (k *KanbanBoard) CreateZone(id, name, description, agentType string) *Zone 
 	return zone
 }
 
-// AddTask adds a task to a specific zone
+// AddTask adds a task to a specific zone using per-zone lock
 func (k *KanbanBoard) AddTask(zoneID, taskID, title, description string, priority int, metadata map[string]string) (*Task, error) {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-
+	// First check if zone exists with read lock
+	k.mu.RLock()
 	zone, ok := k.Zones[zoneID]
+	k.mu.RUnlock()
+
 	if !ok {
 		return nil, ErrZoneNotFound
 	}
+
+	// Use per-zone lock for fine-grained concurrency
+	zoneLock := k.getZoneLock(zoneID)
+	zoneLock.Lock()
+	defer zoneLock.Unlock()
 
 	task := &Task{
 		ID:          taskID,
@@ -122,7 +141,11 @@ func (k *KanbanBoard) AddTask(zoneID, taskID, title, description string, priorit
 
 	zone.Tasks = append(zone.Tasks, task)
 	zone.UpdatedAt = time.Now()
+
+	// Update board timestamp with write lock
+	k.mu.Lock()
 	k.UpdatedAt = time.Now()
+	k.mu.Unlock()
 
 	logger.InfoCF("kanban", "Task added",
 		map[string]any{
@@ -136,15 +159,21 @@ func (k *KanbanBoard) AddTask(zoneID, taskID, title, description string, priorit
 	return task, nil
 }
 
-// UpdateTaskStatus updates the status of a task
+// UpdateTaskStatus updates the status of a task using per-zone lock
 func (k *KanbanBoard) UpdateTaskStatus(zoneID, taskID string, status TaskStatus, result, errorMsg string) error {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-
+	// First check if zone exists with read lock
+	k.mu.RLock()
 	zone, ok := k.Zones[zoneID]
+	k.mu.RUnlock()
+
 	if !ok {
 		return ErrZoneNotFound
 	}
+
+	// Use per-zone lock for fine-grained concurrency
+	zoneLock := k.getZoneLock(zoneID)
+	zoneLock.Lock()
+	defer zoneLock.Unlock()
 
 	for _, task := range zone.Tasks {
 		if task.ID == taskID {
@@ -153,7 +182,11 @@ func (k *KanbanBoard) UpdateTaskStatus(zoneID, taskID string, status TaskStatus,
 			task.Error = errorMsg
 			task.UpdatedAt = time.Now()
 			zone.UpdatedAt = time.Now()
+
+			// Update board timestamp with write lock
+			k.mu.Lock()
 			k.UpdatedAt = time.Now()
+			k.mu.Unlock()
 
 			logger.InfoCF("kanban", "Task status updated",
 				map[string]any{
