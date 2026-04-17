@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"net/http"
 	"os"
 	"sync"
@@ -125,8 +124,10 @@ func (s *Server) readyHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.mu.RLock()
 	ready := s.ready
-	checks := make(map[string]Check)
-	maps.Copy(checks, s.checks)
+	checks := make(map[string]Check, len(s.checks))
+	for k, v := range s.checks {
+		checks[k] = v
+	}
 	s.mu.RUnlock()
 
 	if !ready {

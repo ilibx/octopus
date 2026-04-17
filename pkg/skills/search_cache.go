@@ -1,7 +1,7 @@
 package skills
 
 import (
-	"slices"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -183,7 +183,7 @@ func buildTrigrams(s string) []uint32 {
 	}
 
 	// Sort and Deduplication
-	slices.Sort(trigrams)
+	sort.Slice(trigrams, func(i, j int) bool { return trigrams[i] < trigrams[j] })
 	n := 1
 	for i := 1; i < len(trigrams); i++ {
 		if trigrams[i] != trigrams[i-1] {

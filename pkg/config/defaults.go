@@ -9,9 +9,9 @@ import (
 // DefaultConfig returns the default configuration for Octopus.
 func DefaultConfig() *Config {
 	// Determine the base path for the workspace.
-	// Priority: $PICOCLAW_HOME > ~/.octopus
+	// Priority: $OCTOPUS_HOME > ~/.octopus
 	var homePath string
-	if octopusHome := os.Getenv("PICOCLAW_HOME"); octopusHome != "" {
+	if octopusHome := os.Getenv("OCTOPUS_HOME"); octopusHome != "" {
 		homePath = octopusHome
 	} else {
 		userHome, _ := os.UserHomeDir()

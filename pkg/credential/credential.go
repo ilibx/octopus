@@ -8,7 +8,7 @@
 //
 //   - Plaintext:   "sk-abc123"          → returned as-is
 //   - File ref:    "file://filename.key" → content read from configDir/filename.key
-//   - Encrypted:   "enc://<base64>"     → AES-256-GCM decrypt via PICOCLAW_KEY_PASSPHRASE
+//   - Encrypted:   "enc://<base64>"     → AES-256-GCM decrypt via OCTOPUS_KEY_PASSPHRASE
 //   - Empty:       ""                   → returned as-is (auth_method=oauth etc.)
 //
 // Encryption uses AES-256-GCM with HKDF-SHA256 key derivation (< 1ms, safe for embedded Linux).
@@ -20,14 +20,13 @@
 // SSH key path resolution priority:
 //
 //  1. sshKeyPath argument to Encrypt (explicit)
-//  2. PICOCLAW_SSH_KEY_PATH env var
+//  2. OCTOPUS_SSH_KEY_PATH env var
 //  3. ~/.ssh/octopus_ed25519.key (os.UserHomeDir is cross-platform)
 package credential
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/hkdf"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -38,14 +37,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ilibx/octopus/pkg/credential/hkdfcompat"
 )
 
 // PassphraseEnvVar is the environment variable that holds the encryption passphrase.
 // Other packages (e.g. config) reference this constant to avoid duplicating the string.
-const PassphraseEnvVar = "PICOCLAW_KEY_PASSPHRASE"
+const PassphraseEnvVar = "OCTOPUS_KEY_PASSPHRASE"
 
 // PassphraseProvider is the function used to retrieve the passphrase for enc://
-// credential decryption. It defaults to reading PICOCLAW_KEY_PASSPHRASE from the
+// credential decryption. It defaults to reading OCTOPUS_KEY_PASSPHRASE from the
 // process environment. Replace it at startup to use a different source, such as
 // an in-memory SecureStore, so that all LoadConfig() calls everywhere share the
 // same passphrase source without needing os.Environ.
@@ -73,7 +74,7 @@ const (
 	saltLen    = 16
 	nonceLen   = 12
 	keyLen     = 32
-	sshKeyEnv  = "PICOCLAW_SSH_KEY_PATH"
+	sshKeyEnv  = "OCTOPUS_SSH_KEY_PATH"
 )
 
 // Resolver resolves raw credential strings for model_list api_key fields.
@@ -189,9 +190,9 @@ func resolveEncrypted(raw string) (string, error) {
 
 // Encrypt encrypts plaintext and returns an enc:// credential string.
 //
-// passphrase is required (PICOCLAW_KEY_PASSPHRASE value).
+// passphrase is required (OCTOPUS_KEY_PASSPHRASE value).
 // sshKeyPath is the SSH private key file to use; pass "" to auto-detect via
-// PICOCLAW_SSH_KEY_PATH env var or ~/.ssh/octopus_ed25519.key.
+// OCTOPUS_SSH_KEY_PATH env var or ~/.ssh/octopus_ed25519.key.
 // An SSH private key must be resolvable or Encrypt returns an error.
 func Encrypt(passphrase, sshKeyPath, plaintext string) (string, error) {
 	if passphrase == "" {
@@ -238,8 +239,8 @@ func isWithinDir(path, dir string) bool {
 }
 
 // allowedSSHKeyPath reports whether path is in a permitted location for SSH key files:
-//   - exact match with PICOCLAW_SSH_KEY_PATH env var
-//   - within the PICOCLAW_HOME env var directory
+//   - exact match with OCTOPUS_SSH_KEY_PATH env var
+//   - within the OCTOPUS_HOME env var directory
 //   - within ~/.ssh/
 func allowedSSHKeyPath(path string) bool {
 	if path == "" {
@@ -247,15 +248,15 @@ func allowedSSHKeyPath(path string) bool {
 	}
 	clean := filepath.Clean(path)
 
-	// Exact match with PICOCLAW_SSH_KEY_PATH.
+	// Exact match with OCTOPUS_SSH_KEY_PATH.
 	if envPath, ok := os.LookupEnv(sshKeyEnv); ok && envPath != "" {
 		if clean == filepath.Clean(envPath) {
 			return true
 		}
 	}
 
-	// Within PICOCLAW_HOME.
-	if picoHome := os.Getenv("PICOCLAW_HOME"); picoHome != "" {
+	// Within OCTOPUS_HOME.
+	if picoHome := os.Getenv("OCTOPUS_HOME"); picoHome != "" {
 		if isWithinDir(clean, picoHome) {
 			return true
 		}
@@ -280,11 +281,11 @@ func deriveKey(passphrase, sshKeyPath string, salt []byte) ([]byte, error) {
 	if sshKeyPath == "" {
 		return nil, fmt.Errorf(
 			"credential: SSH private key is required but not found" +
-				" (set PICOCLAW_SSH_KEY_PATH or place key at ~/.ssh/octopus_ed25519.key)")
+				" (set OCTOPUS_SSH_KEY_PATH or place key at ~/.ssh/octopus_ed25519.key)")
 	}
 	if !allowedSSHKeyPath(sshKeyPath) {
 		return nil, fmt.Errorf(
-			"credential: SSH key path %q is not in an allowed location (PICOCLAW_SSH_KEY_PATH, PICOCLAW_HOME, or ~/.ssh/)",
+			"credential: SSH key path %q is not in an allowed location (OCTOPUS_SSH_KEY_PATH, OCTOPUS_HOME, or ~/.ssh/)",
 			sshKeyPath,
 		)
 	}
@@ -297,7 +298,7 @@ func deriveKey(passphrase, sshKeyPath string, salt []byte) ([]byte, error) {
 	mac.Write([]byte(passphrase))
 	ikm := mac.Sum(nil)
 
-	key, err := hkdf.Key(sha256.New, ikm, salt, hkdfInfo, keyLen)
+	key, err := hkdfcompat.Key(sha256.New, ikm, salt, hkdfInfo, keyLen)
 	if err != nil {
 		return nil, fmt.Errorf("credential: HKDF expand failed: %w", err)
 	}
@@ -308,7 +309,7 @@ func deriveKey(passphrase, sshKeyPath string, salt []byte) ([]byte, error) {
 //
 // Priority:
 //  1. override (non-empty explicit argument)
-//  2. PICOCLAW_SSH_KEY_PATH env var
+//  2. OCTOPUS_SSH_KEY_PATH env var
 //  3. ~/.ssh/octopus_ed25519.key (auto-detection)
 //
 // Returns "" when no key is found; deriveKey will return an error in that case.

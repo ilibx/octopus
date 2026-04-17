@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -128,7 +127,11 @@ func (sl *SkillsLoader) ListSkills() []SkillInfo {
 				info.Name = metadata.Name
 			}
 			if err := info.validate(); err != nil {
-				slog.Warn("invalid skill from "+source, "name", info.Name, "error", err)
+				logger.WarnCF("skills", "invalid skill from "+source,
+					map[string]any{
+						"name":  info.Name,
+						"error": err.Error(),
+					})
 				continue
 			}
 			if seen[info.Name] {

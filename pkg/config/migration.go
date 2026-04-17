@@ -2,9 +2,18 @@
 package config
 
 import (
-	"slices"
 	"strings"
 )
+
+// contains checks if a string slice contains a specific value (Go 1.19 compatible)
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
 
 // buildModelWithProtocol constructs a model string with protocol prefix.
 // If the model already contains a "/" (indicating it has a protocol prefix), it is returned as-is.
@@ -447,7 +456,7 @@ func ConvertProvidersToModelList(cfg *Config) []ModelConfig {
 		}
 
 		// Check if this is the user's configured provider
-		if slices.Contains(m.providerNames, userProvider) && userModel != "" {
+		if contains(m.providerNames, userProvider) && userModel != "" {
 			// Use the user's configured model instead of default
 			mc.Model = buildModelWithProtocol(m.protocol, userModel)
 		} else if userProvider == "" && userModel != "" && !legacyModelNameApplied {

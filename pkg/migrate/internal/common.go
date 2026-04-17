@@ -11,7 +11,7 @@ func ResolveTargetHome(override string) (string, error) {
 	if override != "" {
 		return ExpandHome(override), nil
 	}
-	if envHome := os.Getenv("PICOCLAW_HOME"); envHome != "" {
+	if envHome := os.Getenv("OCTOPUS_HOME"); envHome != "" {
 		return ExpandHome(envHome), nil
 	}
 	home, err := os.UserHomeDir()

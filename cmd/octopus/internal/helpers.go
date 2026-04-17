@@ -9,10 +9,10 @@ import (
 
 const Logo = "🦞"
 
-// GetPicoclawHome returns the octopus home directory.
-// Priority: $PICOCLAW_HOME > ~/.octopus
-func GetPicoclawHome() string {
-	if home := os.Getenv("PICOCLAW_HOME"); home != "" {
+// GetOctopusHome returns the octopus home directory.
+// Priority: $OCTOPUS_HOME > ~/.octopus
+func GetOctopusHome() string {
+	if home := os.Getenv("OCTOPUS_HOME"); home != "" {
 		return home
 	}
 	home, _ := os.UserHomeDir()
@@ -20,10 +20,10 @@ func GetPicoclawHome() string {
 }
 
 func GetConfigPath() string {
-	if configPath := os.Getenv("PICOCLAW_CONFIG"); configPath != "" {
+	if configPath := os.Getenv("OCTOPUS_CONFIG"); configPath != "" {
 		return configPath
 	}
-	return filepath.Join(GetPicoclawHome(), "config.json")
+	return filepath.Join(GetOctopusHome(), "config.json")
 }
 
 func LoadConfig() (*config.Config, error) {

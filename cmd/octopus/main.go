@@ -21,7 +21,7 @@ import (
 	"github.com/ilibx/octopus/pkg/config"
 )
 
-func NewPicoclawCommand() *cobra.Command {
+func NewOctopusCommand() *cobra.Command {
 	short := fmt.Sprintf("%s octopus - Personal AI Assistant v%s\n\n", internal.Logo, config.GetVersion())
 
 	cmd := &cobra.Command{
@@ -61,7 +61,7 @@ const (
 
 func main() {
 	fmt.Printf("%s", banner)
-	cmd := NewPicoclawCommand()
+	cmd := NewOctopusCommand()
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
