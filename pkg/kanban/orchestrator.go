@@ -14,6 +14,13 @@ import (
 )
 
 // AgentOrchestrator manages the lifecycle of sub-agents based on kanban board state
+// Main Agent responsibilities:
+// - Monitor board for pending tasks and spawn sub-agents
+// - Publish task events and status notifications
+// - Manage sub-agent lifecycle (spawn/release)
+// Sub-Agent responsibilities:
+// - Execute tasks assigned to their zone
+// - Report task execution status and results back to the board
 type AgentOrchestrator struct {
 	board         *KanbanBoard
 	agentRegistry *agent.AgentRegistry
@@ -22,9 +29,10 @@ type AgentOrchestrator struct {
 	mu            sync.RWMutex
 	cfg           *config.Config
 	provider      providers.LLMProvider
+	mainAgentID   string // ID of the main agent that owns this orchestrator
 }
 
-// NewAgentOrchestrator creates a new orchestrator
+// NewAgentOrchestrator creates a new orchestrator for the main agent
 func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msgBus *bus.MessageBus, cfg *config.Config, provider providers.LLMProvider) *AgentOrchestrator {
 	return &AgentOrchestrator{
 		board:         board,
@@ -33,7 +41,13 @@ func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msg
 		activeAgents:  make(map[string]string),
 		cfg:           cfg,
 		provider:      provider,
+		mainAgentID:   board.MainAgentID,
 	}
+}
+
+// GetMainAgentID returns the ID of the main agent
+func (o *AgentOrchestrator) GetMainAgentID() string {
+	return o.mainAgentID
 }
 
 // MonitorBoard continuously monitors the kanban board for pending tasks
@@ -128,49 +142,60 @@ func (o *AgentOrchestrator) checkAndSpawnAgents() bool {
 	return hasWork
 }
 
-// spawnAgentForZone creates and starts a new agent instance for a specific zone
+// spawnAgentForZone creates and starts a new sub-agent instance for a specific zone
+// This method is called by the Main Agent to delegate task execution to Sub-Agents
 func (o *AgentOrchestrator) spawnAgentForZone(zoneID, agentType string) error {
-	// Generate a unique agent ID for this zone
+	// Generate a unique agent ID for this sub-agent
 	agentID := fmt.Sprintf("%s_%s", agentType, zoneID)
 
 	// Check if agent already exists in registry
 	if _, exists := o.agentRegistry.GetAgent(agentID); exists {
-		logger.InfoCF("orchestrator", "Agent already exists for zone",
+		logger.InfoCF("orchestrator", "Sub-agent already exists for zone",
 			map[string]any{"zone_id": zoneID, "agent_id": agentID})
 		o.activeAgents[zoneID] = agentID
 		return nil
 	}
 
-	// Create agent configuration dynamically
+	// Create sub-agent configuration dynamically
+	// Note: Default is set to false because this is a sub-agent, not the main agent
 	agentCfg := &config.AgentConfig{
 		ID:      agentID,
-		Name:    fmt.Sprintf("Subagent for zone %s", zoneID),
-		Default: false,
+		Name:    fmt.Sprintf("Sub-agent for zone %s", zoneID),
+		Default: false, // Explicitly mark as sub-agent
 	}
 
-	// Add the agent to the registry
+	// Add the sub-agent to the registry
 	addedID, err := o.agentRegistry.AddAgent(agentCfg, &o.cfg.Agents.Defaults, o.cfg, o.provider)
 	if err != nil {
-		return fmt.Errorf("failed to add agent: %w", err)
+		return fmt.Errorf("failed to add sub-agent: %w", err)
 	}
 
-	logger.InfoCF("orchestrator", "Spawning new agent for zone",
+	logger.InfoCF("orchestrator", "Main agent spawning sub-agent for zone",
 		map[string]any{
-			"zone_id":    zoneID,
-			"agent_id":   addedID,
-			"agent_type": agentType,
+			"main_agent_id": o.mainAgentID,
+			"zone_id":       zoneID,
+			"sub_agent_id":  addedID,
+			"agent_type":    agentType,
 		})
 
-	// Mark the zone as having an active agent
+	// Mark the zone as having an active sub-agent
 	o.activeAgents[zoneID] = addedID
 
 	return nil
 }
 
-// OnTaskCompleted handles task completion events
+// OnTaskCompleted handles task completion events from sub-agents
+// This is called when a sub-agent reports that a task has been completed
 func (o *AgentOrchestrator) OnTaskCompleted(zoneID, taskID string) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
+
+	logger.InfoCF("orchestrator", "Main agent received task completion event from sub-agent",
+		map[string]any{
+			"main_agent_id": o.mainAgentID,
+			"zone_id":       zoneID,
+			"task_id":       taskID,
+		})
 
 	// Check if all tasks in the zone are completed
 	zone, err := o.board.GetZone(zoneID)
@@ -189,42 +214,59 @@ func (o *AgentOrchestrator) OnTaskCompleted(zoneID, taskID string) {
 	}
 
 	if allCompleted {
-		// Remove the agent from active agents and release it
+		// Remove the sub-agent from active agents and release it
 		if agentID, exists := o.activeAgents[zoneID]; exists {
-			logger.InfoCF("orchestrator", "All tasks completed in zone, releasing agent",
-				map[string]any{"zone_id": zoneID, "agent_id": agentID})
+			logger.InfoCF("orchestrator", "All tasks completed in zone, main agent releasing sub-agent",
+				map[string]any{
+					"main_agent_id": o.mainAgentID,
+					"zone_id":       zoneID,
+					"sub_agent_id":  agentID,
+				})
 
 			// Remove from active agents map
 			delete(o.activeAgents, zoneID)
 
-			// Actually remove the agent from the registry (but never the main agent)
+			// Actually remove the sub-agent from the registry (but never the main agent)
 			if err := o.agentRegistry.RemoveAgent(agentID); err != nil {
-				logger.WarnCF("orchestrator", "Failed to remove agent from registry",
-					map[string]any{"zone_id": zoneID, "agent_id": agentID, "error": err.Error()})
+				logger.WarnCF("orchestrator", "Failed to remove sub-agent from registry",
+					map[string]any{"zone_id": zoneID, "sub_agent_id": agentID, "error": err.Error()})
 			} else {
-				logger.InfoCF("orchestrator", "Agent successfully released from registry",
-					map[string]any{"zone_id": zoneID, "agent_id": agentID})
+				logger.InfoCF("orchestrator", "Sub-agent successfully released from registry by main agent",
+					map[string]any{"zone_id": zoneID, "sub_agent_id": agentID})
 			}
 		}
 	}
 }
 
 // ReleaseAllAgents releases all sub-agents when the kanban board is empty
+// Called by the Main Agent to clean up all delegated sub-agents
 func (o *AgentOrchestrator) ReleaseAllAgents() {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	logger.InfoCF("orchestrator", "Releasing all sub-agents due to empty kanban board",
-		map[string]any{"active_agents_count": len(o.activeAgents)})
+	logger.InfoCF("orchestrator", "Main agent releasing all sub-agents due to empty kanban board",
+		map[string]any{
+			"main_agent_id":   o.mainAgentID,
+			"active_agents_count": len(o.activeAgents),
+		})
 
 	for zoneID, agentID := range o.activeAgents {
-		// Remove the agent from the registry (but never the main agent)
+		// Remove the sub-agent from the registry (but never the main agent)
 		if err := o.agentRegistry.RemoveAgent(agentID); err != nil {
-			logger.WarnCF("orchestrator", "Failed to remove agent from registry",
-				map[string]any{"zone_id": zoneID, "agent_id": agentID, "error": err.Error()})
+			logger.WarnCF("orchestrator", "Failed to remove sub-agent from registry",
+				map[string]any{
+					"main_agent_id": o.mainAgentID,
+					"zone_id":       zoneID,
+					"sub_agent_id":  agentID,
+					"error":         err.Error(),
+				})
 		} else {
-			logger.InfoCF("orchestrator", "Agent successfully released",
-				map[string]any{"zone_id": zoneID, "agent_id": agentID})
+			logger.InfoCF("orchestrator", "Sub-agent successfully released by main agent",
+				map[string]any{
+					"main_agent_id": o.mainAgentID,
+					"zone_id":       zoneID,
+					"sub_agent_id":  agentID,
+				})
 		}
 		delete(o.activeAgents, zoneID)
 	}
