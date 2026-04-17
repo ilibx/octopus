@@ -165,9 +165,61 @@ AddAgent  Init   Process   OnComplete RemoveAgent
                                                   │
                                                   ▼
                                          ┌──────────────┐
-                                         │  更新状态     │
-                                         │  (updateState)│
+                                         │ 发送到主 Agent│
+                                         │ (route task) │
                                          └──────────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────┐
+                                         │ 主 Agent 智能  │
+                                         │ 选择通知渠道  │
+                                         └──────────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────┐
+                                         │ 通过 Channel  │
+                                         │ 发送通知     │
+                                         └──────────────┘
+```
+
+#### 3.3.3 Cron 与 Agent 集成
+
+**重要设计变更**：Cron 任务不再直接创建看板任务或发送通知，而是统一发送到主 Agent，由主 Agent 根据任务性质智能选择通知渠道。
+
+**优势**：
+- **智能路由**：主 Agent 可以根据任务优先级、内容类型、目标受众自动选择单个或多个通知渠道
+- **统一管理**：所有通知逻辑集中在主 Agent，避免代码重复
+- **灵活性**：支持动态调整通知策略，无需修改 Cron 服务
+- **上下文感知**：主 Agent 可以利用历史对话和会话状态优化通知方式
+
+**集成流程**：
+```go
+// Cron 服务触发任务
+cronService.SetOnJob(func(job *CronJob) (string, error) {
+    // 将任务发送到主 Agent
+    mainAgent.ReceiveTask(&AgentTask{
+        Source:   "cron",
+        JobID:    job.ID,
+        Message:  job.Payload.Message,
+        Metadata: job.Payload.Metadata, // 包含 channel 提示等信息
+    })
+    return "Task sent to main agent", nil
+})
+
+// 主 Agent 处理任务
+func (a *MainAgent) ReceiveTask(task *AgentTask) {
+    // 1. 分析任务元数据
+    priority := task.Metadata["priority"]
+    contentType := task.Metadata["content_type"]
+    
+    // 2. 智能选择通知渠道
+    channels := a.selectChannels(task)
+    
+    // 3. 通过选定渠道发送通知
+    for _, ch := range channels {
+        ch.SendNotification(task.Message)
+    }
+}
 ```
 
 ### 3.4 消息总线 (`pkg/bus`)
