@@ -1,61 +1,61 @@
-# Octopus Channel System: Complete Development Guide
+# Octopus Channel System：完整开发指南
 
-> **Scope**: `pkg/channels/`, `pkg/bus/`, `pkg/media/`, `pkg/identity/`, `cmd/octopus/internal/gateway/`
-
----
-
-## Table of Contents
-
-- [Part 1: Architecture Overview](#part-1-architecture-overview)
-- [Part 2: Migration Guide — From main Branch to Refactored Branch](#part-2-migration-guide--from-main-branch-to-refactored-branch)
-- [Part 3: New Channel Development Guide — Implementing a Channel from Scratch](#part-3-new-channel-development-guide--implementing-a-channel-from-scratch)
-- [Part 4: Core Subsystem Details](#part-4-core-subsystem-details)
-- [Part 5: Key Design Decisions and Conventions](#part-5-key-design-decisions-and-conventions)
-- [Appendix: Complete File Listing and Interface Quick Reference](#appendix-complete-file-listing-and-interface-quick-reference)
+> **影响范围**: `pkg/channels/`, `pkg/bus/`, `pkg/media/`, `pkg/identity/`, `cmd/octopus/internal/gateway/`
 
 ---
 
-## Part 1: Architecture Overview
+## 目录
 
-### 1.1 Before and After Comparison
+- [第一部分：架构总览](#第一部分架构总览)
+- [第二部分：迁移指南——从 main 分支迁移到重构分支](#第二部分迁移指南从-main-分支迁移到重构分支)
+- [第三部分：新 Channel 开发指南——从零实现一个新 Channel](#第三部分新-channel-开发指南从零实现一个新-channel)
+- [第四部分：核心子系统详解](#第四部分核心子系统详解)
+- [第五部分：关键设计决策与约定](#第五部分关键设计决策与约定)
+- [附录：完整文件清单与接口速查表](#附录完整文件清单与接口速查表)
 
-**Before Refactor (main branch)**:
+---
+
+## 第一部分：架构总览
+
+### 1.1 重构前后对比
+
+**重构前（main 分支）**：
 
 ```
 pkg/channels/
-├── telegram.go          # Each channel directly in the channels package
+├── telegram.go          # 每个 channel 直接放在 channels 包内
 ├── discord.go
 ├── slack.go
-├── manager.go           # Manager directly references each channel type
+├── manager.go           # Manager 直接引用各 channel 类型
 ├── ...
 ```
 
-- All channel implementations lived at the top level of `pkg/channels/`
-- Manager constructed each channel via `switch` or `if-else` chains
-- Routing info like Peer and MessageID was buried in `Metadata map[string]string`
-- No rate limiting or retry on message sending
-- No unified media file lifecycle management
-- Each channel ran its own HTTP server
-- Group chat trigger filtering logic was scattered across channels
+- Channel 实现全部在 `pkg/channels/` 包的顶层
+- Manager 通过 `switch` 或 `if-else` 链条直接构造各 channel
+- Peer、MessageID 等路由信息埋在 `Metadata map[string]string` 中
+- 消息发送没有速率限制和重试
+- 没有统一的媒体文件生命周期管理
+- 各 channel 各自启动 HTTP 服务器
+- 群聊触发过滤逻辑分散在各 channel 中
 
-**After Refactor (refactor/channel-system branch)**:
+**重构后（refactor/channel-system 分支）**：
 
 ```
 pkg/channels/
-├── base.go              # BaseChannel shared abstraction layer
-├── interfaces.go        # Optional capability interfaces (TypingCapable, MessageEditor, ReactionCapable, PlaceholderCapable, PlaceholderRecorder)
-├── README.md            # English documentation
-├── README.zh.md         # Chinese documentation
-├── media.go             # MediaSender optional interface
-├── webhook.go           # WebhookHandler, HealthChecker optional interfaces
-├── errors.go            # Sentinel errors (ErrNotRunning, ErrRateLimit, ErrTemporary, ErrSendFailed)
-├── errutil.go           # Error classification helpers
-├── registry.go          # Factory registry (RegisterFactory / getFactory)
-├── manager.go           # Unified orchestration: Worker queues, rate limiting, retries, Typing/Placeholder, shared HTTP
-├── split.go             # Smart long-message splitting (preserves code block integrity)
-├── telegram/            # Each channel in its own sub-package
-│   ├── init.go          # Factory registration
-│   ├── telegram.go      # Implementation
+├── base.go              # BaseChannel 共享抽象层
+├── interfaces.go        # 可选能力接口（TypingCapable, MessageEditor, ReactionCapable, PlaceholderCapable, PlaceholderRecorder）
+├── README.md            # 英文文档
+├── README.zh.md         # 中文文档
+├── media.go             # MediaSender 可选接口
+├── webhook.go           # WebhookHandler, HealthChecker 可选接口
+├── errors.go            # 错误哨兵值（ErrNotRunning, ErrRateLimit, ErrTemporary, ErrSendFailed）
+├── errutil.go           # 错误分类帮助函数
+├── registry.go          # 工厂注册表（RegisterFactory / getFactory）
+├── manager.go           # 统一编排：Worker 队列、速率限制、重试、Typing/Placeholder、共享 HTTP
+├── split.go             # 长消息智能分割（保留代码块完整性）
+├── telegram/            # 每个 channel 独立子包
+│   ├── init.go          # 工厂注册
+│   ├── telegram.go      # 实现
 │   └── telegram_commands.go
 ├── discord/
 │   ├── init.go
@@ -64,17 +64,17 @@ pkg/channels/
 │   └── ...
 
 pkg/bus/
-├── bus.go               # MessageBus (buffer 64, safe close + drain)
-├── types.go             # Structured message types (Peer, SenderInfo, MediaPart, InboundMessage, OutboundMessage, OutboundMediaMessage)
+├── bus.go               # MessageBus（缓冲区 64，安全关闭+排水）
+├── types.go             # 结构化消息类型（Peer, SenderInfo, MediaPart, InboundMessage, OutboundMessage, OutboundMediaMessage）
 
 pkg/media/
-├── store.go             # MediaStore interface + FileMediaStore implementation (two-phase release, TTL cleanup)
+├── store.go             # MediaStore 接口 + FileMediaStore 实现（两阶段释放，TTL 清理）
 
 pkg/identity/
-├── identity.go          # Unified user identity: canonical "platform:id" format + backward-compatible matching
+├── identity.go          # 统一用户身份：规范 "platform:id" 格式 + 向后兼容匹配
 ```
 
-### 1.2 Message Flow Overview
+### 1.2 消息流转全景图
 
 ```
 ┌────────────┐      InboundMessage       ┌───────────┐      LLM + Tools      ┌────────────┐
@@ -89,76 +89,76 @@ pkg/identity/
                                                 ▼
                                     ┌───────────────────┐
                                     │   Manager          │
-                                    │   ├── dispatchOutbound()    Route to Worker queues
+                                    │   ├── dispatchOutbound()    路由到 Worker 队列
                                     │   ├── dispatchOutboundMedia()
-                                    │   ├── runWorker()           Message split + sendWithRetry()
+                                    │   ├── runWorker()           消息分割 + sendWithRetry()
                                     │   ├── runMediaWorker()      sendMediaWithRetry()
-                                    │   ├── preSend()             Stop Typing + Undo Reaction + Edit Placeholder
-                                    │   └── runTTLJanitor()       Clean up expired Typing/Placeholder
+                                    │   ├── preSend()             停止 Typing + 撤销 Reaction + 编辑 Placeholder
+                                    │   └── runTTLJanitor()       清理过期 Typing/Placeholder
                                     └────────┬──────────┘
                                              │
                                    channel.Send() / SendMedia()
                                              │
                                              ▼
                                     ┌────────────────┐
-                                    │ Platform APIs   │
+                                    │ 各平台 API/SDK  │
                                     └────────────────┘
 ```
 
-### 1.3 Key Design Principles
+### 1.3 关键设计原则
 
-| Principle | Description |
-|-----------|-------------|
-| **Sub-package Isolation** | Each channel is a standalone Go sub-package, depending on `BaseChannel` and interfaces from the `channels` parent package |
-| **Factory Registration** | Sub-packages self-register via `init()`, Manager looks up factories by name, eliminating import coupling |
-| **Capability Discovery** | Optional capabilities are declared via interfaces (`MediaSender`, `TypingCapable`, `ReactionCapable`, `PlaceholderCapable`, `MessageEditor`, `WebhookHandler`, `HealthChecker`), discovered by Manager via runtime type assertions |
-| **Structured Messages** | Peer, MessageID, and SenderInfo promoted from Metadata to first-class fields on InboundMessage |
-| **Error Classification** | Channels return sentinel errors (`ErrRateLimit`, `ErrTemporary`, etc.), Manager uses these to determine retry strategy |
-| **Centralized Orchestration** | Rate limiting, message splitting, retries, and Typing/Reaction/Placeholder management are all handled by Manager and BaseChannel; channels only need to implement Send |
+| 原则 | 说明 |
+|------|------|
+| **子包隔离** | 每个 channel 一个独立 Go 子包，依赖 `channels` 父包提供的 `BaseChannel` 和接口 |
+| **工厂注册** | 各子包通过 `init()` 自注册，Manager 通过名字查找工厂，消除 import 耦合 |
+| **能力发现** | 可选能力通过接口（`MediaSender`, `TypingCapable`, `ReactionCapable`, `PlaceholderCapable`, `MessageEditor`, `WebhookHandler`, `HealthChecker`）声明，Manager 运行时类型断言发现 |
+| **结构化消息** | Peer、MessageID、SenderInfo 从 Metadata 提升为 InboundMessage 的一等字段 |
+| **错误分类** | Channel 返回哨兵错误（`ErrRateLimit`, `ErrTemporary` 等），Manager 据此决定重试策略 |
+| **集中编排** | 速率限制、消息分割、重试、Typing/Reaction/Placeholder 全部由 Manager 和 BaseChannel 统一处理，Channel 只负责 Send |
 
 ---
 
-## Part 2: Migration Guide — From main Branch to Refactored Branch
+## 第二部分：迁移指南——从 main 分支迁移到重构分支
 
-### 2.1 If You Have Unmerged Channel Changes
+### 2.1 如果你有未合并的 Channel 修改
 
-#### Step 1: Identify which files you modified
+#### 步骤 1：确认你修改了哪些文件
 
-On the main branch, channel files were directly in `pkg/channels/` top level, e.g.:
+在 main 分支上，Channel 文件直接位于 `pkg/channels/` 顶层，例如：
 - `pkg/channels/telegram.go`
 - `pkg/channels/discord.go`
 
-After refactoring, these files have been removed and code moved to corresponding sub-packages:
+重构后，这些文件已被删除，代码移动到了对应子包：
 - `pkg/channels/telegram/telegram.go`
 - `pkg/channels/discord/discord.go`
 
-#### Step 2: Understand the structural change mapping
+#### 步骤 2：理解结构变化映射
 
-| main branch file | Refactored branch location | Changes |
+| main 分支文件 | 重构分支位置 | 变化 |
 |---|---|---|
-| `pkg/channels/telegram.go` | `pkg/channels/telegram/telegram.go` + `init.go` | Package name changed from `channels` to `telegram` |
-| `pkg/channels/discord.go` | `pkg/channels/discord/discord.go` + `init.go` | Same as above |
-| `pkg/channels/manager.go` | `pkg/channels/manager.go` | Extensively rewritten |
-| _(did not exist)_ | `pkg/channels/base.go` | New shared abstraction layer |
-| _(did not exist)_ | `pkg/channels/registry.go` | New factory registry |
-| _(did not exist)_ | `pkg/channels/errors.go` + `errutil.go` | New error classification system |
-| _(did not exist)_ | `pkg/channels/interfaces.go` | New optional capability interfaces |
-| _(did not exist)_ | `pkg/channels/media.go` | New MediaSender interface |
-| _(did not exist)_ | `pkg/channels/webhook.go` | New WebhookHandler/HealthChecker |
-| _(did not exist)_ | `pkg/channels/whatsapp_native/` | New WhatsApp native mode (whatsmeow) |
-| _(did not exist)_ | `pkg/channels/split.go` | New message splitting (migrated from utils) |
-| _(did not exist)_ | `pkg/bus/types.go` | New structured message types |
-| _(did not exist)_ | `pkg/media/store.go` | New media file lifecycle management |
-| _(did not exist)_ | `pkg/identity/identity.go` | New unified user identity |
+| `pkg/channels/telegram.go` | `pkg/channels/telegram/telegram.go` + `init.go` | 包名从 `channels` 变为 `telegram` |
+| `pkg/channels/discord.go` | `pkg/channels/discord/discord.go` + `init.go` | 同上 |
+| `pkg/channels/manager.go` | `pkg/channels/manager.go` | 大幅重写 |
+| _(不存在)_ | `pkg/channels/base.go` | 新增共享抽象层 |
+| _(不存在)_ | `pkg/channels/registry.go` | 新增工厂注册表 |
+| _(不存在)_ | `pkg/channels/errors.go` + `errutil.go` | 新增错误分类体系 |
+| _(不存在)_ | `pkg/channels/interfaces.go` | 新增可选能力接口 |
+| _(不存在)_ | `pkg/channels/media.go` | 新增 MediaSender 接口 |
+| _(不存在)_ | `pkg/channels/webhook.go` | 新增 WebhookHandler/HealthChecker |
+| _(不存在)_ | `pkg/channels/whatsapp_native/` | 新增 WhatsApp 原生模式（whatsmeow） |
+| _(不存在)_ | `pkg/channels/split.go` | 新增消息分割（从 utils 迁入） |
+| _(不存在)_ | `pkg/bus/types.go` | 新增结构化消息类型 |
+| _(不存在)_ | `pkg/media/store.go` | 新增媒体文件生命周期管理 |
+| _(不存在)_ | `pkg/identity/identity.go` | 新增统一用户身份 |
 
-#### Step 3: Migrate your channel code
+#### 步骤 3：迁移你的 Channel 代码
 
-Using Telegram as an example, the main changes are:
+以 Telegram 为例，主要改动项：
 
-**3a. Package declaration and imports**
+**3a. 包声明和导入**
 
 ```go
-// Old code (main branch)
+// 旧代码（main 分支）
 package channels
 
 import (
@@ -166,22 +166,22 @@ import (
     "github.com/ilibx/octopus/pkg/config"
 )
 
-// New code (refactored branch)
+// 新代码（重构分支）
 package telegram
 
 import (
     "github.com/ilibx/octopus/pkg/bus"
-    "github.com/ilibx/octopus/pkg/channels"     // Reference parent package
+    "github.com/ilibx/octopus/pkg/channels"     // 引用父包
     "github.com/ilibx/octopus/pkg/config"
-    "github.com/ilibx/octopus/pkg/identity"      // New
-    "github.com/ilibx/octopus/pkg/media"          // New (if media support needed)
+    "github.com/ilibx/octopus/pkg/identity"      // 新增
+    "github.com/ilibx/octopus/pkg/media"          // 新增（如需媒体）
 )
 ```
 
-**3b. Struct embeds BaseChannel**
+**3b. 结构体嵌入 BaseChannel**
 
 ```go
-// Old code: directly held bus, config, etc. fields
+// 旧代码：直接持有 bus、config 等字段
 type TelegramChannel struct {
     bus       *bus.MessageBus
     config    *config.Config
@@ -190,19 +190,19 @@ type TelegramChannel struct {
     // ...
 }
 
-// New code: embed BaseChannel, which provides bus, running, allowList, etc.
+// 新代码：嵌入 BaseChannel，它提供 bus、running、allowList 等
 type TelegramChannel struct {
-    *channels.BaseChannel          // Embed shared abstraction
+    *channels.BaseChannel          // 嵌入共享抽象
     bot    *telego.Bot
     config *config.Config
-    // ... only channel-specific fields
+    // ... 只保留 channel 特有字段
 }
 ```
 
-**3c. Constructor**
+**3c. 构造函数**
 
 ```go
-// Old code: direct assignment
+// 旧代码：直接赋值
 func NewTelegramChannel(cfg *config.Config, bus *bus.MessageBus) (*TelegramChannel, error) {
     return &TelegramChannel{
         bus:       bus,
@@ -212,16 +212,16 @@ func NewTelegramChannel(cfg *config.Config, bus *bus.MessageBus) (*TelegramChann
     }, nil
 }
 
-// New code: use NewBaseChannel + functional options
+// 新代码：使用 NewBaseChannel + 功能选项
 func NewTelegramChannel(cfg *config.Config, bus *bus.MessageBus) (*TelegramChannel, error) {
     base := channels.NewBaseChannel(
-        "telegram",                    // Name
-        cfg.Channels.Telegram,         // Raw config (any type)
-        bus,                           // Message bus
-        cfg.Channels.Telegram.AllowFrom, // Allow list
-        channels.WithMaxMessageLength(4096),                     // Platform message length limit
-        channels.WithGroupTrigger(cfg.Channels.Telegram.GroupTrigger), // Group trigger config
-        channels.WithReasoningChannelID(cfg.Channels.Telegram.ReasoningChannelID), // Reasoning chain routing
+        "telegram",                    // 名称
+        cfg.Channels.Telegram,         // 原始配置（any 类型）
+        bus,                           // 消息总线
+        cfg.Channels.Telegram.AllowFrom, // 允许列表
+        channels.WithMaxMessageLength(4096),                     // 平台消息长度上限
+        channels.WithGroupTrigger(cfg.Channels.Telegram.GroupTrigger), // 群聊触发配置
+        channels.WithReasoningChannelID(cfg.Channels.Telegram.ReasoningChannelID), // 思维链路由
     )
     return &TelegramChannel{
         BaseChannel: base,
@@ -231,44 +231,44 @@ func NewTelegramChannel(cfg *config.Config, bus *bus.MessageBus) (*TelegramChann
 }
 ```
 
-**3d. Start/Stop lifecycle**
+**3d. Start/Stop 生命周期**
 
 ```go
-// New code: use SetRunning atomic operation
+// 新代码：使用 SetRunning 原子操作
 func (c *TelegramChannel) Start(ctx context.Context) error {
-    // ... initialize bot, webhook, etc.
-    c.SetRunning(true)    // Must be called after ready
+    // ... 初始化 bot、webhook 等
+    c.SetRunning(true)    // 必须在就绪后调用
     go bh.Start()
     return nil
 }
 
 func (c *TelegramChannel) Stop(ctx context.Context) error {
-    c.SetRunning(false)   // Must be called before cleanup
-    // ... stop bot handler, cancel context
+    c.SetRunning(false)   // 必须在清理前调用
+    // ... 停止 bot handler、取消 context
     return nil
 }
 ```
 
-**3e. Send method error returns**
+**3e. Send 方法的错误返回**
 
 ```go
-// Old code: returns plain error
+// 旧代码：返回普通 error
 func (c *TelegramChannel) Send(ctx context.Context, msg bus.OutboundMessage) error {
     if !c.running { return fmt.Errorf("not running") }
     // ...
     if err != nil { return err }
 }
 
-// New code: must return sentinel errors for Manager to determine retry strategy
+// 新代码：必须返回哨兵错误，供 Manager 判断重试策略
 func (c *TelegramChannel) Send(ctx context.Context, msg bus.OutboundMessage) error {
     if !c.IsRunning() {
-        return channels.ErrNotRunning    // ← Manager will not retry
+        return channels.ErrNotRunning    // ← Manager 不会重试
     }
     // ...
     if err != nil {
-        // Use ClassifySendError to wrap error based on HTTP status code
+        // 使用 ClassifySendError 根据 HTTP 状态码包装错误
         return channels.ClassifySendError(statusCode, err)
-        // Or manually wrap:
+        // 或手动包装：
         // return fmt.Errorf("%w: %v", channels.ErrTemporary, err)
         // return fmt.Errorf("%w: %v", channels.ErrRateLimit, err)
         // return fmt.Errorf("%w: %v", channels.ErrSendFailed, err)
@@ -277,24 +277,24 @@ func (c *TelegramChannel) Send(ctx context.Context, msg bus.OutboundMessage) err
 }
 ```
 
-**3f. Message reception (Inbound)**
+**3f. 消息接收（Inbound）**
 
 ```go
-// Old code: directly construct InboundMessage and publish
+// 旧代码：直接构造 InboundMessage 并发布
 msg := bus.InboundMessage{
     Channel:  "telegram",
     SenderID: senderID,
     ChatID:   chatID,
     Content:  content,
     Metadata: map[string]string{
-        "peer_kind": "group",     // Routing info buried in metadata
+        "peer_kind": "group",     // 路由信息埋在 metadata
         "peer_id":   chatID,
         "message_id": msgID,
     },
 }
 c.bus.PublishInbound(ctx, msg)
 
-// New code: use BaseChannel.HandleMessage with structured fields
+// 新代码：使用 BaseChannel.HandleMessage，传入结构化字段
 sender := bus.SenderInfo{
     Platform:    "telegram",
     PlatformID:  strconv.FormatInt(from.ID, 10),
@@ -304,17 +304,17 @@ sender := bus.SenderInfo{
 }
 
 peer := bus.Peer{
-    Kind: "group",    // or "direct"
+    Kind: "group",    // 或 "direct"
     ID:   chatID,
 }
 
-// HandleMessage internally calls IsAllowedSender for permission checks, builds MediaScope, and publishes to bus
+// HandleMessage 内部调用 IsAllowedSender 检查权限，构建 MediaScope，发布到 bus
 c.HandleMessage(ctx, peer, messageID, senderID, chatID, content, mediaRefs, metadata, sender)
 ```
 
-**3g. Add factory registration (required)**
+**3g. 添加工厂注册（必需）**
 
-Create `init.go` for your channel:
+为你的 channel 创建 `init.go`：
 
 ```go
 // pkg/channels/telegram/init.go
@@ -333,87 +333,87 @@ func init() {
 }
 ```
 
-**3h. Import sub-package in Gateway**
+**3h. 在 Gateway 中导入子包**
 
 ```go
 // cmd/octopus/internal/gateway/helpers.go
 import (
-    _ "github.com/ilibx/octopus/pkg/channels/telegram"   // Triggers init() registration
+    _ "github.com/ilibx/octopus/pkg/channels/telegram"   // 触发 init() 注册
     _ "github.com/ilibx/octopus/pkg/channels/discord"
-    _ "github.com/ilibx/octopus/pkg/channels/your_new_channel"  // New addition
+    _ "github.com/ilibx/octopus/pkg/channels/your_new_channel"  // 新增
 )
 ```
 
-#### Step 4: Migrate bus message usage
+#### 步骤 4：迁移 Bus 消息使用方式
 
-If your code directly reads routing fields from `InboundMessage.Metadata`:
+如果你的代码直接读取 `InboundMessage.Metadata` 中的路由字段：
 
 ```go
-// Old code
+// 旧代码
 peerKind := msg.Metadata["peer_kind"]
 peerID   := msg.Metadata["peer_id"]
 msgID    := msg.Metadata["message_id"]
 
-// New code
-peerKind := msg.Peer.Kind      // First-class field
-peerID   := msg.Peer.ID        // First-class field
-msgID    := msg.MessageID       // First-class field
-sender   := msg.Sender          // bus.SenderInfo struct
-scope    := msg.MediaScope       // Media lifecycle scope
+// 新代码
+peerKind := msg.Peer.Kind      // 一等字段
+peerID   := msg.Peer.ID        // 一等字段
+msgID    := msg.MessageID       // 一等字段
+sender   := msg.Sender          // bus.SenderInfo 结构体
+scope    := msg.MediaScope       // 媒体生命周期作用域
 ```
 
-#### Step 5: Migrate allow-list checks
+#### 步骤 5：迁移允许列表检查
 
 ```go
-// Old code
+// 旧代码
 if !c.isAllowed(senderID) { return }
 
-// New code: prefer structured check
+// 新代码：优先使用结构化检查
 if !c.IsAllowedSender(sender) { return }
-// Or fall back to string check:
+// 或回退到字符串检查：
 if !c.IsAllowed(senderID) { return }
 ```
 
-`BaseChannel.HandleMessage` already handles this logic internally — no need to duplicate the check in your channel.
+`BaseChannel.HandleMessage` 方法内部已经处理了这个逻辑，无需在 channel 中重复检查。
 
-### 2.2 If You Have Manager Modifications
+### 2.2 如果你有 Manager 的修改
 
-The Manager has been completely rewritten. Your modifications will need to account for the new architecture:
+Manager 已被完全重写。你的修改需要理解新架构：
 
-| Old Manager Responsibility | New Manager Responsibility |
+| 旧 Manager 职责 | 新 Manager 职责 |
 |---|---|
-| Directly construct channels (switch/if-else) | Look up and construct via factory registry |
-| Directly call channel.Send | Per-channel Worker queues + rate limiting + retries |
-| No message splitting | Automatic splitting based on MaxMessageLength |
-| Each channel runs its own HTTP server | Unified shared HTTP server |
-| No Typing/Placeholder management | Unified preSend handles Typing stop + Reaction undo + Placeholder edit; inbound-side BaseChannel.HandleMessage auto-orchestrates Typing/Reaction/Placeholder |
-| No TTL cleanup | runTTLJanitor periodically cleans up expired Typing/Reaction/Placeholder entries |
+| 直接构造 channel（switch/if-else） | 通过工厂注册表查找并构造 |
+| 直接调用 channel.Send | 通过 per-channel Worker 队列 + 速率限制 + 重试 |
+| 无消息分割 | 自动根据 MaxMessageLength 分割长消息 |
+| 各 channel 自建 HTTP 服务器 | 统一共享 HTTP 服务器 |
+| 无 Typing/Placeholder 管理 | 统一 preSend 处理 Typing 停止 + Reaction 撤销 + Placeholder 编辑；入站侧 BaseChannel.HandleMessage 自动编排 Typing/Reaction/Placeholder |
+| 无 TTL 清理 | runTTLJanitor 定期清理过期 Typing/Reaction/Placeholder 条目 |
 
-### 2.3 If You Have Agent Loop Modifications
+### 2.3 如果你有 Agent Loop 的修改
 
-Main changes to the Agent Loop:
+Agent Loop 的主要变化：
 
-1. **MediaStore injection**: `agentLoop.SetMediaStore(mediaStore)` — Agent resolves media references produced by tools via MediaStore
-2. **ChannelManager injection**: `agentLoop.SetChannelManager(channelManager)` — Agent can query channel state
-3. **OutboundMediaMessage**: Agent now sends media messages via `bus.PublishOutboundMedia()` instead of embedding them in text replies
-4. **extractPeer**: Routing uses `msg.Peer` structured fields instead of Metadata lookups
+1. **MediaStore 注入**：`agentLoop.SetMediaStore(mediaStore)` — Agent 通过 MediaStore 解析工具产生的媒体引用
+2. **ChannelManager 注入**：`agentLoop.SetChannelManager(channelManager)` — Agent 可查询 channel 状态
+3. **OutboundMediaMessage**：Agent 现在通过 `bus.PublishOutboundMedia()` 发送媒体消息，而非嵌入文本回复
+4. **extractPeer**：路由使用 `msg.Peer` 结构化字段而非 Metadata 查找
 
 ---
 
-## Part 3: New Channel Development Guide — Implementing a Channel from Scratch
+## 第三部分：新 Channel 开发指南——从零实现一个新 Channel
 
-### 3.1 Minimum Implementation Checklist
+### 3.1 最小实现清单
 
-To add a new chat platform (e.g., `matrix`), you need to:
+要添加一个新的聊天平台（例如 `matrix`），你需要：
 
-1. ✅ Create sub-package directory `pkg/channels/matrix/`
-2. ✅ Create `init.go` — factory registration
-3. ✅ Create `matrix.go` — channel implementation
-4. ✅ Add blank import in Gateway helpers
-5. ✅ Add config check in Manager.initChannels()
-6. ✅ Add config struct in `pkg/config/`
+1. ✅ 创建子包目录 `pkg/channels/matrix/`
+2. ✅ 创建 `init.go` — 工厂注册
+3. ✅ 创建 `matrix.go` — Channel 实现
+4. ✅ 在 Gateway helpers 中添加 blank import
+5. ✅ 在 Manager.initChannels() 中添加配置检查
+6. ✅ 在 `pkg/config/` 中添加配置结构体
 
-### 3.2 Complete Template
+### 3.2 完整模板
 
 #### `pkg/channels/matrix/init.go`
 
@@ -451,24 +451,24 @@ import (
 
 // MatrixChannel implements channels.Channel for the Matrix protocol.
 type MatrixChannel struct {
-    *channels.BaseChannel            // Must embed
+    *channels.BaseChannel            // 必须嵌入
     config *config.Config
     ctx    context.Context
     cancel context.CancelFunc
-    // ... Matrix SDK client, etc.
+    // ... Matrix SDK 客户端等
 }
 
 func NewMatrixChannel(cfg *config.Config, msgBus *bus.MessageBus) (*MatrixChannel, error) {
-    matrixCfg := cfg.Channels.Matrix // Assumes this field exists in config
+    matrixCfg := cfg.Channels.Matrix // 假设配置中有此字段
 
     base := channels.NewBaseChannel(
-        "matrix",                           // Channel name (globally unique)
-        matrixCfg,                          // Raw config
-        msgBus,                             // Message bus
-        matrixCfg.AllowFrom,                // Allow list
-        channels.WithMaxMessageLength(65536), // Matrix message length limit
+        "matrix",                           // channel 名称（全局唯一）
+        matrixCfg,                          // 原始配置
+        msgBus,                             // 消息总线
+        matrixCfg.AllowFrom,                // 允许列表
+        channels.WithMaxMessageLength(65536), // Matrix 消息长度限制
         channels.WithGroupTrigger(matrixCfg.GroupTrigger),
-        channels.WithReasoningChannelID(matrixCfg.ReasoningChannelID), // Reasoning chain routing (optional)
+        channels.WithReasoningChannelID(matrixCfg.ReasoningChannelID), // 思维链路由（可选）
     )
 
     return &MatrixChannel{
@@ -477,14 +477,14 @@ func NewMatrixChannel(cfg *config.Config, msgBus *bus.MessageBus) (*MatrixChanne
     }, nil
 }
 
-// ========== Required Channel Interface Methods ==========
+// ========== 必须实现的 Channel 接口方法 ==========
 
 func (c *MatrixChannel) Start(ctx context.Context) error {
     c.ctx, c.cancel = context.WithCancel(ctx)
 
-    // 1. Initialize Matrix client
-    // 2. Start listening for messages
-    // 3. Mark as running
+    // 1. 初始化 Matrix 客户端
+    // 2. 开始监听消息
+    // 3. 标记为运行中
     c.SetRunning(true)
 
     logger.InfoC("matrix", "Matrix channel started")
@@ -503,30 +503,30 @@ func (c *MatrixChannel) Stop(ctx context.Context) error {
 }
 
 func (c *MatrixChannel) Send(ctx context.Context, msg bus.OutboundMessage) error {
-    // 1. Check running state
+    // 1. 检查运行状态
     if !c.IsRunning() {
         return channels.ErrNotRunning
     }
 
-    // 2. Send message to Matrix
+    // 2. 发送消息到 Matrix
     err := c.sendToMatrix(ctx, msg.ChatID, msg.Content)
     if err != nil {
-        // 3. Must use error classification wrapping
-        //    If you have an HTTP status code:
+        // 3. 必须使用错误分类包装
+        //    如果你有 HTTP 状态码：
         //    return channels.ClassifySendError(statusCode, err)
-        //    If it's a network error:
+        //    如果是网络错误：
         //    return channels.ClassifyNetError(err)
-        //    If manual classification is needed:
+        //    如果需要手动分类：
         return fmt.Errorf("%w: %v", channels.ErrTemporary, err)
     }
 
     return nil
 }
 
-// ========== Incoming Message Handling ==========
+// ========== 消息接收处理 ==========
 
 func (c *MatrixChannel) handleIncoming(roomID, senderID, displayName, content string, msgID string) {
-    // 1. Construct structured sender identity
+    // 1. 构造结构化发送者身份
     sender := bus.SenderInfo{
         Platform:    "matrix",
         PlatformID:  senderID,
@@ -535,16 +535,16 @@ func (c *MatrixChannel) handleIncoming(roomID, senderID, displayName, content st
         DisplayName: displayName,
     }
 
-    // 2. Determine Peer type (direct vs group)
+    // 2. 确定 Peer 类型（直聊 vs 群聊）
     peer := bus.Peer{
-        Kind: "group",    // or "direct"
+        Kind: "group",    // 或 "direct"
         ID:   roomID,
     }
 
-    // 3. Group chat filtering (if applicable)
+    // 3. 群聊过滤（如适用）
     isGroup := peer.Kind == "group"
     if isGroup {
-        isMentioned := false // Detect @mentions based on platform specifics
+        isMentioned := false // 根据平台特性检测 @提及
         shouldRespond, cleanContent := c.ShouldRespondInGroup(isMentioned, content)
         if !shouldRespond {
             return
@@ -552,48 +552,48 @@ func (c *MatrixChannel) handleIncoming(roomID, senderID, displayName, content st
         content = cleanContent
     }
 
-    // 4. Handle media attachments (if any)
+    // 4. 处理媒体附件（如有）
     var mediaRefs []string
     store := c.GetMediaStore()
     if store != nil {
-        // Download attachment locally → store.Store() → get ref
+        // 下载附件到本地 → store.Store() → 获取 ref
         // mediaRefs = append(mediaRefs, ref)
     }
 
-    // 5. Call HandleMessage to publish to bus
-    //    HandleMessage internally will:
-    //    - Check IsAllowedSender/IsAllowed
-    //    - Build MediaScope
-    //    - Publish InboundMessage
+    // 5. 调用 HandleMessage 发布到 bus
+    //    HandleMessage 内部会：
+    //    - 检查 IsAllowedSender/IsAllowed
+    //    - 构建 MediaScope
+    //    - 发布 InboundMessage
     c.HandleMessage(
         c.ctx,
         peer,
-        msgID,                   // Platform message ID
-        senderID,                // Raw sender ID
-        roomID,                  // Chat/room ID
-        content,                 // Message content
-        mediaRefs,               // Media reference list
-        nil,                     // Extra metadata (usually nil)
-        sender,                  // SenderInfo (variadic parameter)
+        msgID,                   // 平台消息 ID
+        senderID,                // 原始发送者 ID
+        roomID,                  // 聊天/房间 ID
+        content,                 // 消息内容
+        mediaRefs,               // 媒体引用列表
+        nil,                     // 额外 metadata（通常 nil）
+        sender,                  // SenderInfo（variadic 参数）
     )
 }
 
-// ========== Internal Methods ==========
+// ========== 内部方法 ==========
 
 func (c *MatrixChannel) sendToMatrix(ctx context.Context, roomID, content string) error {
-    // Actual Matrix SDK call
+    // 实际的 Matrix SDK 调用
     return nil
 }
 ```
 
-### 3.3 Optional Capability Interfaces
+### 3.3 可选能力接口
 
-Depending on platform capabilities, your channel can optionally implement the following interfaces:
+根据平台能力，你的 Channel 可以选择性实现以下接口：
 
-#### MediaSender — Send Media Attachments
+#### MediaSender — 发送媒体附件
 
 ```go
-// If the platform supports sending images/files/audio/video
+// 如果平台支持发送图片/文件/音频/视频
 func (c *MatrixChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMessage) error {
     if !c.IsRunning() {
         return channels.ErrNotRunning
@@ -613,42 +613,42 @@ func (c *MatrixChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMess
             continue
         }
 
-        // Call the appropriate API based on part.Type ("image"|"audio"|"video"|"file")
+        // 根据 part.Type ("image"|"audio"|"video"|"file") 调用对应 API
         switch part.Type {
         case "image":
-            // Upload image to Matrix
+            // 上传图片到 Matrix
         default:
-            // Upload file to Matrix
+            // 上传文件到 Matrix
         }
     }
     return nil
 }
 ```
 
-#### TypingCapable — Typing Indicator
+#### TypingCapable — Typing 指示器
 
 ```go
-// If the platform supports "typing..." indicators
+// 如果平台支持 "正在输入..." 提示
 func (c *MatrixChannel) StartTyping(ctx context.Context, chatID string) (stop func(), err error) {
-    // Call Matrix API to send typing indicator
-    // The returned stop function must be idempotent
+    // 调用 Matrix API 发送 typing 指示器
+    // 返回的 stop 函数必须是幂等的
     stopped := false
     return func() {
         if !stopped {
             stopped = true
-            // Call Matrix API to stop typing
+            // 调用 Matrix API 停止 typing
         }
     }, nil
 }
 ```
 
-#### ReactionCapable — Message Reaction Indicator
+#### ReactionCapable — 消息反应指示器
 
 ```go
-// If the platform supports adding emoji reactions to inbound messages (e.g., Slack's 👀, OneBot's emoji 289)
+// 如果平台支持对入站消息添加 emoji 反应（如 Slack 的 👀、OneBot 的表情 289）
 func (c *MatrixChannel) ReactToMessage(ctx context.Context, chatID, messageID string) (undo func(), err error) {
-    // Call Matrix API to add reaction to message
-    // The returned undo function removes the reaction, must be idempotent
+    // 调用 Matrix API 添加反应到消息
+    // 返回的 undo 函数移除反应，必须是幂等的
     err = c.addReaction(chatID, messageID, "eyes")
     if err != nil {
         return func() {}, err
@@ -659,24 +659,23 @@ func (c *MatrixChannel) ReactToMessage(ctx context.Context, chatID, messageID st
 }
 ```
 
-#### MessageEditor — Message Editing
+#### MessageEditor — 消息编辑
 
 ```go
-// If the platform supports editing sent messages (used for Placeholder replacement)
+// 如果平台支持编辑已发送的消息（用于 Placeholder 替换）
 func (c *MatrixChannel) EditMessage(ctx context.Context, chatID, messageID, content string) error {
-    // Call Matrix API to edit message
+    // 调用 Matrix API 编辑消息
     return nil
 }
 ```
 
-#### PlaceholderCapable — Placeholder Messages
+#### PlaceholderCapable — 占位消息
 
 ```go
-// If the platform supports sending placeholder messages (e.g. "Thinking... 💭"),
-// and the channel also implements MessageEditor, then Manager's preSend will
-// automatically edit the placeholder into the final response on outbound.
-// SendPlaceholder checks PlaceholderConfig.Enabled internally;
-// returning ("", nil) means skip.
+// 如果平台支持发送占位消息（如 "Thinking... 💭"），并且实现了 MessageEditor，
+// 则 Manager 的 preSend 会在出站时自动将占位消息编辑为最终回复。
+// SendPlaceholder 内部根据 PlaceholderConfig.Enabled 决定是否发送；
+// 返回 ("", nil) 表示跳过。
 func (c *MatrixChannel) SendPlaceholder(ctx context.Context, chatID string) (string, error) {
     cfg := c.config.Channels.Matrix.Placeholder
     if !cfg.Enabled {
@@ -686,7 +685,7 @@ func (c *MatrixChannel) SendPlaceholder(ctx context.Context, chatID string) (str
     if text == "" {
         text = "Thinking... 💭"
     }
-    // Call Matrix API to send placeholder message
+    // 调用 Matrix API 发送占位消息
     msg, err := c.sendText(ctx, chatID, text)
     if err != nil {
         return "", err
@@ -695,20 +694,20 @@ func (c *MatrixChannel) SendPlaceholder(ctx context.Context, chatID string) (str
 }
 ```
 
-#### WebhookHandler — HTTP Webhook Reception
+#### WebhookHandler — HTTP Webhook 接收
 
 ```go
-// If the channel receives messages via webhook (rather than long-polling/WebSocket)
+// 如果 channel 通过 webhook 接收消息（而非长轮询/WebSocket）
 func (c *MatrixChannel) WebhookPath() string {
-    return "/webhook/matrix"   // Path will be registered on the shared HTTP server
+    return "/webhook/matrix"   // 路径会被注册到共享 HTTP 服务器
 }
 
 func (c *MatrixChannel) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    // Handle webhook request
+    // 处理 webhook 请求
 }
 ```
 
-#### HealthChecker — Health Check Endpoint
+#### HealthChecker — 健康检查端点
 
 ```go
 func (c *MatrixChannel) HealthPath() string {
@@ -725,26 +724,26 @@ func (c *MatrixChannel) HealthHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### 3.4 Inbound-side Typing/Reaction/Placeholder Auto-orchestration
+### 3.4 入站侧 Typing/Reaction/Placeholder 自动编排
 
-`BaseChannel.HandleMessage` automatically detects whether the channel implements `TypingCapable`, `ReactionCapable`, and/or `PlaceholderCapable` **before** publishing the inbound message, and triggers the corresponding indicators. The three pipelines are completely independent and do not interfere with each other:
+`BaseChannel.HandleMessage` 在发布入站消息**之前**，自动检测 channel 是否实现了 `TypingCapable`、`ReactionCapable` 和/或 `PlaceholderCapable`，并触发相应的指示器。三条管道完全独立，互不干扰：
 
 ```go
-// Automatically executed inside BaseChannel.HandleMessage (no manual calls needed):
+// BaseChannel.HandleMessage 内部自动执行（无需 channel 手动调用）：
 if c.owner != nil && c.placeholderRecorder != nil {
-    // Typing — independent pipeline
+    // Typing — 独立管道
     if tc, ok := c.owner.(TypingCapable); ok {
         if stop, err := tc.StartTyping(ctx, chatID); err == nil {
             c.placeholderRecorder.RecordTypingStop(c.name, chatID, stop)
         }
     }
-    // Reaction — independent pipeline
+    // Reaction — 独立管道
     if rc, ok := c.owner.(ReactionCapable); ok && messageID != "" {
         if undo, err := rc.ReactToMessage(ctx, chatID, messageID); err == nil {
             c.placeholderRecorder.RecordReactionUndo(c.name, chatID, undo)
         }
     }
-    // Placeholder — independent pipeline
+    // Placeholder — 独立管道
     if pc, ok := c.owner.(PlaceholderCapable); ok {
         if phID, err := pc.SendPlaceholder(ctx, chatID); err == nil && phID != "" {
             c.placeholderRecorder.RecordPlaceholder(c.name, chatID, phID)
@@ -753,28 +752,28 @@ if c.owner != nil && c.placeholderRecorder != nil {
 }
 ```
 
-**This means**:
-- Channels implementing `TypingCapable` (Telegram, Discord, LINE, Pico) do not need to manually call `StartTyping` + `RecordTypingStop` in `handleMessage`
-- Channels implementing `ReactionCapable` (Slack, OneBot) do not need to manually call `AddReaction` + `RecordTypingStop` in `handleMessage`
-- Channels implementing `PlaceholderCapable` (Telegram, Discord, Pico) do not need to manually send placeholder messages and call `RecordPlaceholder` in `handleMessage`
-- Channels only need to implement the corresponding interface; `HandleMessage` handles orchestration automatically
-- Channels that don't implement these interfaces are unaffected (type assertions will fail and be skipped)
-- `PlaceholderCapable`'s `SendPlaceholder` method internally decides whether to send based on the configured `PlaceholderConfig.Enabled`; returning `("", nil)` skips registration
+**这意味着**：
+- 实现 `TypingCapable` 的 channel（Telegram、Discord、LINE、Pico）无需在 `handleMessage` 中手动调用 `StartTyping` + `RecordTypingStop`
+- 实现 `ReactionCapable` 的 channel（Slack、OneBot）无需在 `handleMessage` 中手动调用 `AddReaction` + `RecordTypingStop`
+- 实现 `PlaceholderCapable` 的 channel（Telegram、Discord、Pico）无需在 `handleMessage` 中手动发送占位消息并调用 `RecordPlaceholder`
+- Channel 只需实现对应接口，`HandleMessage` 会自动完成编排
+- 不实现这些接口的 channel 不受影响（类型断言会失败，跳过）
+- `PlaceholderCapable` 的 `SendPlaceholder` 方法内部根据配置的 `PlaceholderConfig.Enabled` 决定是否发送；返回 `("", nil)` 时跳过注册
 
-**Owner Injection**: Manager automatically calls `SetOwner(ch)` in `initChannel` to inject the concrete channel into BaseChannel — no manual setup required from developers.
+**Owner 注入**：Manager 在 `initChannel` 中自动调用 `SetOwner(ch)` 将具体 channel 注入 BaseChannel，无需开发者手动设置。
 
-When the Agent finishes processing a message, Manager's `preSend` automatically:
-1. Calls the recorded `stop()` to stop Typing
-2. Calls the recorded `undo()` to undo Reaction
-3. If there is a Placeholder and the channel implements `MessageEditor`, attempts to edit the Placeholder with the final reply (skipping Send)
+当 Agent 处理完消息后，Manager 的 `preSend` 会自动：
+1. 调用已记录的 `stop()` 停止 Typing
+2. 调用已记录的 `undo()` 撤销 Reaction
+3. 如果有 Placeholder，且 channel 实现了 `MessageEditor`，尝试编辑 Placeholder 为最终回复（跳过 Send）
 
-### 3.5 Register Configuration and Gateway Integration
+### 3.5 注册配置和 Gateway 接入
 
-#### Add configuration in `pkg/config/config.go`
+#### 在 `pkg/config/config.go` 中添加配置
 
 ```go
 type ChannelsConfig struct {
-    // ... existing channels
+    // ... 现有 channels
     Matrix  MatrixChannelConfig  `json:"matrix"`
 }
 
@@ -789,16 +788,16 @@ type MatrixChannelConfig struct {
 }
 ```
 
-#### Add entry in Manager.initChannels()
+#### 在 Manager.initChannels() 中添加入口
 
 ```go
-// In the initChannels() method of pkg/channels/manager.go
+// pkg/channels/manager.go 的 initChannels() 方法中
 if m.config.Channels.Matrix.Enabled && m.config.Channels.Matrix.Token != "" {
     m.initChannel("matrix", "Matrix")
 }
 ```
 
-> **Note**: If your channel has multiple modes (like WhatsApp Bridge vs Native), branch in initChannels based on config:
+> **注意**：如果你的 channel 有多种模式（如 WhatsApp Bridge vs Native），需要在 initChannels 中根据配置分支：
 > ```go
 > if cfg.UseNative {
 >     m.initChannel("whatsapp_native", "WhatsApp Native")
@@ -807,7 +806,7 @@ if m.config.Channels.Matrix.Enabled && m.config.Channels.Matrix.Token != "" {
 > }
 > ```
 
-#### Add blank import in Gateway
+#### 在 Gateway 中添加 blank import
 
 ```go
 // cmd/octopus/internal/gateway/helpers.go
@@ -818,89 +817,89 @@ import (
 
 ---
 
-## Part 4: Core Subsystem Details
+## 第四部分：核心子系统详解
 
 ### 4.1 MessageBus
 
-**Files**: `pkg/bus/bus.go`, `pkg/bus/types.go`
+**文件**：`pkg/bus/bus.go`、`pkg/bus/types.go`
 
 ```go
 type MessageBus struct {
-    inbound       chan InboundMessage       // buffer = 64
-    outbound      chan OutboundMessage      // buffer = 64
-    outboundMedia chan OutboundMediaMessage  // buffer = 64
-    done          chan struct{}             // Close signal
-    closed        atomic.Bool              // Prevents double-close
+    inbound       chan InboundMessage       // 缓冲区 = 64
+    outbound      chan OutboundMessage      // 缓冲区 = 64
+    outboundMedia chan OutboundMediaMessage  // 缓冲区 = 64
+    done          chan struct{}             // 关闭信号
+    closed        atomic.Bool              // 防止重复关闭
 }
 ```
 
-**Key Behaviors**:
+**关键行为**：
 
-| Method | Behavior |
-|--------|----------|
-| `PublishInbound(ctx, msg)` | Check closed → send to inbound channel → block/timeout/close |
-| `ConsumeInbound(ctx)` | Read from inbound → block/close/cancel |
-| `PublishOutbound(ctx, msg)` | Send to outbound channel |
-| `SubscribeOutbound(ctx)` | Read from outbound (called by Manager dispatcher) |
-| `PublishOutboundMedia(ctx, msg)` | Send to outboundMedia channel |
-| `SubscribeOutboundMedia(ctx)` | Read from outboundMedia (called by Manager media dispatcher) |
-| `Close()` | CAS close → close(done) → drain all channels (**does not close the channels themselves** to avoid concurrent send-on-closed panic) |
+| 方法 | 行为 |
+|------|------|
+| `PublishInbound(ctx, msg)` | 检查 closed → 发送到 inbound channel → 阻塞/超时/关闭 |
+| `ConsumeInbound(ctx)` | 从 inbound 读取 → 阻塞/关闭/取消 |
+| `PublishOutbound(ctx, msg)` | 发送到 outbound channel |
+| `SubscribeOutbound(ctx)` | 从 outbound 读取（Manager dispatcher 调用） |
+| `PublishOutboundMedia(ctx, msg)` | 发送到 outboundMedia channel |
+| `SubscribeOutboundMedia(ctx)` | 从 outboundMedia 读取（Manager media dispatcher 调用） |
+| `Close()` | CAS 关闭 → close(done) → 排水所有 channel（**不关闭 channel 本身**，避免并发 send-on-closed panic） |
 
-**Design Notes**:
-- Buffer size increased from 16 to 64 to reduce blocking under burst load
-- `Close()` does not close the underlying channels (only closes the `done` signal channel), because there may be concurrent `Publish` goroutines
-- Drain loop ensures buffered messages are not silently dropped
+**设计要点**：
+- 缓冲区从 16 增至 64，减少突发负载下的阻塞
+- `Close()` 不关闭底层 channel（只关闭 `done` 信号通道），因为可能有正在并发 `Publish` 的 goroutine
+- 排水循环确保 buffered 消息不被静默丢弃
 
-### 4.2 Structured Message Types
+### 4.2 结构化消息类型
 
-**File**: `pkg/bus/types.go`
+**文件**：`pkg/bus/types.go`
 
 ```go
-// Routing peer
+// 路由对等体
 type Peer struct {
     Kind string `json:"kind"`  // "direct" | "group" | "channel" | ""
     ID   string `json:"id"`
 }
 
-// Sender identity information
+// 发送者身份信息
 type SenderInfo struct {
     Platform    string `json:"platform,omitempty"`     // "telegram", "discord", ...
-    PlatformID  string `json:"platform_id,omitempty"`  // Platform-native ID
-    CanonicalID string `json:"canonical_id,omitempty"` // "platform:id" canonical format
+    PlatformID  string `json:"platform_id,omitempty"`  // 平台原始 ID
+    CanonicalID string `json:"canonical_id,omitempty"` // "platform:id" 规范格式
     Username    string `json:"username,omitempty"`
     DisplayName string `json:"display_name,omitempty"`
 }
 
-// Inbound message
+// 入站消息
 type InboundMessage struct {
-    Channel    string            // Source channel name
-    SenderID   string            // Sender ID (prefer CanonicalID)
-    Sender     SenderInfo        // Structured sender info
-    ChatID     string            // Chat/room ID
-    Content    string            // Message text
-    Media      []string          // Media reference list (media://...)
-    Peer       Peer              // Routing peer (first-class field)
-    MessageID  string            // Platform message ID (first-class field)
-    MediaScope string            // Media lifecycle scope
-    SessionKey string            // Session key
-    Metadata   map[string]string // Only for channel-specific extensions
+    Channel    string            // 来源 channel 名称
+    SenderID   string            // 发送者 ID（优先使用 CanonicalID）
+    Sender     SenderInfo        // 结构化发送者信息
+    ChatID     string            // 聊天/房间 ID
+    Content    string            // 消息文本
+    Media      []string          // 媒体引用列表（media://...）
+    Peer       Peer              // 路由对等体（一等字段）
+    MessageID  string            // 平台消息 ID（一等字段）
+    MediaScope string            // 媒体生命周期作用域
+    SessionKey string            // 会话键
+    Metadata   map[string]string // 仅用于 channel 特有扩展
 }
 
-// Outbound text message
+// 出站文本消息
 type OutboundMessage struct {
     Channel string
     ChatID  string
     Content string
 }
 
-// Outbound media message
+// 出站媒体消息
 type OutboundMediaMessage struct {
     Channel string
     ChatID  string
     Parts   []MediaPart
 }
 
-// Media part
+// 媒体片段
 type MediaPart struct {
     Type        string // "image" | "audio" | "video" | "file"
     Ref         string // "media://uuid"
@@ -912,111 +911,111 @@ type MediaPart struct {
 
 ### 4.3 BaseChannel
 
-**File**: `pkg/channels/base.go`
+**文件**：`pkg/channels/base.go`
 
-BaseChannel is the shared abstraction layer for all channels, providing the following capabilities:
+BaseChannel 是所有 channel 的共享抽象层，提供以下能力：
 
-| Method/Feature | Description |
+| 方法/特性 | 说明 |
 |---|---|
-| `Name() string` | Channel name |
-| `IsRunning() bool` | Atomically read running state |
-| `SetRunning(bool)` | Atomically set running state |
-| `MaxMessageLength() int` | Message length limit (rune count), 0 = unlimited |
-| `ReasoningChannelID() string` | Reasoning chain routing target channel ID (empty = no routing) |
-| `IsAllowed(senderID string) bool` | Legacy allow-list check (supports `"id\|username"` and `"@username"` formats) |
-| `IsAllowedSender(sender SenderInfo) bool` | New allow-list check (delegates to `identity.MatchAllowed`) |
-| `ShouldRespondInGroup(isMentioned, content) (bool, string)` | Unified group chat trigger filtering logic |
-| `HandleMessage(...)` | Unified inbound message handling: permission check → build MediaScope → auto-trigger Typing/Reaction/Placeholder → publish to Bus |
-| `SetMediaStore(s) / GetMediaStore()` | MediaStore injected by Manager |
-| `SetPlaceholderRecorder(r) / GetPlaceholderRecorder()` | PlaceholderRecorder injected by Manager |
-| `SetOwner(ch)` | Concrete channel reference injected by Manager (used for Typing/Reaction/Placeholder type assertions in HandleMessage) |
+| `Name() string` | Channel 名称 |
+| `IsRunning() bool` | 原子读取运行状态 |
+| `SetRunning(bool)` | 原子设置运行状态 |
+| `MaxMessageLength() int` | 消息长度限制（rune 计数），0 = 无限制 |
+| `ReasoningChannelID() string` | 思维链路由目标 channel ID（空 = 不路由） |
+| `IsAllowed(senderID string) bool` | 旧格式允许列表检查（支持 `"id\|username"` 和 `"@username"` 格式） |
+| `IsAllowedSender(sender SenderInfo) bool` | 新格式允许列表检查（委托给 `identity.MatchAllowed`） |
+| `ShouldRespondInGroup(isMentioned, content) (bool, string)` | 统一群聊触发过滤逻辑 |
+| `HandleMessage(...)` | 统一入站消息处理：权限检查 → 构建 MediaScope → 自动触发 Typing/Reaction/Placeholder → 发布到 Bus |
+| `SetMediaStore(s) / GetMediaStore()` | Manager 注入的媒体存储 |
+| `SetPlaceholderRecorder(r) / GetPlaceholderRecorder()` | Manager 注入的占位符记录器 |
+| `SetOwner(ch) ` | Manager 注入的具体 channel 引用（用于 HandleMessage 内部的 Typing/Reaction/Placeholder 类型断言） |
 
-**Functional Options**:
+**功能选项**：
 
 ```go
-channels.WithMaxMessageLength(4096)        // Set platform message length limit
-channels.WithGroupTrigger(groupTriggerCfg) // Set group trigger configuration
-channels.WithReasoningChannelID(id)        // Set reasoning chain routing target channel
+channels.WithMaxMessageLength(4096)        // 设置平台消息长度限制
+channels.WithGroupTrigger(groupTriggerCfg) // 设置群聊触发配置
+channels.WithReasoningChannelID(id)        // 设置思维链路由目标 channel
 ```
 
-### 4.4 Factory Registry
+### 4.4 工厂注册表
 
-**File**: `pkg/channels/registry.go`
+**文件**：`pkg/channels/registry.go`
 
 ```go
 type ChannelFactory func(cfg *config.Config, bus *bus.MessageBus) (Channel, error)
 
-func RegisterFactory(name string, f ChannelFactory)   // Called in sub-package init()
-func getFactory(name string) (ChannelFactory, bool)    // Called internally by Manager
+func RegisterFactory(name string, f ChannelFactory)   // 子包 init() 中调用
+func getFactory(name string) (ChannelFactory, bool)    // Manager 内部调用
 ```
 
-The factory registry is protected by `sync.RWMutex` and registrations occur during `init()` phase (completed at process startup). Manager looks up factories by name in `initChannel()` and calls them.
+工厂注册表使用 `sync.RWMutex` 保护，在 `init()` 阶段注册（进程启动时完成）。Manager 在 `initChannel()` 中通过名字查找工厂并调用它。
 
-### 4.5 Error Classification and Retries
+### 4.5 错误分类与重试
 
-**Files**: `pkg/channels/errors.go`, `pkg/channels/errutil.go`
+**文件**：`pkg/channels/errors.go`、`pkg/channels/errutil.go`
 
-#### Sentinel Errors
+#### 哨兵错误
 
 ```go
 var (
-    ErrNotRunning = errors.New("channel not running")   // Permanent: do not retry
-    ErrRateLimit  = errors.New("rate limited")           // Fixed delay: retry after 1s
-    ErrTemporary  = errors.New("temporary failure")      // Exponential backoff: 500ms * 2^attempt, max 8s
-    ErrSendFailed = errors.New("send failed")            // Permanent: do not retry
+    ErrNotRunning = errors.New("channel not running")   // 永久：不重试
+    ErrRateLimit  = errors.New("rate limited")           // 固定延迟：1s 后重试
+    ErrTemporary  = errors.New("temporary failure")      // 指数退避：500ms * 2^attempt，最大 8s
+    ErrSendFailed = errors.New("send failed")            // 永久：不重试
 )
 ```
 
-#### Error Classification Helpers
+#### 错误分类帮助函数
 
 ```go
-// Automatically classify based on HTTP status code
+// 根据 HTTP 状态码自动分类
 func ClassifySendError(statusCode int, rawErr error) error {
     // 429 → ErrRateLimit
     // 5xx → ErrTemporary
     // 4xx → ErrSendFailed
 }
 
-// Wrap network errors as temporary
+// 网络错误统一包装为临时错误
 func ClassifyNetError(err error) error {
     // → ErrTemporary
 }
 ```
 
-#### Manager Retry Strategy (`sendWithRetry`)
+#### Manager 重试策略（`sendWithRetry`）
 
 ```
-Max retries:      3
-Rate limit delay:  1 second
-Base backoff:      500 milliseconds
-Max backoff:       8 seconds
+最大重试次数: 3
+速率限制延迟: 1 秒
+基础退避:     500 毫秒
+最大退避:     8 秒
 
-Retry logic:
-  ErrNotRunning → Fail immediately, no retry
-  ErrSendFailed → Fail immediately, no retry
-  ErrRateLimit  → Wait 1s → retry
-  ErrTemporary  → Wait 500ms * 2^attempt (max 8s) → retry
-  Other unknown → Wait 500ms * 2^attempt (max 8s) → retry
+重试逻辑:
+  ErrNotRunning → 立即失败，不重试
+  ErrSendFailed → 立即失败，不重试
+  ErrRateLimit  → 等待 1s → 重试
+  ErrTemporary  → 等待 500ms * 2^attempt（最大 8s） → 重试
+  其他未知错误  → 等待 500ms * 2^attempt（最大 8s） → 重试
 ```
 
-### 4.6 Manager Orchestration
+### 4.6 Manager 编排
 
-**File**: `pkg/channels/manager.go`
+**文件**：`pkg/channels/manager.go`
 
-#### Per-channel Worker Architecture
+#### Per-channel Worker 架构
 
 ```go
 type channelWorker struct {
-    ch         Channel                      // Channel instance
-    queue      chan bus.OutboundMessage      // Outbound text queue (buffered 16)
-    mediaQueue chan bus.OutboundMediaMessage // Outbound media queue (buffered 16)
-    done       chan struct{}                // Text worker completion signal
-    mediaDone  chan struct{}                // Media worker completion signal
-    limiter    *rate.Limiter                // Per-channel rate limiter
+    ch         Channel                      // channel 实例
+    queue      chan bus.OutboundMessage      // 出站文本队列（缓冲 16）
+    mediaQueue chan bus.OutboundMediaMessage // 出站媒体队列（缓冲 16）
+    done       chan struct{}                // 文本 worker 完成信号
+    mediaDone  chan struct{}                // 媒体 worker 完成信号
+    limiter    *rate.Limiter                // per-channel 速率限制器
 }
 ```
 
-#### Per-channel Rate Limit Configuration
+#### Per-channel 速率限制配置
 
 ```go
 var channelRateConfig = map[string]float64{
@@ -1025,93 +1024,93 @@ var channelRateConfig = map[string]float64{
     "slack":    1,    // 1 msg/s
     "line":     10,   // 10 msg/s
 }
-// Default: 10 msg/s
+// 默认: 10 msg/s
 // burst = max(1, ceil(rate/2))
 ```
 
-#### Lifecycle Management
+#### 生命周期管理
 
 ```
 StartAll:
-  1. Iterate registered channels → channel.Start(ctx)
-  2. Create channelWorker for each successfully started channel
-  3. Start goroutines:
-     - runWorker (per-channel outbound text)
-     - runMediaWorker (per-channel outbound media)
-     - dispatchOutbound (route from bus to worker queues)
-     - dispatchOutboundMedia (route from bus to media worker queues)
-     - runTTLJanitor (every 10s clean up expired typing/reaction/placeholder)
-  4. Start shared HTTP server (if configured)
+  1. 遍历已注册 channels → channel.Start(ctx)
+  2. 为每个启动成功的 channel 创建 channelWorker
+  3. 启动 goroutines:
+     - runWorker (per-channel 出站文本)
+     - runMediaWorker (per-channel 出站媒体)
+     - dispatchOutbound (从 bus 路由到 worker 队列)
+     - dispatchOutboundMedia (从 bus 路由到 media worker 队列)
+     - runTTLJanitor (每 10s 清理过期 typing/reaction/placeholder)
+  4. 启动共享 HTTP 服务器（如已配置）
 
 StopAll:
-  1. Shut down shared HTTP server (5s timeout)
-  2. Cancel dispatcher context
-  3. Close text worker queues → wait for drain to complete
-  4. Close media worker queues → wait for drain to complete
-  5. Stop each channel (channel.Stop)
+  1. 关闭共享 HTTP 服务器（5s 超时）
+  2. 取消 dispatcher context
+  3. 关闭 text worker 队列 → 等待排水完成
+  4. 关闭 media worker 队列 → 等待排水完成
+  5. 停止每个 channel（channel.Stop）
 ```
 
-#### Typing/Reaction/Placeholder Management
+#### Typing/Reaction/Placeholder 管理
 
 ```go
-// Manager implements PlaceholderRecorder interface
+// Manager 实现 PlaceholderRecorder 接口
 func (m *Manager) RecordPlaceholder(channel, chatID, placeholderID string)
 func (m *Manager) RecordTypingStop(channel, chatID string, stop func())
 func (m *Manager) RecordReactionUndo(channel, chatID string, undo func())
 
-// Inbound side: BaseChannel.HandleMessage auto-orchestrates
-// BaseChannel.HandleMessage, before PublishInbound, auto-triggers via owner type assertions:
+// 入站侧：BaseChannel.HandleMessage 自动编排
+// BaseChannel.HandleMessage 在 PublishInbound 之前，通过 owner 类型断言自动触发：
 //   - TypingCapable.StartTyping       → RecordTypingStop
 //   - ReactionCapable.ReactToMessage  → RecordReactionUndo
 //   - PlaceholderCapable.SendPlaceholder → RecordPlaceholder
-// All three are independent and do not interfere with each other. Channels don't need to call these manually.
+// 三者独立，互不干扰。Channel 无需手动调用。
 
-// Outbound side: pre-send processing
+// 出站侧：发送前处理
 func (m *Manager) preSend(ctx, name, msg, ch) bool {
     key := name + ":" + msg.ChatID
-    // 1. Stop Typing (call stored stop function)
-    // 2. Undo Reaction (call stored undo function)
-    // 3. Attempt to edit Placeholder (if channel implements MessageEditor)
-    //    Success → return true (skip Send)
-    //    Failure → return false (proceed with Send)
+    // 1. 停止 Typing（调用存储的 stop 函数）
+    // 2. 撤销 Reaction（调用存储的 undo 函数）
+    // 3. 尝试编辑 Placeholder（如果 channel 实现了 MessageEditor）
+    //    成功 → return true（跳过 Send）
+    //    失败 → return false（继续 Send）
 }
 ```
 
-Manager storage is fully separated; three pipelines do not interfere:
+Manager 存储完全分离，三条管道互不干扰：
 
 ```go
 Manager {
-    typingStops   sync.Map  // "channel:chatID" → typingEntry    ← manages TypingCapable
-    reactionUndos sync.Map  // "channel:chatID" → reactionEntry  ← manages ReactionCapable
+    typingStops   sync.Map  // "channel:chatID" → typingEntry    ← 管 TypingCapable
+    reactionUndos sync.Map  // "channel:chatID" → reactionEntry  ← 管 ReactionCapable
     placeholders  sync.Map  // "channel:chatID" → placeholderEntry
 }
 ```
 
-TTL Cleanup:
-- Typing stop functions: 5-minute TTL (auto-calls stop and deletes on expiry)
-- Reaction undo functions: 5-minute TTL (auto-calls undo and deletes on expiry)
-- Placeholder IDs: 10-minute TTL (deletes on expiry)
-- Cleanup interval: 10 seconds
+TTL 清理：
+- Typing 停止函数：5 分钟 TTL（到期后自动调用 stop 并删除）
+- Reaction 撤销函数：5 分钟 TTL（到期后自动调用 undo 并删除）
+- Placeholder ID：10 分钟 TTL（到期后删除）
+- 清理间隔：10 秒
 
-### 4.7 Message Splitting
+### 4.7 消息分割
 
-**File**: `pkg/channels/split.go`
+**文件**：`pkg/channels/split.go`
 
 `SplitMessage(content string, maxLen int) []string`
 
-Smart splitting strategy:
-1. Calculate effective split point = maxLen - 10% buffer (to reserve space for code block closure)
-2. Prefer splitting at newlines
-3. Otherwise split at spaces/tabs
-4. Detect unclosed code blocks (` ``` `)
-5. If a code block is unclosed:
-   - Attempt to extend to maxLen to include the closing fence
-   - If the code block is too long, inject close/reopen fences (`\n```\n` + header)
-   - Last resort: split before the code block starts
+智能分割策略：
+1. 计算有效分割点 = maxLen - 10% 缓冲区（为代码块闭合留空间）
+2. 优先在换行符处分割
+3. 其次在空格/制表符处分割
+4. 检测未闭合的代码块（` ``` `）
+5. 如果代码块未闭合：
+   - 尝试扩展到 maxLen 以包含闭合围栏
+   - 如果代码块太长，注入闭合/重开围栏（`\n```\n` + header）
+   - 最后手段：在代码块开始前分割
 
 ### 4.8 MediaStore
 
-**File**: `pkg/media/store.go`
+**文件**：`pkg/media/store.go`
 
 ```go
 type MediaStore interface {
@@ -1122,151 +1121,151 @@ type MediaStore interface {
 }
 ```
 
-**FileMediaStore Implementation**:
-- Pure in-memory mapping, no file copy/move
-- Reference format: `media://<uuid>`
-- Scope format: `channel:chatID:messageID` (generated by `BuildMediaScope`)
-- **Two-phase operation**:
-  - Phase 1 (holding lock): collect and delete entries from map
-  - Phase 2 (no lock): delete files from disk
-  - Purpose: minimize lock contention
-- **TTL Cleanup**: `NewFileMediaStoreWithCleanup` → `Start()` launches background cleanup goroutine
-- Cleanup interval and max TTL are controlled by configuration
+**FileMediaStore 实现**：
+- 纯内存映射，不复制/移动文件
+- 引用格式：`media://<uuid>`
+- Scope 格式：`channel:chatID:messageID`（由 `BuildMediaScope` 生成）
+- **两阶段操作**：
+  - Phase 1（持锁）：从 map 中收集并删除条目
+  - Phase 2（无锁）：从磁盘删除文件
+  - 目的：最小化锁争用
+- **TTL 清理**：`NewFileMediaStoreWithCleanup` → `Start()` 启动后台清理协程
+- 清理间隔和最大存活时间由配置控制
 
 ### 4.9 Identity
 
-**File**: `pkg/identity/identity.go`
+**文件**：`pkg/identity/identity.go`
 
 ```go
-// Build canonical ID
+// 构建规范 ID
 func BuildCanonicalID(platform, platformID string) string
 // → "telegram:123456"
 
-// Parse canonical ID
+// 解析规范 ID
 func ParseCanonicalID(canonical string) (platform, id string, ok bool)
 
-// Match against allow list (backward-compatible)
+// 匹配允许列表（向后兼容）
 func MatchAllowed(sender bus.SenderInfo, allowed string) bool
 ```
 
-`MatchAllowed` supported allow-list formats:
-| Format | Matching |
-|--------|----------|
-| `"123456"` | Matches `sender.PlatformID` |
-| `"@alice"` | Matches `sender.Username` |
-| `"123456\|alice"` | Matches PlatformID or Username (legacy format compatibility) |
-| `"telegram:123456"` | Exact match on `sender.CanonicalID` (new format) |
+`MatchAllowed` 支持的允许列表格式：
+| 格式 | 匹配方式 |
+|------|----------|
+| `"123456"` | 匹配 `sender.PlatformID` |
+| `"@alice"` | 匹配 `sender.Username` |
+| `"123456\|alice"` | 匹配 PlatformID 或 Username（旧格式兼容） |
+| `"telegram:123456"` | 精确匹配 `sender.CanonicalID`（新格式） |
 
-### 4.10 Shared HTTP Server
+### 4.10 共享 HTTP 服务器
 
-**File**: `pkg/channels/manager.go`'s `SetupHTTPServer`
+**文件**：`pkg/channels/manager.go` 的 `SetupHTTPServer`
 
-Manager creates a single `http.Server` and auto-discovers and registers:
-- Channels implementing `WebhookHandler` → mounted at `wh.WebhookPath()`
-- Channels implementing `HealthChecker` → mounted at `hc.HealthPath()`
-- Global health endpoint registered by `health.Server.RegisterOnMux`
+Manager 创建单一 `http.Server`，自动发现和注册：
+- 实现 `WebhookHandler` 的 channel → 挂载到 `wh.WebhookPath()`
+- 实现 `HealthChecker` 的 channel → 挂载到 `hc.HealthPath()`
+- Health 全局端点由 `health.Server.RegisterOnMux` 注册
 
-Timeout configuration: ReadTimeout = 30s, WriteTimeout = 30s
+超时配置：ReadTimeout = 30s, WriteTimeout = 30s
 
 ---
 
-## Part 5: Key Design Decisions and Conventions
+## 第五部分：关键设计决策与约定
 
-### 5.1 Mandatory Conventions
+### 5.1 必须遵守的约定
 
-1. **Error classification is a contract**: A channel's `Send` method **must** return sentinel errors (or wrap them). Manager's retry strategy relies entirely on `errors.Is` checks. Returning unclassified errors will cause Manager to treat them as "unknown errors" (exponential backoff retry).
+1. **错误分类是合约**：Channel 的 `Send` 方法**必须**返回哨兵错误（或包装它们）。Manager 的重试策略完全依赖 `errors.Is` 检查。如果返回未分类的错误，Manager 会按"未知错误"处理（指数退避重试）。
 
-2. **SetRunning is a lifecycle signal**: **Must** call `c.SetRunning(true)` after successful `Start`, and **must** call `c.SetRunning(false)` at the beginning of `Stop`. **Must** check `c.IsRunning()` in `Send` and return `ErrNotRunning`.
+2. **SetRunning 是生命周期信号**：`Start` 成功后**必须**调用 `c.SetRunning(true)`，`Stop` 开始时**必须**调用 `c.SetRunning(false)`。`Send` 中**必须**检查 `c.IsRunning()` 并返回 `ErrNotRunning`。
 
-3. **HandleMessage includes permission checks**: Do not perform your own permission checks before calling `HandleMessage` (unless you need platform-specific preprocessing before the check). `HandleMessage` already calls `IsAllowedSender`/`IsAllowed` internally.
+3. **HandleMessage 包含权限检查**：不要在调用 `HandleMessage` 之前自行进行权限检查（除非你需要在检查前做平台特定的预处理）。`HandleMessage` 内部已经调用 `IsAllowedSender`/`IsAllowed`。
 
-4. **Message splitting is handled by Manager**: A channel's `Send` method does not need to handle long message splitting. Manager automatically splits based on `MaxMessageLength()` before calling `Send`. Channels only need to declare the limit via `WithMaxMessageLength`.
+4. **消息分割由 Manager 处理**：Channel 的 `Send` 方法不需要处理长消息分割。Manager 会在调用 `Send` 之前根据 `MaxMessageLength()` 自动分割。Channel 只需通过 `WithMaxMessageLength` 声明限制。
 
-5. **Typing/Reaction/Placeholder is handled by BaseChannel + Manager automatically**: A channel's `Send` method does not need to manage Typing stop, Reaction undo, or Placeholder editing. `BaseChannel.HandleMessage` auto-triggers `TypingCapable`, `ReactionCapable`, and `PlaceholderCapable` on the inbound side (via `owner` type assertions); Manager's `preSend` auto-stops Typing, undoes Reaction, and edits Placeholder on the outbound side. Channels only need to implement the corresponding interfaces.
+5. **Typing/Reaction/Placeholder 由 BaseChannel + Manager 自动处理**：Channel 的 `Send` 方法不需要管理 Typing 停止、Reaction 撤销或 Placeholder 编辑。`BaseChannel.HandleMessage` 在入站侧自动触发 `TypingCapable`、`ReactionCapable` 和 `PlaceholderCapable`（通过 `owner` 类型断言）；Manager 的 `preSend` 在出站侧自动停止 Typing、撤销 Reaction、编辑 Placeholder。Channel 只需实现对应接口即可。
 
-6. **Factory registration belongs in init()**: Each sub-package must have an `init.go` file calling `channels.RegisterFactory`. Gateway must trigger registration via blank imports (`_ "pkg/channels/xxx"`).
+6. **工厂注册在 init() 中**：每个子包必须有 `init.go` 文件调用 `channels.RegisterFactory`。Gateway 必须通过 blank import（`_ "pkg/channels/xxx"`）触发注册。
 
-### 5.2 Metadata Field Usage Conventions
+### 5.2 Metadata 字段使用约定
 
-**Do NOT put the following information in Metadata anymore**:
-- `peer_kind` / `peer_id` → Use `InboundMessage.Peer`
-- `message_id` → Use `InboundMessage.MessageID`
-- `sender_platform` / `sender_username` → Use `InboundMessage.Sender`
+**不要再把以下信息放入 Metadata**：
+- `peer_kind` / `peer_id` → 使用 `InboundMessage.Peer`
+- `message_id` → 使用 `InboundMessage.MessageID`
+- `sender_platform` / `sender_username` → 使用 `InboundMessage.Sender`
 
-**Metadata should only be used for**:
-- Channel-specific extension information (e.g., Telegram's `reply_to_message_id`)
-- Temporary information that doesn't fit into structured fields
+**Metadata 仅用于**：
+- Channel 特有的扩展信息（如 Telegram 的 `reply_to_message_id`）
+- 不适合放入结构化字段的临时信息
 
-### 5.3 Concurrency Safety Conventions
+### 5.3 并发安全约定
 
-- `BaseChannel.running`: Uses `atomic.Bool`, thread-safe
-- `Manager.channels` / `Manager.workers`: Protected by `sync.RWMutex`
-- `Manager.placeholders` / `Manager.typingStops` / `Manager.reactionUndos`: Uses `sync.Map`
-- `MessageBus.closed`: Uses `atomic.Bool`
-- `FileMediaStore`: Uses `sync.RWMutex`, two-phase operation to minimize lock-hold time
-- Channel Worker queue: Go channel, inherently concurrent-safe
+- `BaseChannel.running`：使用 `atomic.Bool`，线程安全
+- `Manager.channels` / `Manager.workers`：使用 `sync.RWMutex` 保护
+- `Manager.placeholders` / `Manager.typingStops` / `Manager.reactionUndos`：使用 `sync.Map`
+- `MessageBus.closed`：使用 `atomic.Bool`
+- `FileMediaStore`：使用 `sync.RWMutex`，两阶段操作减少持锁时间
+- Channel Worker queue：Go channel，天然并发安全
 
-### 5.4 Testing Conventions
+### 5.4 测试约定
 
-Existing test files:
-- `pkg/channels/base_test.go` — BaseChannel unit tests
-- `pkg/channels/manager_test.go` — Manager unit tests
-- `pkg/channels/split_test.go` — Message splitting tests
-- `pkg/channels/errors_test.go` — Error type tests
-- `pkg/channels/errutil_test.go` — Error classification tests
+已有测试文件：
+- `pkg/channels/base_test.go` — BaseChannel 单元测试
+- `pkg/channels/manager_test.go` — Manager 单元测试
+- `pkg/channels/split_test.go` — 消息分割测试
+- `pkg/channels/errors_test.go` — 错误类型测试
+- `pkg/channels/errutil_test.go` — 错误分类测试
 
-To add tests for a new channel:
+为新 channel 添加测试时：
 ```bash
-go test ./pkg/channels/matrix/ -v              # Sub-package tests
-go test ./pkg/channels/ -run TestSpecific -v    # Framework tests
-make test                                       # Full test suite
+go test ./pkg/channels/matrix/ -v              # 子包测试
+go test ./pkg/channels/ -run TestSpecific -v    # 框架测试
+make test                                       # 全量测试
 ```
 
 ---
 
-## Appendix: Complete File Listing and Interface Quick Reference
+## 附录：完整文件清单与接口速查表
 
-### A.1 Framework Layer Files
+### A.1 框架层文件
 
-| File | Responsibility |
-|------|---------------|
-| `pkg/channels/base.go` | BaseChannel struct, Channel interface, MessageLengthProvider, BaseChannelOption, HandleMessage |
-| `pkg/channels/interfaces.go` | TypingCapable, MessageEditor, ReactionCapable, PlaceholderCapable, PlaceholderRecorder interfaces |
-| `pkg/channels/media.go` | MediaSender interface |
-| `pkg/channels/webhook.go` | WebhookHandler, HealthChecker interfaces |
-| `pkg/channels/errors.go` | ErrNotRunning, ErrRateLimit, ErrTemporary, ErrSendFailed sentinels |
-| `pkg/channels/errutil.go` | ClassifySendError, ClassifyNetError helpers |
-| `pkg/channels/registry.go` | RegisterFactory, getFactory factory registry |
-| `pkg/channels/manager.go` | Manager: Worker queues, rate limiting, retries, preSend, shared HTTP, TTL janitor |
-| `pkg/channels/split.go` | SplitMessage long-message splitting |
-| `pkg/bus/bus.go` | MessageBus implementation |
-| `pkg/bus/types.go` | Peer, SenderInfo, InboundMessage, OutboundMessage, OutboundMediaMessage, MediaPart |
-| `pkg/media/store.go` | MediaStore interface, FileMediaStore implementation |
-| `pkg/identity/identity.go` | BuildCanonicalID, ParseCanonicalID, MatchAllowed |
+| 文件 | 职责 |
+|------|------|
+| `pkg/channels/base.go` | BaseChannel 结构体、Channel 接口、MessageLengthProvider、BaseChannelOption、HandleMessage |
+| `pkg/channels/interfaces.go` | TypingCapable、MessageEditor、ReactionCapable、PlaceholderCapable、PlaceholderRecorder 接口 |
+| `pkg/channels/media.go` | MediaSender 接口 |
+| `pkg/channels/webhook.go` | WebhookHandler、HealthChecker 接口 |
+| `pkg/channels/errors.go` | ErrNotRunning、ErrRateLimit、ErrTemporary、ErrSendFailed 哨兵 |
+| `pkg/channels/errutil.go` | ClassifySendError、ClassifyNetError 帮助函数 |
+| `pkg/channels/registry.go` | RegisterFactory、getFactory 工厂注册表 |
+| `pkg/channels/manager.go` | Manager：Worker 队列、速率限制、重试、preSend、共享 HTTP、TTL janitor |
+| `pkg/channels/split.go` | SplitMessage 长消息分割 |
+| `pkg/bus/bus.go` | MessageBus 实现 |
+| `pkg/bus/types.go` | Peer、SenderInfo、InboundMessage、OutboundMessage、OutboundMediaMessage、MediaPart |
+| `pkg/media/store.go` | MediaStore 接口、FileMediaStore 实现 |
+| `pkg/identity/identity.go` | BuildCanonicalID、ParseCanonicalID、MatchAllowed |
 
-### A.2 Channel Sub-packages
+### A.2 Channel 子包
 
-| Sub-package | Registered Name | Optional Interfaces |
-|-------------|----------------|-------------------|
+| 子包 | 注册名 | 可选接口 |
+|------|--------|----------|
 | `pkg/channels/telegram/` | `"telegram"` | TypingCapable, PlaceholderCapable, MessageEditor, MediaSender |
 | `pkg/channels/discord/` | `"discord"` | TypingCapable, PlaceholderCapable, MessageEditor, MediaSender |
 | `pkg/channels/slack/` | `"slack"` | ReactionCapable, MediaSender |
 | `pkg/channels/line/` | `"line"` | TypingCapable, MediaSender, WebhookHandler |
 | `pkg/channels/onebot/` | `"onebot"` | ReactionCapable, MediaSender |
 | `pkg/channels/dingtalk/` | `"dingtalk"` | — |
-| `pkg/channels/feishu/` | `"feishu"` | — (architecture-specific build tags: `feishu_32.go` / `feishu_64.go`) |
+| `pkg/channels/feishu/` | `"feishu"` | — (架构特定 build tags: `feishu_32.go` / `feishu_64.go`) |
 | `pkg/channels/wecom/` | `"wecom"` | WebhookHandler, HealthChecker |
 | `pkg/channels/wecom/` | `"wecom_app"` | MediaSender, WebhookHandler, HealthChecker |
 | `pkg/channels/qq/` | `"qq"` | — |
-| `pkg/channels/whatsapp/` | `"whatsapp"` | — (Bridge mode) |
-| `pkg/channels/whatsapp_native/` | `"whatsapp_native"` | — (Native whatsmeow mode) |
+| `pkg/channels/whatsapp/` | `"whatsapp"` | — (Bridge 模式) |
+| `pkg/channels/whatsapp_native/` | `"whatsapp_native"` | — (原生 whatsmeow 模式) |
 | `pkg/channels/maixcam/` | `"maixcam"` | — |
 | `pkg/channels/pico/` | `"pico"` | TypingCapable, PlaceholderCapable, MessageEditor, WebhookHandler |
 
-### A.3 Interface Quick Reference
+### A.3 接口速查表
 
 ```go
-// ===== Required =====
+// ===== 必须实现 =====
 type Channel interface {
     Name() string
     Start(ctx context.Context) error
@@ -1278,7 +1277,7 @@ type Channel interface {
     ReasoningChannelID() string
 }
 
-// ===== Optional =====
+// ===== 可选实现 =====
 type MediaSender interface {
     SendMedia(ctx context.Context, msg bus.OutboundMediaMessage) error
 }
@@ -1313,7 +1312,7 @@ type MessageLengthProvider interface {
     MaxMessageLength() int
 }
 
-// ===== Injected by Manager =====
+// ===== 由 Manager 注入 =====
 type PlaceholderRecorder interface {
     RecordPlaceholder(channel, chatID, placeholderID string)
     RecordTypingStop(channel, chatID string, stop func())
@@ -1321,64 +1320,64 @@ type PlaceholderRecorder interface {
 }
 ```
 
-### A.4 Gateway Startup Sequence (Complete Bootstrap Flow)
+### A.4 Gateway 启动序列（完整引导流程）
 
 ```go
-// 1. Create core components
+// 1. 创建核心组件
 msgBus     := bus.NewMessageBus()
 provider   := providers.CreateProvider(cfg)
 agentLoop  := agent.NewAgentLoop(cfg, msgBus, provider)
 
-// 2. Create media store (with TTL cleanup)
+// 2. 创建媒体存储（带 TTL 清理）
 mediaStore := media.NewFileMediaStoreWithCleanup(cleanerConfig)
 mediaStore.Start()
 
-// 3. Create Channel Manager (triggers initChannels → factory lookup → construct → inject MediaStore/PlaceholderRecorder/Owner)
+// 3. 创建 Channel Manager（触发 initChannels → 工厂查找 → 构造 → 注入 MediaStore/PlaceholderRecorder/Owner）
 channelManager := channels.NewManager(cfg, msgBus, mediaStore)
 
-// 4. Inject references
+// 4. 注入引用
 agentLoop.SetChannelManager(channelManager)
 agentLoop.SetMediaStore(mediaStore)
 
-// 5. Configure shared HTTP server
+// 5. 配置共享 HTTP 服务器
 channelManager.SetupHTTPServer(addr, healthServer)
 
-// 6. Start
-channelManager.StartAll(ctx)  // Start channels + workers + dispatchers + HTTP server
-go agentLoop.Run(ctx)          // Start Agent message loop
+// 6. 启动
+channelManager.StartAll(ctx)  // 启动 channels + workers + dispatchers + HTTP server
+go agentLoop.Run(ctx)          // 启动 Agent 消息循环
 
-// 7. Shutdown (signal-triggered)
-cancel()                       // Cancel context
-msgBus.Close()                 // Signal close + drain
-channelManager.StopAll(shutdownCtx)  // Stop HTTP + workers + channels
-mediaStore.Stop()              // Stop TTL cleanup
-agentLoop.Stop()               // Stop Agent
+// 7. 关闭（信号触发）
+cancel()                       // 取消 context
+msgBus.Close()                 // 信号关闭 + 排水
+channelManager.StopAll(shutdownCtx)  // 停止 HTTP + workers + channels
+mediaStore.Stop()              // 停止 TTL 清理
+agentLoop.Stop()               // 停止 Agent
 ```
 
-### A.5 Per-channel Rate Limit Reference
+### A.5 Per-channel 速率限制参考
 
-| Channel | Rate (msg/s) | Burst |
+| Channel | 速率 (msg/s) | Burst |
 |---------|-------------|-------|
 | telegram | 20 | 10 |
 | discord | 1 | 1 |
 | slack | 1 | 1 |
 | line | 10 | 5 |
-| _others_ | 10 (default) | 5 |
+| _其他_ | 10 (默认) | 5 |
 
-### A.6 Known Limitations and Caveats
+### A.6 已知限制和注意事项
 
-1. **Media cleanup temporarily disabled**: The `ReleaseAll` call in the Agent loop is commented out (`refactor(loop): disable media cleanup to prevent premature file deletion`) because session boundaries are not yet clearly defined. TTL cleanup remains active.
+1. **媒体清理暂时禁用**：Agent loop 中的 `ReleaseAll` 调用被注释掉了（`refactor(loop): disable media cleanup to prevent premature file deletion`），因为会话边界尚未明确定义。TTL 清理仍然有效。
 
-2. **Feishu architecture-specific compilation**: The Feishu channel uses build tags to distinguish 32-bit and 64-bit architectures (`feishu_32.go` / `feishu_64.go`). Feishu uses the SDK's WebSocket mode (not HTTP webhook), so it does not implement `WebhookHandler`.
+2. **Feishu 架构特定编译**：Feishu channel 使用 build tags 区分 32 位和 64 位架构（`feishu_32.go` / `feishu_64.go`）。Feishu 使用 SDK 的 WebSocket 模式（非 HTTP webhook），因此不实现 `WebhookHandler`。
 
-3. **WeCom has two factories**: `"wecom"` (Bot mode, webhook only) and `"wecom_app"` (App mode, supports MediaSender) are registered separately. Both implement `WebhookHandler` and `HealthChecker`.
+3. **WeCom 有两个工厂**：`"wecom"`（Bot 模式，纯 webhook）和 `"wecom_app"`（应用模式，支持 MediaSender）分别注册。两者都实现了 `WebhookHandler` 和 `HealthChecker`。
 
-4. **Pico Protocol**: `pkg/channels/pico/` implements a custom Octopus native protocol channel that receives messages via WebSocket webhook (`/pico/ws`).
+4. **Pico Protocol**：`pkg/channels/pico/` 实现了一个自定义的 Octopus 原生协议 channel，通过 WebSocket webhook (`/pico/ws`) 接收消息。
 
-5. **WhatsApp has two modes**: `"whatsapp"` (Bridge mode, communicates via external bridge URL) and `"whatsapp_native"` (native whatsmeow mode, connects directly to WhatsApp). Manager selects which to initialize based on `WhatsAppConfig.UseNative`.
+5. **WhatsApp 有两种模式**：`"whatsapp"`（Bridge 模式，通过外部 bridge URL 通信）和 `"whatsapp_native"`（原生 whatsmeow 模式，直接连接 WhatsApp）。Manager 根据 `WhatsAppConfig.UseNative` 决定初始化哪个。
 
-6. **DingTalk uses Stream mode**: DingTalk uses the SDK's Stream/WebSocket mode (not HTTP webhook), so it does not implement `WebhookHandler`.
+6. **DingTalk 使用 Stream 模式**：DingTalk 使用 SDK 的 Stream/WebSocket 模式（非 HTTP webhook），因此不实现 `WebhookHandler`。
 
-7. **PlaceholderConfig vs implementation**: `PlaceholderConfig` appears in 6 channel configs (Telegram, Discord, Slack, LINE, OneBot, Pico), but only channels that implement both `PlaceholderCapable` + `MessageEditor` (Telegram, Discord, Pico) can actually use placeholder message editing. The rest are reserved fields.
+7. **PlaceholderConfig 的配置与实现**：`PlaceholderConfig` 出现在 6 个 channel config 中（Telegram、Discord、Slack、LINE、OneBot、Pico），但只有实现了 `PlaceholderCapable` + `MessageEditor` 的 channel（Telegram、Discord、Pico）能真正使用占位消息编辑功能。其余 channel 的 `PlaceholderConfig` 为预留字段。
 
-8. **ReasoningChannelID**: Most channel configs include a `reasoning_channel_id` field to route LLM reasoning/thinking output to a designated channel (WhatsApp, Telegram, Feishu, Discord, MaixCam, QQ, DingTalk, Slack, LINE, OneBot, WeCom, WeComApp). Note: `PicoConfig` does not currently expose this field. `BaseChannel` exposes this via the `WithReasoningChannelID` option and `ReasoningChannelID()` method.
+8. **ReasoningChannelID**：大多数 channel config 都包含 `reasoning_channel_id` 字段，用于将 LLM 的思维链（reasoning/thinking）路由到指定 channel（WhatsApp、Telegram、Feishu、Discord、MaixCam、QQ、DingTalk、Slack、LINE、OneBot、WeCom、WeComApp）。注意：`PicoConfig` 目前不包含该字段。`BaseChannel` 通过 `WithReasoningChannelID` 选项和 `ReasoningChannelID()` 方法暴露此配置。

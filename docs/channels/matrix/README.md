@@ -1,8 +1,8 @@
-# Matrix Channel Configuration Guide
+# Matrix 通道配置指南
 
-## 1. Example Configuration
+## 1. 配置示例
 
-Add this to `config.json`:
+在 `config.json` 中添加：
 
 ```json
 {
@@ -20,43 +20,40 @@ Add this to `config.json`:
       },
       "placeholder": {
         "enabled": true,
-        "text": "Thinking..."
+        "text": "Thinking... 💭"
       },
-      "reasoning_channel_id": "",
-      "message_format": "richtext"
+      "reasoning_channel_id": ""
     }
   }
 }
 ```
 
-## 2. Field Reference
+## 2. 参数说明
 
-| Field                | Type     | Required | Description |
-|----------------------|----------|----------|-------------|
-| enabled              | bool     | Yes      | Enable or disable the Matrix channel |
-| homeserver           | string   | Yes      | Matrix homeserver URL (for example `https://matrix.org`) |
-| user_id              | string   | Yes      | Bot Matrix user ID (for example `@bot:matrix.org`) |
-| access_token         | string   | Yes      | Bot access token |
-| device_id            | string   | No       | Optional Matrix device ID |
-| join_on_invite       | bool     | No       | Auto-join invited rooms |
-| allow_from           | []string | No       | User whitelist (Matrix user IDs) |
-| group_trigger        | object   | No       | Group trigger strategy (`mention_only` / `prefixes`) |
-| placeholder          | object   | No       | Placeholder message config |
-| reasoning_channel_id | string   | No       | Target channel for reasoning output |
-| message_format       | string   | No       | Output format: `"richtext"` (default) renders markdown as HTML; `"plain"` sends plain text only |
+| 字段                 | 类型     | 必填 | 说明 |
+|----------------------|----------|------|------|
+| enabled              | bool     | 是   | 是否启用 Matrix 通道 |
+| homeserver           | string   | 是   | Matrix 服务器地址（例如 `https://matrix.org`） |
+| user_id              | string   | 是   | 机器人 Matrix 用户 ID（例如 `@bot:matrix.org`） |
+| access_token         | string   | 是   | 机器人 access token |
+| device_id            | string   | 否   | 设备 ID（可选） |
+| join_on_invite       | bool     | 否   | 是否自动加入邀请房间 |
+| allow_from           | []string | 否   | 白名单用户（Matrix 用户 ID） |
+| group_trigger        | object   | 否   | 群聊触发策略（支持 `mention_only` / `prefixes`） |
+| placeholder          | object   | 否   | 占位消息配置 |
+| reasoning_channel_id | string   | 否   | 思维链输出目标通道 |
 
-## 3. Currently Supported
+## 3. 当前支持
 
-- Text message send/receive with markdown rendering (bold, italic, headers, code blocks, etc.)
-- Configurable message format (`richtext` / `plain`)
-- Incoming image/audio/video/file download (MediaStore first, local path fallback)
-- Incoming audio normalization into existing transcription flow (`[audio: ...]`)
-- Outgoing image/audio/video/file upload and send
-- Group trigger rules (including mention-only mode)
-- Typing state (`m.typing`)
-- Placeholder message + final reply replacement
-- Auto-join invited rooms (can be disabled)
+- 文本消息收发
+- 图片/音频/视频/文件消息入站下载（写入 MediaStore / 本地路径回退）
+- 音频消息按统一标记进入现有转写流程（`[audio: ...]`）
+- 图片/音频/视频/文件消息出站发送（上传到 Matrix 媒体库后发送）
+- 群聊触发规则（支持仅 @ 提及时响应）
+- Typing 状态（`m.typing`）
+- 占位消息（`Thinking... 💭`）+ 最终回复替换
+- 自动加入邀请房间（可关闭）
 
 ## 4. TODO
 
-- Rich media metadata improvements (for example image/video size and thumbnails)
+- 富媒体细节增强（如 image/video 的尺寸、缩略图等 metadata）

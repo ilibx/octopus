@@ -1,12 +1,13 @@
 <div align="center">
-  <img src="assets/logo.webp" alt="Octopus" width="512">
+<img src="assets/logo.webp" alt="Octopus" width="512">
 
-  <h1>Octopus: Autonomous Multi-Agent Task Assistant in Go</h1>
+<h1>Octopus: 基于Go语言的超高效 AI 助手</h1>
 
-  <h3>Autonomous Multi-Agent Work Collaboration</h3>
+<h3>10$硬件 · 10MB内存 · 1秒启动 · 皮皮虾，我们走！</h3>
   <p>
     <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
     <img src="https://img.shields.io/badge/Arch-x86__64%2C%20ARM64%2C%20MIPS%2C%20RISC--V-blue" alt="Hardware">
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
     <br>
     <a href="https://octopus.io"><img src="https://img.shields.io/badge/Website-octopus.io-blue?style=flat&logo=google-chrome&logoColor=white" alt="Website"></a>
     <a href="https://docs.octopus.io/"><img src="https://img.shields.io/badge/Docs-Official-007acc?style=flat&logo=read-the-docs&logoColor=white" alt="Docs"></a>
@@ -17,136 +18,131 @@
     <a href="https://discord.gg/V4sAZ9XWpN"><img src="https://img.shields.io/badge/Discord-Community-4c60eb?style=flat&logo=discord&logoColor=white" alt="Discord"></a>
   </p>
 
-[中文](README.zh.md) | [日本語](README.ja.md) | [Português](README.pt-br.md) | [Tiếng Việt](README.vi.md) | [Français](README.fr.md) | **English**
+**中文**
 
 </div>
 
 ---
 
-🦐 Octopus is an ultra-lightweight autonomous multi-agent AI assistant designed for task automation and collaborative work. Built in Go, it features:
+🦐 **Octopus** 是一个受 [octopus](https://github.com/HKUDS/octopus) 启发的超轻量级个人 AI 助手。它采用 **Go 语言** 从零重构，经历了一个“自举”过程——即由 AI Agent 自身驱动了整个架构迁移和代码优化。
 
-1. **Multi-Channel Integration**: Silently receives messages and commands from various channels (Telegram, Discord, WhatsApp, Matrix, QQ, DingTalk, LINE, WeCom)
-2. **Main Agent Coordination**: The primary agent handles task acceptance and status reporting through a Kanban board
-3. **Autonomous Task Planning**: The main agent decomposes tasks, creates plans, and autonomously coordinates sub-agents to complete work via independent zones
-4. **Scheduled Task Support**: Built-in support for periodic and recurring task processing with cron integration
-5. **Kanban-Based Collaboration**: Tasks are organized into functional zones, each managed by specialized sub-agents that spawn dynamically based on workload
-
-With minimal resource consumption (<10MB RAM), Octopus brings powerful multi-agent collaboration to any device.
+⚡️ **极致轻量**：可在 **10 美元** 的硬件上运行，内存占用 **<10MB**。这意味着比 Octopus 节省 99% 的内存，比 Mac mini 便宜 98%！
 
 <table align="center">
-  <tr align="center">
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/octopus_mem.gif" width="360" height="240">
-      </p>
-    </td>
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/licheervnano.png" width="400" height="240">
-      </p>
-    </td>
-  </tr>
+<tr align="center">
+<td align="center" valign="top">
+<p align="center">
+<img src="assets/octopus_mem.gif" width="360" height="240">
+</p>
+</td>
+<td align="center" valign="top">
+<p align="center">
+<img src="assets/licheervnano.png" width="400" height="240">
+</p>
+</td>
+</tr>
 </table>
+
+注意：人手有限，中文文档可能略有滞后，请优先查看英文文档。
 
 > [!CAUTION]
 > **🚨 SECURITY & OFFICIAL CHANNELS / 安全声明**
 >
-> * **NO CRYPTO:** Octopus has **NO** official token/coin. All claims on `pump.fun` or other trading platforms are **SCAMS**.
->
-> * **OFFICIAL DOMAIN:** The **ONLY** official website is **[octopus.io](https://octopus.io)**, and company website is **[sipeed.com](https://sipeed.com)**
-> * **Warning:** Many `.ai/.org/.com/.net/...` domains are registered by third parties.
-> * **Warning:** octopus is in early development now and may have unresolved network security issues. Do not deploy to production environments before the v1.0 release.
-> * **Note:** octopus has recently merged a lot of PRs, which may result in a larger memory footprint (10–20MB) in the latest versions. We plan to prioritize resource optimization as soon as the current feature set reaches a stable state.
+> - **无加密货币 (NO CRYPTO):** Octopus **没有** 发行任何官方代币、Token 或虚拟货币。所有在 `pump.fun` 或其他交易平台上的相关声称均为 **诈骗**。
+> - **官方域名:** 唯一的官方网站是 **[octopus.io](https://octopus.io)**，公司官网是 **[sipeed.com](https://sipeed.com)**。
+> - **警惕:** 许多 `.ai/.org/.com/.net/...` 后缀的域名被第三方抢注，请勿轻信。
+> - **注意:** octopus正在初期的快速功能开发阶段，可能有尚未修复的网络安全问题，在1.0正式版发布前，请不要将其部署到生产环境中
+> - **注意:** octopus最近合并了大量PRs，近期版本可能内存占用较大(10~20MB)，我们将在功能较为收敛后进行资源占用优化.
 
-## 📢 News
+## 📢 新闻 (News)
 
-2026-02-16 🎉 Octopus hit 12K stars in one week! Thank you all for your support! Octopus is growing faster than we ever imagined. Given the high volume of PRs, we urgently need community maintainers. Our volunteer roles and roadmap are officially posted [here](ROADMAP.md) —we can’t wait to have you on board!
+2026-02-16 🎉 Octopus 在一周内突破了12K star! 感谢大家的关注！Octopus 的成长速度超乎我们预期. 由于PR数量的快速膨胀，我们亟需社区开发者参与维护. 我们需要的志愿者角色和roadmap已经发布到了[这里](docs/ROADMAP.md), 期待你的参与！
 
-2026-02-13 🎉 Octopus hit 5000 stars in 4days! Thank you for the community! There are so many PRs & issues coming in (during Chinese New Year holidays), we are finalizing the Project Roadmap and setting up the Developer Group to accelerate Octopus's development.
-🚀 Call to Action: Please submit your feature requests in GitHub Discussions. We will review and prioritize them during our upcoming weekly meeting.
+2026-02-13 🎉 **Octopus 在 4 天内突破 5000 Stars！** 感谢社区的支持！由于正值中国春节假期，PR 和 Issue 涌入较多，我们正在利用这段时间敲定 **项目路线图 (Roadmap)** 并组建 **开发者群组**，以便加速 Octopus 的开发。
+🚀 **行动号召：** 请在 GitHub Discussions 中提交您的功能请求 (Feature Requests)。我们将在接下来的周会上进行审查和优先级排序。
 
-2026-02-09 🎉 Octopus Launched! Built in 1 day to bring AI Agents to $10 hardware with <10MB RAM. 🦐 Octopus，Let's Go！
+2026-02-09 🎉 **Octopus 正式发布！** 仅用 1 天构建，旨在将 AI Agent 带入 10 美元硬件与 <10MB 内存的世界。🦐 Octopus（皮皮虾），我们走！
 
-## ✨ Features
+## ✨ 特性
 
-🪶 **Ultra-Lightweight**: <10MB Memory footprint — 99% smaller than Octopus - core functionality.
+🪶 **超轻量级**: 核心功能内存占用 <10MB — 比 Octopus 小 99%。
 
-💰 **Minimal Cost**: Efficient enough to run on $10 Hardware — 98% cheaper than a Mac mini.
+💰 **极低成本**: 高效到足以在 10 美元的硬件上运行 — 比 Mac mini 便宜 98%。
 
-⚡️ **Lightning Fast**: 400X Faster startup time, boot in 1 second even in 0.6GHz single core.
+⚡️ **闪电启动**: 启动速度快 400 倍，即使在 0.6GHz 单核处理器上也能在 1 秒内启动。
 
-🌍 **True Portability**: Single self-contained binary across RISC-V, ARM, MIPS, and x86, One-click to Go!
+🌍 **真正可移植**: 跨 RISC-V、ARM、MIPS 和 x86 架构的单二进制文件，一键运行！
 
-🤖 **AI-Bootstrapped**: Autonomous Go-native implementation — 95% Agent-generated core with human-in-the-loop refinement.
+🤖 **AI 自举**: 纯 Go 语言原生实现 — 95% 的核心代码由 Agent 生成，并经由“人机回环 (Human-in-the-loop)”微调。
 
-|                               | Octopus      | Octopus                  | **Octopus**                              |
-| ----------------------------- | ------------- | ------------------------ | ----------------------------------------- |
-| **Language**                  | TypeScript    | Python                   | **Go**                                    |
-| **RAM**                       | >1GB          | >100MB                   | **< 10MB**                                |
-| **Startup**</br>(0.8GHz core) | >500s         | >30s                     | **<1s**                                   |
-| **Cost**                      | Mac Mini 599$ | Most Linux SBC </br>~50$ | **Any Linux Board**</br>**As low as 10$** |
+|                                | Octopus      | Octopus                  | **Octopus**                           |
+| ------------------------------ | ------------- | ------------------------ | -------------------------------------- |
+| **语言**                       | TypeScript    | Python                   | **Go**                                 |
+| **RAM**                        | >1GB          | >100MB                   | **< 10MB**                             |
+| **启动时间**</br>(0.8GHz core) | >500s         | >30s                     | **<1s**                                |
+| **成本**                       | Mac Mini $599 | 大多数 Linux 开发板 ~$50 | **任意 Linux 开发板**</br>**低至 $10** |
 
 <img src="assets/compare.jpg" alt="Octopus" width="512">
 
-## 🦾 Demonstration
+## 🦾 演示
 
-### 🛠️ Standard Assistant Workflows
+### 🛠️ 标准助手工作流
 
 <table align="center">
-  <tr align="center">
-    <th><p align="center">🧩 Full-Stack Engineer</p></th>
-    <th><p align="center">🗂️ Logging & Planning Management</p></th>
-    <th><p align="center">🔎 Web Search & Learning</p></th>
-  </tr>
-  <tr>
-    <td align="center"><p align="center"><img src="assets/octopus_code.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/octopus_memory.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/octopus_search.gif" width="240" height="180"></p></td>
-  </tr>
-  <tr>
-    <td align="center">Develop • Deploy • Scale</td>
-    <td align="center">Schedule • Automate • Memory</td>
-    <td align="center">Discovery • Insights • Trends</td>
-  </tr>
+<tr align="center">
+<th><p align="center">🧩 全栈工程师模式</p></th>
+<th><p align="center">🗂️ 日志与规划管理</p></th>
+<th><p align="center">🔎 网络搜索与学习</p></th>
+</tr>
+<tr>
+<td align="center"><p align="center"><img src="assets/octopus_code.gif" width="240" height="180"></p></td>
+<td align="center"><p align="center"><img src="assets/octopus_memory.gif" width="240" height="180"></p></td>
+<td align="center"><p align="center"><img src="assets/octopus_search.gif" width="240" height="180"></p></td>
+</tr>
+<tr>
+<td align="center">开发 • 部署 • 扩展</td>
+<td align="center">日程 • 自动化 • 记忆</td>
+<td align="center">发现 • 洞察 • 趋势</td>
+</tr>
 </table>
 
-### 📱 Run on old Android Phones
+### 📱 在手机上轻松运行
 
-Give your decade-old phone a second life! Turn it into a smart AI Assistant with Octopus. Quick Start:
+octopus 可以将你10年前的老旧手机废物利用，变身成为你的AI助理！快速指南:
 
-1. **Install Termux** (Available on F-Droid or Google Play).
-2. **Execute cmds**
+1. 先去应用商店下载安装Termux
+2. 打开后执行指令
 
 ```bash
-# Note: Replace v0.1.1 with the latest version from the Releases page
+# 注意: 下面的v0.1.1 可以换为你实际看到的最新版本
 wget https://github.com/ilibx/octopus/releases/download/v0.1.1/octopus-linux-arm64
 chmod +x octopus-linux-arm64
 pkg install proot
 termux-chroot ./octopus-linux-arm64 onboard
 ```
 
-And then follow the instructions in the "Quick Start" section to complete the configuration!
+然后跟随下面的“快速开始”章节继续配置octopus即可使用！
 <img src="assets/termux.jpg" alt="Octopus" width="512">
 
-### 🐜 Innovative Low-Footprint Deploy
+### 🐜 创新的低占用部署
 
-Octopus can be deployed on almost any Linux device!
+Octopus 几乎可以部署在任何 Linux 设备上！
 
-- $9.9 [LicheeRV-Nano](https://www.aliexpress.com/item/1005006519668532.html) E(Ethernet) or W(WiFi6) version, for Minimal Home Assistant
-- $30~50 [NanoKVM](https://www.aliexpress.com/item/1005007369816019.html), or $100 [NanoKVM-Pro](https://www.aliexpress.com/item/1005010048471263.html) for Automated Server Maintenance
-- $50 [MaixCAM](https://www.aliexpress.com/item/1005008053333693.html) or $100 [MaixCAM2](https://www.kickstarter.com/projects/zepan/maixcam2-build-your-next-gen-4k-ai-camera) for Smart Monitoring
+- $9.9 [LicheeRV-Nano](https://www.aliexpress.com/item/1005006519668532.html) E(网口) 或 W(WiFi6) 版本，用于极简家庭助手。
+- $30~50 [NanoKVM](https://www.aliexpress.com/item/1005007369816019.html)，或 $100 [NanoKVM-Pro](https://www.aliexpress.com/item/1005010048471263.html)，用于自动化服务器运维。
+- $50 [MaixCAM](https://www.aliexpress.com/item/1005008053333693.html) 或 $100 [MaixCAM2](https://www.kickstarter.com/projects/zepan/maixcam2-build-your-next-gen-4k-ai-camera)，用于智能监控。
 
-<https://private-user-images.githubusercontent.com/83055338/547056448-e7b031ff-d6f5-4468-bcca-5726b6fecb5c.mp4>
+[https://private-user-images.githubusercontent.com/83055338/547056448-e7b031ff-d6f5-4468-bcca-5726b6fecb5c.mp4](https://private-user-images.githubusercontent.com/83055338/547056448-e7b031ff-d6f5-4468-bcca-5726b6fecb5c.mp4)
 
-🌟 More Deployment Cases Await！
+🌟 更多部署案例敬请期待！
 
-## 📦 Install
+## 📦 安装
 
-### Install with precompiled binary
+### 使用预编译二进制文件安装
 
-Download the firmware for your platform from the [release](https://github.com/ilibx/octopus/releases) page.
+从 [Release 页面](https://github.com/ilibx/octopus/releases) 下载适用于您平台的固件。
 
-### Install from source (latest features, recommended for development)
+### 从源码安装（获取最新特性，开发推荐）
 
 ```bash
 git clone https://github.com/ilibx/octopus.git
@@ -154,94 +150,78 @@ git clone https://github.com/ilibx/octopus.git
 cd octopus
 make deps
 
-# Build, no need to install
+# 构建（无需安装）
 make build
 
-# Build for multiple platforms
+# 为多平台构建
 make build-all
 
-# Build for Raspberry Pi Zero 2 W (32-bit: make build-linux-arm; 64-bit: make build-linux-arm64)
-make build-pi-zero
-
-# Build And Install
+# 构建并安装
 make install
-```
 
-**Raspberry Pi Zero 2 W:** Use the binary that matches your OS: 32-bit Raspberry Pi OS → `make build-linux-arm` (output: `build/octopus-linux-arm`); 64-bit → `make build-linux-arm64` (output: `build/octopus-linux-arm64`). Or run `make build-pi-zero` to build both.
+```
 
 ## 🐳 Docker Compose
 
-You can also run Octopus using Docker Compose without installing anything locally.
+您也可以使用 Docker Compose 运行 Octopus，无需在本地安装任何环境。
 
 ```bash
-# 1. Clone this repo
+# 1. 克隆仓库
 git clone https://github.com/ilibx/octopus.git
 cd octopus
 
-# 2. First run — auto-generates docker/data/config.json then exits
+# 2. 首次运行 — 自动生成 docker/data/config.json 后退出
 docker compose -f docker/docker-compose.yml --profile gateway up
-# The container prints "First-run setup complete." and stops.
+# 容器打印 "First-run setup complete." 后自动停止
 
-# 3. Set your API keys
-vim docker/data/config.json   # Set provider API keys, bot tokens, etc.
+# 3. 填写 API Key 等配置
+vim docker/data/config.json   # 设置 provider API key、Bot Token 等
 
-# 4. Start
+# 4. 正式启动
 docker compose -f docker/docker-compose.yml --profile gateway up -d
 ```
 
 > [!TIP]
-> **Docker Users**: By default, the Gateway listens on `127.0.0.1` which is not accessible from the host. If you need to access the health endpoints or expose ports, set `OCTOPUS_GATEWAY_HOST=0.0.0.0` in your environment or update `config.json`.
+> **Docker 用户**: 默认情况下, Gateway 监听 `127.0.0.1`，该端口不会暴露到容器外。如果需要通过端口映射访问健康检查接口，请在环境变量中设置 `OCTOPUS_GATEWAY_HOST=0.0.0.0` 或修改 `config.json`。
 
 ```bash
-# 5. Check logs
+# 5. 查看日志
 docker compose -f docker/docker-compose.yml logs -f octopus-gateway
 
-# 6. Stop
+# 6. 停止
 docker compose -f docker/docker-compose.yml --profile gateway down
 ```
 
-### Launcher Mode (Web Console)
-
-The `launcher` image includes all three binaries (`octopus`, `octopus-launcher`, `octopus-launcher-tui`) and starts the web console by default, which provides a browser-based UI for configuration and chat.
+### Agent 模式 (一次性运行)
 
 ```bash
-docker compose -f docker/docker-compose.yml --profile launcher up -d
-```
+# 提问
+docker compose -f docker/docker-compose.yml run --rm octopus-agent -m "2+2 等于几？"
 
-Open http://localhost:18800 in your browser. The launcher manages the gateway process automatically.
-
-> [!WARNING]
-> The web console does not yet support authentication. Avoid exposing it to the public internet.
-
-### Agent Mode (One-shot)
-
-```bash
-# Ask a question
-docker compose -f docker/docker-compose.yml run --rm octopus-agent -m "What is 2+2?"
-
-# Interactive mode
+# 交互模式
 docker compose -f docker/docker-compose.yml run --rm octopus-agent
 ```
 
-### Update
+### 更新镜像
 
 ```bash
 docker compose -f docker/docker-compose.yml pull
 docker compose -f docker/docker-compose.yml --profile gateway up -d
 ```
 
-### 🚀 Quick Start
+### 🚀 快速开始
 
 > [!TIP]
-> Set your API Key in `~/.octopus/config.json`. Get API Keys: [Volcengine (CodingPlan)](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus) (LLM) · [OpenRouter](https://openrouter.ai/keys) (LLM) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM). Web search is optional — get a free [Tavily API](https://tavily.com) (1000 free queries/month) or [Brave Search API](https://brave.com/search/api) (2000 free queries/month).
+> 在 `~/.octopus/config.json` 中设置您的 API Key。获取 API Key: [火山引擎 (CodingPlan)](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus) (LLM) · [OpenRouter](https://openrouter.ai/keys) (LLM) · [Zhipu (智谱)](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM)。网络搜索是 **可选的** — 获取免费的 [Tavily API](https://tavily.com) (每月 1000 次免费查询) 或 [Brave Search API](https://brave.com/search/api) (每月 2000 次免费查询)。
 
-**1. Initialize**
+**1. 初始化 (Initialize)**
 
 ```bash
 octopus onboard
+
 ```
 
-**2. Configure** (`~/.octopus/config.json`)
+**2. 配置 (Configure)** (`~/.octopus/config.json`)
 
 ```json
 {
@@ -284,639 +264,142 @@ octopus onboard
         "enabled": false,
         "api_key": "YOUR_TAVILY_API_KEY",
         "max_results": 5
-      },
-      "duckduckgo": {
-        "enabled": true,
-        "max_results": 5
-      },
-      "perplexity": {
-        "enabled": false,
-        "api_key": "YOUR_PERPLEXITY_API_KEY",
-        "max_results": 5
-      },
-      "searxng": {
-        "enabled": false,
-        "base_url": "http://your-searxng-instance:8888",
-        "max_results": 5
       }
+    },
+    "cron": {
+      "exec_timeout_minutes": 5
     }
   }
 }
 ```
 
-> **New**: The `model_list` configuration format allows zero-code provider addition. See [Model Configuration](#model-configuration-model_list) for details.
-> `request_timeout` is optional and uses seconds. If omitted or set to `<= 0`, Octopus uses the default timeout (120s).
+> **新功能**: `model_list` 配置格式支持零代码添加 provider。详见[模型配置](#模型配置-model_list)章节。
+> `request_timeout` 为可选项，单位为秒。若省略或设置为 `<= 0`，Octopus 使用默认超时（120 秒）。
 
-**3. Get API Keys**
+**3. 获取 API Key**
 
-* **LLM Provider**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
-* **Web Search** (optional):
-  * [Brave Search](https://brave.com/search/api) - Paid ($5/1000 queries, ~$5-6/month)
-  * [Perplexity](https://www.perplexity.ai) - AI-powered search with chat interface
-  * [SearXNG](https://github.com/searxng/searxng) - Self-hosted metasearch engine (free, no API key needed)
-  * [Tavily](https://tavily.com) - Optimized for AI Agents (1000 requests/month)
-  * DuckDuckGo - Built-in fallback (no API key required)
+* **LLM 提供商**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
+* **网络搜索** (可选): [Tavily](https://tavily.com) - 专为 AI Agent 优化 (1000 请求/月) · [Brave Search](https://brave.com/search/api) - 提供免费层级 (2000 请求/月)
 
-> **Note**: See `config.example.json` for a complete configuration template.
+> **注意**: 完整的配置模板请参考 `config.example.json`。
 
-**4. Chat**
+**4. 对话 (Chat)**
 
 ```bash
-octopus agent -m "What is 2+2?"
+octopus agent -m "2+2 等于几？"
+
 ```
 
-That's it! You have a working AI assistant in 2 minutes.
+就是这样！您在 2 分钟内就拥有了一个可工作的 AI 助手。
 
 ---
 
-## 💬 Chat Apps
+## 💬 聊天应用集成 (Chat Apps)
 
-Talk to your octopus through Telegram, Discord, WhatsApp, Matrix, QQ, DingTalk, LINE, or WeCom
+Octopus 支持多种聊天平台，使您的 Agent 能够连接到任何地方。
 
-> **Note**: All webhook-based channels (LINE, WeCom, etc.) are served on a single shared Gateway HTTP server (`gateway.host`:`gateway.port`, default `127.0.0.1:18790`). There are no per-channel ports to configure. Note: Feishu uses WebSocket/SDK mode and does not use the shared HTTP webhook server.
+> **注意**: 所有 Webhook 类渠道（LINE、WeCom 等）均挂载在同一个 Gateway HTTP 服务器上（`gateway.host`:`gateway.port`，默认 `127.0.0.1:18790`），无需为每个渠道单独配置端口。注意：飞书（Feishu）使用 WebSocket/SDK 模式，不通过该共享 HTTP webhook 服务器接收消息。
 
-| Channel      | Setup                              |
-| ------------ | ---------------------------------- |
-| **Telegram** | Easy (just a token)                |
-| **Discord**  | Easy (bot token + intents)         |
-| **WhatsApp** | Easy (native: QR scan; or bridge URL) |
-| **Matrix**   | Medium (homeserver + bot access token) |
-| **QQ**       | Easy (AppID + AppSecret)           |
-| **DingTalk** | Medium (app credentials)           |
-| **LINE**     | Medium (credentials + webhook URL) |
-| **WeCom AI Bot** | Medium (Token + AES key)       |
+### 核心渠道
 
-<details>
-<summary><b>Telegram</b> (Recommended)</summary>
+| 渠道                 | 设置难度    | 特性说明                                  | 文档链接                                                                                                        |
+| -------------------- | ----------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Telegram**         | ⭐ 简单     | 推荐，支持语音转文字，长轮询无需公网      | [查看文档](docs/channels/telegram/README.zh.md)                                                                 |
+| **Discord**          | ⭐ 简单     | Socket Mode，支持群组/私信，Bot 生态成熟  | [查看文档](docs/channels/discord/README.zh.md)                                                                  |
+| **Slack**            | ⭐ 简单     | **Socket Mode** (无需公网 IP)，企业级支持 | [查看文档](docs/channels/slack/README.zh.md)                                                                    |
+| **Matrix**           | ⭐⭐ 中等   | 联邦协议，支持自建 homeserver 与公开服务器 | [查看文档](docs/channels/matrix/README.zh.md)                                                                  |
+| **QQ**               | ⭐⭐ 中等   | 官方机器人 API，适合国内社群              | [查看文档](docs/channels/qq/README.zh.md)                                                                       |
+| **钉钉 (DingTalk)**  | ⭐⭐ 中等   | Stream 模式无需公网，企业办公首选         | [查看文档](docs/channels/dingtalk/README.zh.md)                                                                 |
+| **企业微信 (WeCom)** | ⭐⭐⭐ 较难 | 支持群机器人(Webhook)、自建应用(API)和智能机器人(AI Bot) | [Bot 文档](docs/channels/wecom/wecom_bot/README.zh.md) / [App 文档](docs/channels/wecom/wecom_app/README.zh.md) / [AI Bot 文档](docs/channels/wecom/wecom_aibot/README.zh.md) |
+| **飞书 (Feishu)**    | ⭐⭐⭐ 较难 | 企业级协作，功能丰富                      | [查看文档](docs/channels/feishu/README.zh.md)                                                                   |
+| **Line**             | ⭐⭐⭐ 较难 | 需要 HTTPS Webhook                        | [查看文档](docs/channels/line/README.zh.md)                                                                     |
+| **OneBot**           | ⭐⭐ 中等   | 兼容 NapCat/Go-CQHTTP，社区生态丰富       | [查看文档](docs/channels/onebot/README.zh.md)                                                                   |
+| **MaixCam**          | ⭐ 简单     | 专为 AI 摄像头设计的硬件集成通道          | [查看文档](docs/channels/maixcam/README.zh.md)                                                                  |
 
-**1. Create a bot**
+### Telegram 命令注册（启动时自动同步）
 
-* Open Telegram, search `@BotFather`
-* Send `/newbot`, follow prompts
-* Copy the token
+Octopus 现在使用统一的命令定义来源。启动时会自动将 Telegram 支持的命令（例如 `/start`、`/help`、`/show`、`/list`）注册到 Bot 命令菜单，确保菜单展示与实际行为一致。
+Telegram 侧保留的是命令菜单注册能力；通用命令的实际执行统一走 Agent Loop 中的 commands executor。
 
-**2. Configure**
+如果注册因网络或 API 短暂异常失败，不会阻塞 channel 启动；系统会在后台自动重试。
 
-```json
-{
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allow_from": ["YOUR_USER_ID"]
-    }
-  }
-}
-```
+## <img src="assets/clawdchat-icon.png" width="24" height="24" alt="ClawdChat"> 加入 Agent 社交网络
 
-> Get your user ID from `@userinfobot` on Telegram.
+只需通过 CLI 或任何集成的聊天应用发送一条消息，即可将 Octopus 连接到 Agent 社交网络。
 
-**3. Run**
+\*\*阅读 `https://clawdchat.ai/skill.md` 并按照说明加入 [ClawdChat.ai](https://clawdchat.ai)
 
-```bash
-octopus gateway
-```
+## ⚙️ 配置详解
 
-**4. Telegram command menu (auto-registered at startup)**
+配置文件路径: `~/.octopus/config.json`
 
-Octopus now keeps command definitions in one shared registry. On startup, Telegram will automatically register supported bot commands (for example `/start`, `/help`, `/show`, `/list`) so command menu and runtime behavior stay in sync.
-Telegram command menu registration remains channel-local discovery UX; generic command execution is handled centrally in the agent loop via the commands executor.
+### 环境变量
 
-If command registration fails (network/API transient errors), the channel still starts and Octopus retries registration in the background.
+你可以使用环境变量覆盖默认路径。这对于便携安装、容器化部署或将 octopus 作为系统服务运行非常有用。这些变量是独立的，控制不同的路径。
 
-</details>
-
-<details>
-<summary><b>Discord</b></summary>
-
-**1. Create a bot**
-
-* Go to <https://discord.com/developers/applications>
-* Create an application → Bot → Add Bot
-* Copy the bot token
-
-**2. Enable intents**
-
-* In the Bot settings, enable **MESSAGE CONTENT INTENT**
-* (Optional) Enable **SERVER MEMBERS INTENT** if you plan to use allow lists based on member data
-
-**3. Get your User ID**
-* Discord Settings → Advanced → enable **Developer Mode**
-* Right-click your avatar → **Copy User ID**
-
-**4. Configure**
-
-```json
-{
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allow_from": ["YOUR_USER_ID"]
-    }
-  }
-}
-```
-
-**5. Invite the bot**
-
-* OAuth2 → URL Generator
-* Scopes: `bot`
-* Bot Permissions: `Send Messages`, `Read Message History`
-* Open the generated invite URL and add the bot to your server
-
-**Optional: Group trigger mode**
-
-By default the bot responds to all messages in a server channel. To restrict responses to @-mentions only, add:
-
-```json
-{
-  "channels": {
-    "discord": {
-      "group_trigger": { "mention_only": true }
-    }
-  }
-}
-```
-
-You can also trigger by keyword prefixes (e.g. `!bot`):
-
-```json
-{
-  "channels": {
-    "discord": {
-      "group_trigger": { "prefixes": ["!bot"] }
-    }
-  }
-}
-```
-
-**6. Run**
-
-```bash
-octopus gateway
-```
-
-</details>
-
-<details>
-<summary><b>WhatsApp</b> (native via whatsmeow)</summary>
-
-Octopus can connect to WhatsApp in two ways:
-
-- **Native (recommended):** In-process using [whatsmeow](https://github.com/tulir/whatsmeow). No separate bridge. Set `"use_native": true` and leave `bridge_url` empty. On first run, scan the QR code with WhatsApp (Linked Devices). Session is stored under your workspace (e.g. `workspace/whatsapp/`). The native channel is **optional** to keep the default binary small; build with `-tags whatsapp_native` (e.g. `make build-whatsapp-native` or `go build -tags whatsapp_native ./cmd/...`).
-- **Bridge:** Connect to an external WebSocket bridge. Set `bridge_url` (e.g. `ws://localhost:3001`) and keep `use_native` false.
-
-**Configure (native)**
-
-```json
-{
-  "channels": {
-    "whatsapp": {
-      "enabled": true,
-      "use_native": true,
-      "session_store_path": "",
-      "allow_from": []
-    }
-  }
-}
-```
-
-If `session_store_path` is empty, the session is stored in `&lt;workspace&gt;/whatsapp/`. Run `octopus gateway`; on first run, scan the QR code printed in the terminal with WhatsApp → Linked Devices.
-
-</details>
-
-<details>
-<summary><b>QQ</b></summary>
-
-**1. Create a bot**
-
-- Go to [QQ Open Platform](https://q.qq.com/#)
-- Create an application → Get **AppID** and **AppSecret**
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "qq": {
-      "enabled": true,
-      "app_id": "YOUR_APP_ID",
-      "app_secret": "YOUR_APP_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> Set `allow_from` to empty to allow all users, or specify QQ numbers to restrict access.
-
-**3. Run**
-
-```bash
-octopus gateway
-```
-
-</details>
-
-<details>
-<summary><b>DingTalk</b></summary>
-
-**1. Create a bot**
-
-* Go to [Open Platform](https://open.dingtalk.com/)
-* Create an internal app
-* Copy Client ID and Client Secret
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "dingtalk": {
-      "enabled": true,
-      "client_id": "YOUR_CLIENT_ID",
-      "client_secret": "YOUR_CLIENT_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> Set `allow_from` to empty to allow all users, or specify DingTalk user IDs to restrict access.
-
-**3. Run**
-
-```bash
-octopus gateway
-```
-</details>
-
-<details>
-<summary><b>Matrix</b></summary>
-
-**1. Prepare bot account**
-
-* Use your preferred homeserver (e.g. `https://matrix.org` or self-hosted)
-* Create a bot user and obtain its access token
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "matrix": {
-      "enabled": true,
-      "homeserver": "https://matrix.org",
-      "user_id": "@your-bot:matrix.org",
-      "access_token": "YOUR_MATRIX_ACCESS_TOKEN",
-      "allow_from": []
-    }
-  }
-}
-```
-
-**3. Run**
-
-```bash
-octopus gateway
-```
-
-For full options (`device_id`, `join_on_invite`, `group_trigger`, `placeholder`, `reasoning_channel_id`), see [Matrix Channel Configuration Guide](docs/channels/matrix/README.md).
-
-</details>
-
-<details>
-<summary><b>LINE</b></summary>
-
-**1. Create a LINE Official Account**
-
-- Go to [LINE Developers Console](https://developers.line.biz/)
-- Create a provider → Create a Messaging API channel
-- Copy **Channel Secret** and **Channel Access Token**
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "line": {
-      "enabled": true,
-      "channel_secret": "YOUR_CHANNEL_SECRET",
-      "channel_access_token": "YOUR_CHANNEL_ACCESS_TOKEN",
-      "webhook_path": "/webhook/line",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> LINE webhook is served on the shared Gateway server (`gateway.host`:`gateway.port`, default `127.0.0.1:18790`).
-
-**3. Set up Webhook URL**
-
-LINE requires HTTPS for webhooks. Use a reverse proxy or tunnel:
-
-```bash
-# Example with ngrok (gateway default port is 18790)
-ngrok http 18790
-```
-
-Then set the Webhook URL in LINE Developers Console to `https://your-domain/webhook/line` and enable **Use webhook**.
-
-**4. Run**
-
-```bash
-octopus gateway
-```
-
-> In group chats, the bot responds only when @mentioned. Replies quote the original message.
-
-</details>
-
-<details>
-<summary><b>WeCom (企业微信)</b></summary>
-
-Octopus supports three types of WeCom integration:
-
-**Option 1: WeCom Bot (Bot)** - Easier setup, supports group chats
-**Option 2: WeCom App (Custom App)** - More features, proactive messaging, private chat only
-**Option 3: WeCom AI Bot (AI Bot)** - Official AI Bot, streaming replies, supports group & private chat
-
-See [WeCom AI Bot Configuration Guide](docs/channels/wecom/wecom_aibot/README.zh.md) for detailed setup instructions.
-
-**Quick Setup - WeCom Bot:**
-
-**1. Create a bot**
-
-* Go to WeCom Admin Console → Group Chat → Add Group Bot
-* Copy the webhook URL (format: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx`)
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "wecom": {
-      "enabled": true,
-      "token": "YOUR_TOKEN",
-      "encoding_aes_key": "YOUR_ENCODING_AES_KEY",
-      "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY",
-      "webhook_path": "/webhook/wecom",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> WeCom webhook is served on the shared Gateway server (`gateway.host`:`gateway.port`, default `127.0.0.1:18790`).
-
-**Quick Setup - WeCom App:**
-
-**1. Create an app**
-
-* Go to WeCom Admin Console → App Management → Create App
-* Copy **AgentId** and **Secret**
-* Go to "My Company" page, copy **CorpID**
-
-**2. Configure receive message**
-
-* In App details, click "Receive Message" → "Set API"
-* Set URL to `http://your-server:18790/webhook/wecom-app`
-* Generate **Token** and **EncodingAESKey**
-
-**3. Configure**
-
-```json
-{
-  "channels": {
-    "wecom_app": {
-      "enabled": true,
-      "corp_id": "wwxxxxxxxxxxxxxxxx",
-      "corp_secret": "YOUR_CORP_SECRET",
-      "agent_id": 1000002,
-      "token": "YOUR_TOKEN",
-      "encoding_aes_key": "YOUR_ENCODING_AES_KEY",
-      "webhook_path": "/webhook/wecom-app",
-      "allow_from": []
-    }
-  }
-}
-```
-
-**4. Run**
-
-```bash
-octopus gateway
-```
-
-> **Note**: WeCom webhook callbacks are served on the Gateway port (default 18790). Use a reverse proxy for HTTPS.
-
-**Quick Setup - WeCom AI Bot:**
-
-**1. Create an AI Bot**
-
-* Go to WeCom Admin Console → App Management → AI Bot
-* In the AI Bot settings, configure callback URL: `http://your-server:18791/webhook/wecom-aibot`
-* Copy **Token** and click "Random Generate" for **EncodingAESKey**
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "wecom_aibot": {
-      "enabled": true,
-      "token": "YOUR_TOKEN",
-      "encoding_aes_key": "YOUR_43_CHAR_ENCODING_AES_KEY",
-      "webhook_path": "/webhook/wecom-aibot",
-      "allow_from": [],
-      "welcome_message": "Hello! How can I help you?"
-    }
-  }
-}
-```
-
-**3. Run**
-
-```bash
-octopus gateway
-```
-
-> **Note**: WeCom AI Bot uses streaming pull protocol — no reply timeout concerns. Long tasks (>30 seconds) automatically switch to `response_url` push delivery.
-
-</details>
-
-## <img src="assets/clawdchat-icon.png" width="24" height="24" alt="ClawdChat"> Join the Agent Social Network
-
-Connect Picoclaw to the Agent Social Network simply by sending a single message via the CLI or any integrated Chat App.
-
-**Read `https://clawdchat.ai/skill.md` and follow the instructions to join [ClawdChat.ai](https://clawdchat.ai)**
-
-## ⚙️ Configuration
-
-Config file: `~/.octopus/config.json`
-
-### Environment Variables
-
-You can override default paths using environment variables. This is useful for portable installations, containerized deployments, or running octopus as a system service. These variables are independent and control different paths.
-
-| Variable          | Description                                                                                                                             | Default Path              |
+| 变量              | 描述                                                                                                                             | 默认路径                  |
 |-------------------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------|
-| `PICOCLAW_CONFIG` | Overrides the path to the configuration file. This directly tells octopus which `config.json` to load, ignoring all other locations. | `~/.octopus/config.json` |
-| `PICOCLAW_HOME`   | Overrides the root directory for octopus data. This changes the default location of the `workspace` and other data directories.          | `~/.octopus`             |
+| `PICOCLAW_CONFIG` | 覆盖配置文件的路径。这直接告诉 octopus 加载哪个 `config.json`，忽略所有其他位置。 | `~/.octopus/config.json` |
+| `PICOCLAW_HOME`   | 覆盖 octopus 数据根目录。这会更改 `workspace` 和其他数据目录的默认位置。          | `~/.octopus`             |
 
-**Examples:**
+**示例：**
 
 ```bash
-# Run octopus using a specific config file
-# The workspace path will be read from within that config file
+# 使用特定的配置文件运行 octopus
+# 工作区路径将从该配置文件中读取
 PICOCLAW_CONFIG=/etc/octopus/production.json octopus gateway
 
-# Run octopus with all its data stored in /opt/octopus
-# Config will be loaded from the default ~/.octopus/config.json
-# Workspace will be created at /opt/octopus/workspace
+# 在 /opt/octopus 中存储所有数据运行 octopus
+# 配置将从默认的 ~/.octopus/config.json 加载
+# 工作区将在 /opt/octopus/workspace 创建
 PICOCLAW_HOME=/opt/octopus octopus agent
 
-# Use both for a fully customized setup
+# 同时使用两者进行完全自定义设置
 PICOCLAW_HOME=/srv/octopus PICOCLAW_CONFIG=/srv/octopus/main.json octopus gateway
 ```
 
-### Workspace Layout
+### 工作区布局 (Workspace Layout)
 
-Octopus stores data in your configured workspace (default: `~/.octopus/workspace`):
+Octopus 将数据存储在您配置的工作区中（默认：`~/.octopus/workspace`）：
 
 ```
 ~/.octopus/workspace/
-├── sessions/          # Conversation sessions and history
-├── memory/           # Long-term memory (MEMORY.md)
-├── state/            # Persistent state (last channel, etc.)
-├── cron/             # Scheduled jobs database
-├── skills/           # Custom skills
-├── AGENTS.md         # Agent behavior guide
-├── HEARTBEAT.md      # Periodic task prompts (checked every 30 min)
-├── IDENTITY.md       # Agent identity
-├── SOUL.md           # Agent soul
-└── USER.md           # User preferences
+├── sessions/          # 对话会话和历史
+├── memory/           # 长期记忆 (MEMORY.md)
+├── state/            # 持久化状态 (最后一次频道等)
+├── cron/             # 定时任务数据库
+├── skills/           # 自定义技能
+├── AGENTS.md         # Agent 行为指南
+├── HEARTBEAT.md      # 周期性任务提示词 (每 30 分钟检查一次)
+├── IDENTITY.md       # Agent 身份设定
+├── SOUL.md           # Agent 灵魂/性格
+└── USER.md           # 用户偏好
+
 ```
 
-### Skill Sources
+### 技能来源 (Skill Sources)
 
-By default, skills are loaded from:
+默认情况下，技能会按以下顺序加载：
 
-1. `~/.octopus/workspace/skills` (workspace)
-2. `~/.octopus/skills` (global)
-3. `<current-working-directory>/skills` (builtin)
+1. `~/.octopus/workspace/skills`（工作区）
+2. `~/.octopus/skills`（全局）
+3. `<current-working-directory>/skills`（内置）
 
-For advanced/test setups, you can override the builtin skills root with:
+在高级/测试场景下，可通过以下环境变量覆盖内置技能目录：
 
 ```bash
 export PICOCLAW_BUILTIN_SKILLS=/path/to/skills
 ```
 
-### Unified Command Execution Policy
+### 统一命令执行策略
 
-- Generic slash commands are executed through a single path in `pkg/agent/loop.go` via `commands.Executor`.
-- Channel adapters no longer consume generic commands locally; they forward inbound text to the bus/agent path. Telegram still auto-registers supported commands at startup.
-- Unknown slash command (for example `/foo`) passes through to normal LLM processing.
-- Registered but unsupported command on the current channel (for example `/show` on WhatsApp) returns an explicit user-facing error and stops further processing.
-### 🔒 Security Sandbox
+- 通用斜杠命令通过 `pkg/agent/loop.go` 中的 `commands.Executor` 统一执行。
+- Channel 适配器不再在本地消费通用命令；它们只负责把入站文本转发到 bus/agent 路径。Telegram 仍会在启动时自动注册其支持的命令菜单。
+- 未注册的斜杠命令（例如 `/foo`）会透传给 LLM 按普通输入处理。
+- 已注册但当前 channel 不支持的命令（例如 WhatsApp 上的 `/show`）会返回明确的用户可见错误，并停止后续处理。
+### 心跳 / 周期性任务 (Heartbeat)
 
-Octopus runs in a sandboxed environment by default. The agent can only access files and execute commands within the configured workspace.
-
-#### Default Configuration
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.octopus/workspace",
-      "restrict_to_workspace": true
-    }
-  }
-}
-```
-
-| Option                  | Default                 | Description                               |
-| ----------------------- | ----------------------- | ----------------------------------------- |
-| `workspace`             | `~/.octopus/workspace` | Working directory for the agent           |
-| `restrict_to_workspace` | `true`                  | Restrict file/command access to workspace |
-
-#### Protected Tools
-
-When `restrict_to_workspace: true`, the following tools are sandboxed:
-
-| Tool          | Function         | Restriction                            |
-| ------------- | ---------------- | -------------------------------------- |
-| `read_file`   | Read files       | Only files within workspace            |
-| `write_file`  | Write files      | Only files within workspace            |
-| `list_dir`    | List directories | Only directories within workspace      |
-| `edit_file`   | Edit files       | Only files within workspace            |
-| `append_file` | Append to files  | Only files within workspace            |
-| `exec`        | Execute commands | Command paths must be within workspace |
-
-#### Additional Exec Protection
-
-Even with `restrict_to_workspace: false`, the `exec` tool blocks these dangerous commands:
-
-* `rm -rf`, `del /f`, `rmdir /s` — Bulk deletion
-* `format`, `mkfs`, `diskpart` — Disk formatting
-* `dd if=` — Disk imaging
-* Writing to `/dev/sd[a-z]` — Direct disk writes
-* `shutdown`, `reboot`, `poweroff` — System shutdown
-* Fork bomb `:(){ :|:& };:`
-
-#### Error Examples
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (path outside working dir)}
-```
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (dangerous pattern detected)}
-```
-
-#### Disabling Restrictions (Security Risk)
-
-If you need the agent to access paths outside the workspace:
-
-**Method 1: Config file**
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "restrict_to_workspace": false
-    }
-  }
-}
-```
-
-**Method 2: Environment variable**
-
-```bash
-export PICOCLAW_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE=false
-```
-
-> ⚠️ **Warning**: Disabling this restriction allows the agent to access any path on your system. Use with caution in controlled environments only.
-
-#### Security Boundary Consistency
-
-The `restrict_to_workspace` setting applies consistently across all execution paths:
-
-| Execution Path   | Security Boundary            |
-| ---------------- | ---------------------------- |
-| Main Agent       | `restrict_to_workspace` ✅   |
-| Subagent / Spawn | Inherits same restriction ✅ |
-| Heartbeat tasks  | Inherits same restriction ✅ |
-
-All paths share the same workspace restriction — there's no way to bypass the security boundary through subagents or scheduled tasks.
-
-### Heartbeat (Periodic Tasks)
-
-Octopus can perform periodic tasks automatically. Create a `HEARTBEAT.md` file in your workspace:
+Octopus 可以自动执行周期性任务。在工作区创建 `HEARTBEAT.md` 文件：
 
 ```markdown
 # Periodic Tasks
@@ -926,11 +409,11 @@ Octopus can perform periodic tasks automatically. Create a `HEARTBEAT.md` file i
 - Check the weather forecast
 ```
 
-The agent will read this file every 30 minutes (configurable) and execute any tasks using available tools.
+Agent 将每隔 30 分钟（可配置）读取此文件，并使用可用工具执行任务。
 
-#### Async Tasks with Spawn
+#### 使用 Spawn 的异步任务
 
-For long-running tasks (web search, API calls), use the `spawn` tool to create a **subagent**:
+对于耗时较长的任务（网络搜索、API 调用），使用 `spawn` 工具创建一个 **子 Agent (subagent)**：
 
 ```markdown
 # Periodic Tasks
@@ -945,34 +428,35 @@ For long-running tasks (web search, API calls), use the `spawn` tool to create a
 - Check email and report important messages
 ```
 
-**Key behaviors:**
+**关键行为：**
 
-| Feature                 | Description                                               |
-| ----------------------- | --------------------------------------------------------- |
-| **spawn**               | Creates async subagent, doesn't block heartbeat           |
-| **Independent context** | Subagent has its own context, no session history          |
-| **message tool**        | Subagent communicates with user directly via message tool |
-| **Non-blocking**        | After spawning, heartbeat continues to next task          |
+| 特性             | 描述                                     |
+| ---------------- | ---------------------------------------- |
+| **spawn**        | 创建异步子 Agent，不阻塞主心跳进程       |
+| **独立上下文**   | 子 Agent 拥有独立上下文，无会话历史      |
+| **message tool** | 子 Agent 通过 message 工具直接与用户通信 |
+| **非阻塞**       | spawn 后，心跳继续处理下一个任务         |
 
-#### How Subagent Communication Works
+#### 子 Agent 通信原理
 
 ```
-Heartbeat triggers
+心跳触发 (Heartbeat triggers)
     ↓
-Agent reads HEARTBEAT.md
+Agent 读取 HEARTBEAT.md
     ↓
-For long task: spawn subagent
+对于长任务: spawn 子 Agent
     ↓                           ↓
-Continue to next task      Subagent works independently
+继续下一个任务               子 Agent 独立工作
     ↓                           ↓
-All tasks done            Subagent uses "message" tool
+所有任务完成                 子 Agent 使用 "message" 工具
     ↓                           ↓
-Respond HEARTBEAT_OK      User receives result directly
+响应 HEARTBEAT_OK            用户直接收到结果
+
 ```
 
-The subagent has access to tools (message, web_search, etc.) and can communicate with the user independently without going through the main agent.
+子 Agent 可以访问工具（message, web_search 等），并且无需通过主 Agent 即可独立与用户通信。
 
-**Configuration:**
+**配置：**
 
 ```json
 {
@@ -983,76 +467,72 @@ The subagent has access to tools (message, web_search, etc.) and can communicate
 }
 ```
 
-| Option     | Default | Description                        |
-| ---------- | ------- | ---------------------------------- |
-| `enabled`  | `true`  | Enable/disable heartbeat           |
-| `interval` | `30`    | Check interval in minutes (min: 5) |
+| 选项       | 默认值 | 描述                         |
+| ---------- | ------ | ---------------------------- |
+| `enabled`  | `true` | 启用/禁用心跳                |
+| `interval` | `30`   | 检查间隔，单位分钟 (最小: 5) |
 
-**Environment variables:**
+**环境变量:**
 
-* `PICOCLAW_HEARTBEAT_ENABLED=false` to disable
-* `PICOCLAW_HEARTBEAT_INTERVAL=60` to change interval
+- `PICOCLAW_HEARTBEAT_ENABLED=false` 禁用
+- `PICOCLAW_HEARTBEAT_INTERVAL=60` 更改间隔
 
-### Providers
+### 提供商 (Providers)
 
 > [!NOTE]
-> Groq provides free voice transcription via Whisper. If configured, audio messages from any channel will be automatically transcribed at the agent level.
+> Groq 通过 Whisper 提供免费的语音转录。如果配置了 Groq，任意渠道的音频消息都将在 Agent 层面自动转录为文字。
 
-| Provider     | Purpose                                 | Get API Key                                                  |
-| ------------ | --------------------------------------- | ------------------------------------------------------------ |
-| `gemini`     | LLM (Gemini direct)                     | [aistudio.google.com](https://aistudio.google.com)           |
-| `zhipu`      | LLM (Zhipu direct)                      | [bigmodel.cn](https://bigmodel.cn)                           |
-| `volcengine` | LLM(Volcengine direct)                  | [volcengine.com](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus)                 |
-| `openrouter` | LLM (recommended, access to all models) | [openrouter.ai](https://openrouter.ai)                       |
-| `anthropic`  | LLM (Claude direct)                     | [console.anthropic.com](https://console.anthropic.com)       |
-| `openai`     | LLM (GPT direct)                        | [platform.openai.com](https://platform.openai.com)           |
-| `deepseek`   | LLM (DeepSeek direct)                   | [platform.deepseek.com](https://platform.deepseek.com)       |
-| `qwen`       | LLM (Qwen direct)                       | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com) |
-| `groq`       | LLM + **Voice transcription** (Whisper) | [console.groq.com](https://console.groq.com)                 |
-| `cerebras`   | LLM (Cerebras direct)                   | [cerebras.ai](https://cerebras.ai)                           |
-| `vivgrid`    | LLM (Vivgrid direct)                    | [vivgrid.com](https://vivgrid.com)                           |
-| `azure`      | LLM (Azure OpenAI)                      | [portal.azure.com](https://portal.azure.com)                 |
+| 提供商               | 用途                         | 获取 API Key                                                         |
+| -------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| `gemini`             | LLM (Gemini 直连)            | [aistudio.google.com](https://aistudio.google.com)                   |
+| `zhipu`              | LLM (智谱直连)               | [bigmodel.cn](bigmodel.cn)                                           |
+| `volcengine` | LLM (火山引擎直连)                  | [volcengine.com](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus)                 |
+| `openrouter` | LLM (推荐，可访问所有模型)   | [openrouter.ai](https://openrouter.ai)                               |
+| `anthropic`  | LLM (Claude 直连)            | [console.anthropic.com](https://console.anthropic.com)               |
+| `openai`     | LLM (GPT 直连)               | [platform.openai.com](https://platform.openai.com)                   |
+| `deepseek`   | LLM (DeepSeek 直连)          | [platform.deepseek.com](https://platform.deepseek.com)               |
+| `qwen`               | LLM (通义千问)               | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com) |
+| `groq`               | LLM + **语音转录** (Whisper) | [console.groq.com](https://console.groq.com)                         |
+| `cerebras`           | LLM (Cerebras 直连)          | [cerebras.ai](https://cerebras.ai)                                   |
 
-### Model Configuration (model_list)
+### 模型配置 (model_list)
 
-> **What's New?** Octopus now uses a **model-centric** configuration approach. Simply specify `vendor/model` format (e.g., `zhipu/glm-4.7`) to add new providers—**zero code changes required!**
+> **新功能！** Octopus 现在采用**以模型为中心**的配置方式。只需使用 `厂商/模型` 格式（如 `zhipu/glm-4.7`）即可添加新的 provider——**无需修改任何代码！**
 
-This design also enables **multi-agent support** with flexible provider selection:
+该设计同时支持**多 Agent 场景**，提供灵活的 Provider 选择：
 
-- **Different agents, different providers**: Each agent can use its own LLM provider
-- **Model fallbacks**: Configure primary and fallback models for resilience
-- **Load balancing**: Distribute requests across multiple endpoints
-- **Centralized configuration**: Manage all providers in one place
+- **不同 Agent 使用不同 Provider**：每个 Agent 可以使用自己的 LLM provider
+- **模型回退（Fallback）**：配置主模型和备用模型，提高可靠性
+- **负载均衡**：在多个 API 端点之间分配请求
+- **集中化配置**：在一个地方管理所有 provider
 
-#### 📋 All Supported Vendors
+#### 📋 所有支持的厂商
 
-| Vendor              | `model` Prefix    | Default API Base                                    | Protocol  | API Key                                                          |
-| ------------------- | ----------------- |-----------------------------------------------------| --------- | ---------------------------------------------------------------- |
-| **OpenAI**          | `openai/`         | `https://api.openai.com/v1`                         | OpenAI    | [Get Key](https://platform.openai.com)                           |
-| **Anthropic**       | `anthropic/`      | `https://api.anthropic.com/v1`                      | Anthropic | [Get Key](https://console.anthropic.com)                         |
-| **智谱 AI (GLM)**   | `zhipu/`          | `https://open.bigmodel.cn/api/paas/v4`              | OpenAI    | [Get Key](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) |
-| **DeepSeek**        | `deepseek/`       | `https://api.deepseek.com/v1`                       | OpenAI    | [Get Key](https://platform.deepseek.com)                         |
-| **Google Gemini**   | `gemini/`         | `https://generativelanguage.googleapis.com/v1beta`  | OpenAI    | [Get Key](https://aistudio.google.com/api-keys)                  |
-| **Groq**            | `groq/`           | `https://api.groq.com/openai/v1`                    | OpenAI    | [Get Key](https://console.groq.com)                              |
-| **Moonshot**        | `moonshot/`       | `https://api.moonshot.cn/v1`                        | OpenAI    | [Get Key](https://platform.moonshot.cn)                          |
-| **通义千问 (Qwen)** | `qwen/`           | `https://dashscope.aliyuncs.com/compatible-mode/v1` | OpenAI    | [Get Key](https://dashscope.console.aliyun.com)                  |
-| **NVIDIA**          | `nvidia/`         | `https://integrate.api.nvidia.com/v1`               | OpenAI    | [Get Key](https://build.nvidia.com)                              |
-| **Ollama**          | `ollama/`         | `http://localhost:11434/v1`                         | OpenAI    | Local (no key needed)                                            |
-| **OpenRouter**      | `openrouter/`     | `https://openrouter.ai/api/v1`                      | OpenAI    | [Get Key](https://openrouter.ai/keys)                            |
-| **LiteLLM Proxy**   | `litellm/`        | `http://localhost:4000/v1`                          | OpenAI    | Your LiteLLM proxy key                                            |
-| **VLLM**            | `vllm/`           | `http://localhost:8000/v1`                          | OpenAI    | Local                                                            |
-| **Cerebras**        | `cerebras/`       | `https://api.cerebras.ai/v1`                        | OpenAI    | [Get Key](https://cerebras.ai)                                   |
-| **VolcEngine (Doubao)** | `volcengine/`     | `https://ark.cn-beijing.volces.com/api/v3`          | OpenAI    | [Get Key](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus)                        |
-| **神算云**          | `shengsuanyun/`   | `https://router.shengsuanyun.com/api/v1`            | OpenAI    | -                                                                |
-| **BytePlus**        | `byteplus/`       | `https://ark.ap-southeast.bytepluses.com/api/v3`    | OpenAI    | [Get Key](https://www.byteplus.com)                        |
-| **Vivgrid**         | `vivgrid/`        | `https://api.vivgrid.com/v1`                        | OpenAI    | [Get Key](https://vivgrid.com)                                   |
-| **LongCat**         | `longcat/`        | `https://api.longcat.chat/openai`                   | OpenAI    | [Get Key](https://longcat.chat/platform)                         |
-| **ModelScope (魔搭)**| `modelscope/`    | `https://api-inference.modelscope.cn/v1`            | OpenAI    | [Get Token](https://modelscope.cn/my/tokens)                     |
-| **Azure OpenAI**    | `azure/`          | `https://{resource}.openai.azure.com`               | Azure     | [Get Key](https://portal.azure.com)                              |
-| **Antigravity**     | `antigravity/`    | Google Cloud                                        | Custom    | OAuth only                                                       |
-| **GitHub Copilot**  | `github-copilot/` | `localhost:4321`                                    | gRPC      | -                                                                |
+| 厂商                | `model` 前缀      | 默认 API Base                                       | 协议      | 获取 API Key                                                      |
+| ------------------- | ----------------- | --------------------------------------------------- | --------- | ----------------------------------------------------------------- |
+| **OpenAI**          | `openai/`         | `https://api.openai.com/v1`                         | OpenAI    | [获取密钥](https://platform.openai.com)                           |
+| **Anthropic**       | `anthropic/`      | `https://api.anthropic.com/v1`                      | Anthropic | [获取密钥](https://console.anthropic.com)                         |
+| **智谱 AI (GLM)**   | `zhipu/`          | `https://open.bigmodel.cn/api/paas/v4`              | OpenAI    | [获取密钥](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) |
+| **DeepSeek**        | `deepseek/`       | `https://api.deepseek.com/v1`                       | OpenAI    | [获取密钥](https://platform.deepseek.com)                         |
+| **Google Gemini**   | `gemini/`         | `https://generativelanguage.googleapis.com/v1beta`  | OpenAI    | [获取密钥](https://aistudio.google.com/api-keys)                  |
+| **Groq**            | `groq/`           | `https://api.groq.com/openai/v1`                    | OpenAI    | [获取密钥](https://console.groq.com)                              |
+| **Moonshot**        | `moonshot/`       | `https://api.moonshot.cn/v1`                        | OpenAI    | [获取密钥](https://platform.moonshot.cn)                          |
+| **通义千问 (Qwen)** | `qwen/`           | `https://dashscope.aliyuncs.com/compatible-mode/v1` | OpenAI    | [获取密钥](https://dashscope.console.aliyun.com)                  |
+| **NVIDIA**          | `nvidia/`         | `https://integrate.api.nvidia.com/v1`               | OpenAI    | [获取密钥](https://build.nvidia.com)                              |
+| **Ollama**          | `ollama/`         | `http://localhost:11434/v1`                         | OpenAI    | 本地（无需密钥）                                                  |
+| **OpenRouter**      | `openrouter/`     | `https://openrouter.ai/api/v1`                      | OpenAI    | [获取密钥](https://openrouter.ai/keys)                            |
+| **VLLM**            | `vllm/`           | `http://localhost:8000/v1`                          | OpenAI    | 本地                                                              |
+| **Cerebras**        | `cerebras/`       | `https://api.cerebras.ai/v1`                        | OpenAI    | [获取密钥](https://cerebras.ai)                                   |
+| **火山引擎（Doubao）**        | `volcengine/`     | `https://ark.cn-beijing.volces.com/api/v3`          | OpenAI    | [获取密钥](https://www.volcengine.com/activity/codingplan?utm_campaign=Octopus&utm_content=Octopus&utm_medium=devrel&utm_source=OWO&utm_term=Octopus)                        |
+| **神算云**          | `shengsuanyun/`   | `https://router.shengsuanyun.com/api/v1`            | OpenAI    | -                                                                 |
+| **BytePlus**        | `byteplus/`       | `https://ark.ap-southeast.bytepluses.com/api/v3`    | OpenAI    | [获取密钥](https://www.byteplus.com)                        |
+| **LongCat**         | `longcat/`        | `https://api.longcat.chat/openai`                   | OpenAI    | [获取密钥](https://longcat.chat/platform)                        |
+| **ModelScope (魔搭)**| `modelscope/`    | `https://api-inference.modelscope.cn/v1`            | OpenAI    | [获取 Token](https://modelscope.cn/my/tokens)                    |
+| **Azure OpenAI**    | `azure/`          | `https://{resource}.openai.azure.com`               | Azure     | [获取密钥](https://portal.azure.com)                              |
+| **Antigravity**     | `antigravity/`    | Google Cloud                                        | 自定义    | 仅 OAuth                                                          |
+| **GitHub Copilot**  | `github-copilot/` | `localhost:4321`                                    | gRPC      | -                                                                 |
 
-#### Basic Configuration
+#### 基础配置示例
 
 ```json
 {
@@ -1086,7 +566,7 @@ This design also enables **multi-agent support** with flexible provider selectio
 }
 ```
 
-#### Vendor-Specific Examples
+#### 各厂商配置示例
 
 **OpenAI**
 
@@ -1098,7 +578,7 @@ This design also enables **multi-agent support** with flexible provider selectio
 }
 ```
 
-**VolcEngine (Doubao)**
+**火山引擎（Doubao）**
 
 ```json
 {
@@ -1128,21 +608,21 @@ This design also enables **multi-agent support** with flexible provider selectio
 }
 ```
 
-**Anthropic (with API key)**
+**Anthropic (使用 OAuth)**
 
 ```json
 {
   "model_name": "claude-sonnet-4.6",
   "model": "anthropic/claude-sonnet-4.6",
-  "api_key": "sk-ant-your-key"
+  "auth_method": "oauth"
 }
 ```
 
-> Run `octopus auth login --provider anthropic` to paste your API token.
+> 运行 `octopus auth login --provider anthropic` 来设置 OAuth 凭证。
 
-**Anthropic Messages API (native format)**
+**Anthropic Messages API（原生格式）**
 
-For direct Anthropic API access or custom endpoints that only support Anthropic's native message format:
+用于直接访问 Anthropic API 或仅支持 Anthropic 原生消息格式的自定义端点：
 
 ```json
 {
@@ -1153,14 +633,14 @@ For direct Anthropic API access or custom endpoints that only support Anthropic'
 }
 ```
 
-> Use `anthropic-messages` protocol when:
-> - Using third-party proxies that only support Anthropic's native `/v1/messages` endpoint (not OpenAI-compatible `/v1/chat/completions`)
-> - Connecting to services like MiniMax, Synthetic that require Anthropic's native message format
-> - The existing `anthropic` protocol returns 404 errors (indicating the endpoint doesn't support OpenAI-compatible format)
+> 使用 `anthropic-messages` 协议的场景：
+> - 使用仅支持 Anthropic 原生 `/v1/messages` 端点的第三方代理（不支持 OpenAI 兼容的 `/v1/chat/completions`）
+> - 连接到 MiniMax、Synthetic 等需要 Anthropic 原生消息格式的服务
+> - 现有的 `anthropic` 协议返回 404 错误（说明端点不支持 OpenAI 兼容格式）
 >
-> **Note:** The `anthropic` protocol uses OpenAI-compatible format (`/v1/chat/completions`), while `anthropic-messages` uses Anthropic's native format (`/v1/messages`). Choose based on your endpoint's supported format.
+> **注意：** `anthropic` 协议使用 OpenAI 兼容格式（`/v1/chat/completions`），而 `anthropic-messages` 使用 Anthropic 原生格式（`/v1/messages`）。请根据端点支持的格式选择。
 
-**Ollama (local)**
+**Ollama (本地)**
 
 ```json
 {
@@ -1169,7 +649,7 @@ For direct Anthropic API access or custom endpoints that only support Anthropic'
 }
 ```
 
-**Custom Proxy/API**
+**自定义代理/API**
 
 ```json
 {
@@ -1181,22 +661,9 @@ For direct Anthropic API access or custom endpoints that only support Anthropic'
 }
 ```
 
-**LiteLLM Proxy**
+#### 负载均衡
 
-```json
-{
-  "model_name": "lite-gpt4",
-  "model": "litellm/lite-gpt4",
-  "api_base": "http://localhost:4000/v1",
-  "api_key": "sk-..."
-}
-```
-
-Octopus strips only the outer `litellm/` prefix before sending the request, so proxy aliases like `litellm/lite-gpt4` send `lite-gpt4`, while `litellm/openai/gpt-4o` sends `openai/gpt-4o`.
-
-#### Load Balancing
-
-Configure multiple endpoints for the same model name—Octopus will automatically round-robin between them:
+为同一个模型名称配置多个端点——Octopus 会自动在它们之间轮询：
 
 ```json
 {
@@ -1217,11 +684,11 @@ Configure multiple endpoints for the same model name—Octopus will automaticall
 }
 ```
 
-#### Migration from Legacy `providers` Config
+#### 从旧的 `providers` 配置迁移
 
-The old `providers` configuration is **deprecated** but still supported for backward compatibility.
+旧的 `providers` 配置格式**已弃用**，但为向后兼容仍支持。
 
-**Old Config (deprecated):**
+**旧配置（已弃用）：**
 
 ```json
 {
@@ -1240,7 +707,7 @@ The old `providers` configuration is **deprecated** but still supported for back
 }
 ```
 
-**New Config (recommended):**
+**新配置（推荐）：**
 
 ```json
 {
@@ -1259,26 +726,16 @@ The old `providers` configuration is **deprecated** but still supported for back
 }
 ```
 
-For detailed migration guide, see [docs/migration/model-list-migration.md](docs/migration/model-list-migration.md).
-
-### Provider Architecture
-
-Octopus routes providers by protocol family:
-
-- OpenAI-compatible protocol: OpenRouter, OpenAI-compatible gateways, Groq, Zhipu, and vLLM-style endpoints.
-- Anthropic protocol: Claude-native API behavior.
-- Codex/OAuth path: OpenAI OAuth/token authentication route.
-
-This keeps the runtime lightweight while making new OpenAI-compatible backends mostly a config operation (`api_base` + `api_key`).
+详细的迁移指南请参考 [docs/migration/model-list-migration.md](docs/migration/model-list-migration.md)。
 
 <details>
-<summary><b>Zhipu</b></summary>
+<summary><b>智谱 (Zhipu) 配置示例</b></summary>
 
-**1. Get API key and base URL**
+**1. 获取 API key 和 base URL**
 
-* Get [API key](https://bigmodel.cn/usercenter/proj-mgmt/apikeys)
+- 获取 [API key](https://bigmodel.cn/usercenter/proj-mgmt/apikeys)
 
-**2. Configure**
+**2. 配置**
 
 ```json
 {
@@ -1300,16 +757,17 @@ This keeps the runtime lightweight while making new OpenAI-compatible backends m
 }
 ```
 
-**3. Run**
+**3. 运行**
 
 ```bash
-octopus agent -m "Hello"
+octopus agent -m "你好"
+
 ```
 
 </details>
 
 <details>
-<summary><b>Full config example</b></summary>
+<summary><b>完整配置示例</b></summary>
 
 ```json
 {
@@ -1342,11 +800,7 @@ octopus agent -m "Hello"
       "allow_from": [""]
     },
     "whatsapp": {
-      "enabled": false,
-      "bridge_url": "ws://localhost:3001",
-      "use_native": false,
-      "session_store_path": "",
-      "allow_from": []
+      "enabled": false
     },
     "feishu": {
       "enabled": false,
@@ -1367,21 +821,11 @@ octopus agent -m "Hello"
     "web": {
       "brave": {
         "enabled": false,
-        "api_key": "BSA...",
+        "api_key": "YOUR_BRAVE_API_KEY",
         "max_results": 5
       },
       "duckduckgo": {
         "enabled": true,
-        "max_results": 5
-      },
-      "perplexity": {
-        "enabled": false,
-        "api_key": "",
-        "max_results": 5
-      },
-      "searxng": {
-        "enabled": false,
-        "base_url": "http://localhost:8888",
         "max_results": 5
       }
     },
@@ -1398,113 +842,52 @@ octopus agent -m "Hello"
 
 </details>
 
-## CLI Reference
+## CLI 命令行参考
 
-| Command                   | Description                   |
-| ------------------------- | ----------------------------- |
-| `octopus onboard`        | Initialize config & workspace |
-| `octopus agent -m "..."` | Chat with the agent           |
-| `octopus agent`          | Interactive chat mode         |
-| `octopus gateway`        | Start the gateway             |
-| `octopus status`         | Show status                   |
-| `octopus cron list`      | List all scheduled jobs       |
-| `octopus cron add ...`   | Add a scheduled job           |
+| 命令                      | 描述               |
+| ------------------------- | ------------------ |
+| `octopus onboard`        | 初始化配置和工作区 |
+| `octopus agent -m "..."` | 与 Agent 对话      |
+| `octopus agent`          | 交互式聊天模式     |
+| `octopus gateway`        | 启动网关 (Gateway) |
+| `octopus status`         | 显示状态           |
+| `octopus cron list`      | 列出所有定时任务   |
+| `octopus cron add ...`   | 添加定时任务       |
 
-### Scheduled Tasks / Reminders
+### 定时任务 / 提醒 (Scheduled Tasks)
 
-Octopus supports scheduled reminders and recurring tasks through the `cron` tool:
+Octopus 通过 `cron` 工具支持定时提醒和重复任务：
 
-* **One-time reminders**: "Remind me in 10 minutes" → triggers once after 10min
-* **Recurring tasks**: "Remind me every 2 hours" → triggers every 2 hours
-* **Cron expressions**: "Remind me at 9am daily" → uses cron expression
+- **一次性提醒**: "Remind me in 10 minutes" (10分钟后提醒我) → 10分钟后触发一次
+- **重复任务**: "Remind me every 2 hours" (每2小时提醒我) → 每2小时触发
+- **Cron 表达式**: "Remind me at 9am daily" (每天上午9点提醒我) → 使用 cron 表达式
 
-Jobs are stored in `~/.octopus/workspace/cron/` and processed automatically.
+任务存储在 `~/.octopus/workspace/cron/` 中并自动处理。
 
-## 🤝 Contribute & Roadmap
+## 🤝 贡献与路线图 (Roadmap)
 
-PRs welcome! The codebase is intentionally small and readable. 🤗
+欢迎提交 PR！代码库刻意保持小巧和可读。🤗
 
-See our full [Community Roadmap](https://github.com/ilibx/octopus/blob/main/ROADMAP.md).
+路线图即将发布...
 
-Developer group building, join after your first merged PR!
+开发者群组正在组建中，入群门槛：至少合并过 1 个 PR。
 
-User Groups:
+用户群组：
 
-discord: <https://discord.gg/V4sAZ9XWpN>
+Discord: [https://discord.gg/V4sAZ9XWpN](https://discord.gg/V4sAZ9XWpN)
 
 <img src="assets/wechat.png" alt="Octopus" width="512">
 
-## 🐛 Troubleshooting
+## 🐛 疑难解答 (Troubleshooting)
 
-### Web search says "API key configuration issue"
+### 网络搜索提示 "API 配置问题"
 
-This is normal if you haven't configured a search API key yet. Octopus will provide helpful links for manual searching.
+如果您尚未配置搜索 API Key，这是正常的。Octopus 会提供手动搜索的帮助链接。
 
-#### Search Provider Priority
+启用网络搜索：
 
-Octopus automatically selects the best available search provider in this order:
-1. **Perplexity** (if enabled and API key configured) - AI-powered search with citations
-2. **Brave Search** (if enabled and API key configured) - Privacy-focused paid API ($5/1000 queries)
-3. **SearXNG** (if enabled and base_url configured) - Self-hosted metasearch aggregating 70+ engines (free)
-4. **DuckDuckGo** (if enabled, default fallback) - No API key required (free)
-
-#### Web Search Configuration Options
-
-**Option 1 (Best Results)**: Perplexity AI Search
-```json
-{
-  "tools": {
-    "web": {
-      "perplexity": {
-        "enabled": true,
-        "api_key": "YOUR_PERPLEXITY_API_KEY",
-        "max_results": 5
-      }
-    }
-  }
-}
-```
-
-**Option 2 (Paid API)**: Get an API key at [https://brave.com/search/api](https://brave.com/search/api) ($5/1000 queries, ~$5-6/month)
-```json
-{
-  "tools": {
-    "web": {
-      "brave": {
-        "enabled": true,
-        "api_key": "YOUR_BRAVE_API_KEY",
-        "max_results": 5
-      }
-    }
-  }
-}
-```
-
-**Option 3 (Self-Hosted)**: Deploy your own [SearXNG](https://github.com/searxng/searxng) instance
-```json
-{
-  "tools": {
-    "web": {
-      "searxng": {
-        "enabled": true,
-        "base_url": "http://your-server:8888",
-        "max_results": 5
-      }
-    }
-  }
-}
-```
-
-Benefits of SearXNG:
-- **Zero cost**: No API fees or rate limits
-- **Privacy-focused**: Self-hosted, no tracking
-- **Aggregate results**: Queries 70+ search engines simultaneously
-- **Perfect for cloud VMs**: Solves datacenter IP blocking issues (Oracle Cloud, GCP, AWS, Azure)
-- **No API key needed**: Just deploy and configure the base URL
-
-**Option 4 (No Setup Required)**: DuckDuckGo is enabled by default as fallback (no API key needed)
-
-Add the key to `~/.octopus/config.json` if using Brave:
+1. 在 [https://tavily.com](https://tavily.com) (1000 次免费) 或 [https://brave.com/search/api](https://brave.com/search/api) 获取免费 API Key (2000 次免费)
+2. 添加到 `~/.octopus/config.json`:
 
 ```json
 {
@@ -1518,45 +901,34 @@ Add the key to `~/.octopus/config.json` if using Brave:
       "duckduckgo": {
         "enabled": true,
         "max_results": 5
-      },
-      "perplexity": {
-        "enabled": false,
-        "api_key": "YOUR_PERPLEXITY_API_KEY",
-        "max_results": 5
-      },
-      "searxng": {
-        "enabled": false,
-        "base_url": "http://your-searxng-instance:8888",
-        "max_results": 5
       }
     }
   }
 }
 ```
 
-### Getting content filtering errors
+### 遇到内容过滤错误 (Content Filtering Errors)
 
-Some providers (like Zhipu) have content filtering. Try rephrasing your query or use a different model.
+某些提供商（如智谱）有严格的内容过滤。尝试改写您的问题或使用其他模型。
 
-### Telegram bot says "Conflict: terminated by other getUpdates"
+### Telegram bot 提示 "Conflict: terminated by other getUpdates"
 
-This happens when another instance of the bot is running. Make sure only one `octopus gateway` is running at a time.
+这表示有另一个机器人实例正在运行。请确保同一时间只有一个 `octopus gateway` 进程在运行。
 
 ---
 
-## 📝 API Key Comparison
+## 📝 API Key 对比
 
-| Service          | Free Tier                | Use Case                              |
-| ---------------- | ------------------------ | ------------------------------------- |
-| **OpenRouter**   | 200K tokens/month        | Multiple models (Claude, GPT-4, etc.) |
-| **Volcengine CodingPlan** | ¥9.9/first month | Best for Chinese users, multiple SOTA models (Doubao, DeepSeek, etc.) |
-| **Zhipu**        | 200K tokens/month        | Suitable for Chinese users                |
-| **Brave Search** | Paid ($5/1000 queries)   | Web search functionality              |
-| **SearXNG**      | Unlimited (self-hosted)  | Privacy-focused metasearch (70+ engines) |
-| **Groq**         | Free tier available      | Fast inference (Llama, Mixtral)       |
-| **Cerebras**     | Free tier available      | Fast inference (Llama, Qwen, etc.)    |
-| **LongCat**      | Up to 5M tokens/day      | Fast inference (free tier)            |
-| **ModelScope**   | 2000 requests/day        | Free inference (Qwen, GLM, DeepSeek, etc.) |
+| 服务 | 免费层级 | 适用场景 |
+| --- | --- | --- |
+| **OpenRouter** | 200K tokens/月 | 多模型聚合 (Claude, GPT-4 等) |
+| **火山引擎 CodingPlan** | 9.9 元/首月 | 最适合国内用户，多种 SOTA 模型（豆包、DeepSeek 等） |
+| **智谱 (Zhipu)** | 200K tokens/月 | 适合中国用户 |
+| **Brave Search** | 2000 次查询/月 | 网络搜索功能 |
+| **Tavily** | 1000 次查询/月 | AI Agent 搜索优化 |
+| **Groq** | 提供免费层级 | 极速推理 (Llama, Mixtral) |
+| **LongCat** | 最多 5M tokens/天 | 推理速度快 (免费额度) |
+| **ModelScope (魔搭)** | 2000 次请求/天 | 免费推理 (Qwen, GLM, DeepSeek 等) |
 
 ---
 

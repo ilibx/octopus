@@ -1,118 +1,118 @@
-# Contributing to Octopus
+# 参与贡献 Octopus
 
-Thank you for your interest in contributing to Octopus! This project is a community-driven effort to build the lightweight and versatile personal AI assistant. We welcome contributions of all kinds: bug fixes, features, documentation, translations, and testing.
+感谢你对 Octopus 的关注！本项目是一个社区驱动的开源项目，目标是构建 轻量灵活,人人可用 的个人AI助手。我们欢迎一切形式的贡献：Bug 修复、新功能、文档、翻译和测试。
 
-Octopus itself was substantially developed with AI assistance — we embrace this approach and have built our contribution process around it.
+Octopus 本身在很大程度上是借助 AI 辅助开发的——我们拥抱这种方式，并围绕它构建了贡献流程。
 
-## Table of Contents
+## 目录
 
-- [Code of Conduct](#code-of-conduct)
-- [Ways to Contribute](#ways-to-contribute)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Making Changes](#making-changes)
-- [AI-Assisted Contributions](#ai-assisted-contributions)
-- [Pull Request Process](#pull-request-process)
-- [Branch Strategy](#branch-strategy)
-- [Code Review](#code-review)
-- [Communication](#communication)
-
----
-
-## Code of Conduct
-
-We are committed to maintaining a welcoming and respectful community. Be kind, constructive, and assume good faith. Harassment or discrimination of any kind will not be tolerated.
+- [行为准则](#行为准则)
+- [贡献方式](#贡献方式)
+- [快速开始](#快速开始)
+- [开发环境配置](#开发环境配置)
+- [提交修改](#提交修改)
+- [AI 辅助贡献](#ai-辅助贡献)
+- [Pull Request 流程](#pull-request-流程)
+- [分支策略](#分支策略)
+- [代码审查](#代码审查)
+- [沟通渠道](#沟通渠道)
 
 ---
 
-## Ways to Contribute
+## 行为准则
 
-- **Bug reports** — Open an issue using the bug report template.
-- **Feature requests** — Open an issue using the feature request template; discuss before implementing.
-- **Code** — Fix bugs or implement features. See the workflow below.
-- **Documentation** — Improve READMEs, docs, inline comments, or translations.
-- **Testing** — Run Octopus on new hardware, channels, or LLM providers and report your results.
-
-For substantial new features, please open an issue first to discuss the design before writing code. This prevents wasted effort and ensures alignment with the project's direction.
+我们致力于维护一个友好、互相尊重的社区环境。请保持善意、建设性的态度，并善意地理解他人。任何形式的骚扰或歧视均不被接受。
 
 ---
 
-## Getting Started
+## 贡献方式
 
-1. **Fork** the repository on GitHub.
-2. **Clone** your fork locally:
+- **Bug 反馈** — 使用 Bug 报告模板提交 Issue。
+- **功能建议** — 使用功能请求模板提交 Issue，建议在开始实现前先进行讨论。
+- **代码贡献** — 修复 Bug 或实现新功能，参见下方工作流程。
+- **文档改进** — 完善 README、文档、代码注释或翻译。
+- **测试与验证** — 在新硬件、新渠道或新 LLM 提供商上运行 Octopus 并反馈结果。
+
+对于较大的新功能，请先提交 Issue 讨论设计方案，再动手写代码。这能避免无效投入，也确保与项目方向保持一致。
+
+---
+
+## 快速开始
+
+1. 在 GitHub 上 **Fork** 本仓库。
+2. 将你的 Fork **克隆**到本地：
    ```bash
-   git clone https://github.com/<your-username>/octopus.git
+   git clone https://github.com/<你的用户名>/octopus.git
    cd octopus
    ```
-3. Add the upstream remote:
+3. 添加上游远程仓库：
    ```bash
    git remote add upstream https://github.com/ilibx/octopus.git
    ```
 
 ---
 
-## Development Setup
+## 开发环境配置
 
-### Prerequisites
+### 前置依赖
 
-- Go 1.25 or later
+- Go 1.25 或更高版本
 - `make`
 
-### Build
+### 构建
 
 ```bash
-make build       # Build binary (runs go generate first)
-make generate    # Run go generate only
-make check       # Full pre-commit check: deps + fmt + vet + test
+make build       # 构建二进制文件（会先执行 go generate）
+make generate    # 仅执行 go generate
+make check       # 完整的提交前检查：deps + fmt + vet + test
 ```
 
-### Running Tests
+### 运行测试
 
 ```bash
-make test                                    # Run all tests
-go test -run TestName -v ./pkg/session/      # Run a single test
-go test -bench=. -benchmem -run='^$' ./...  # Run benchmarks
+make test                                    # 运行所有测试
+go test -run TestName -v ./pkg/session/      # 运行单个测试
+go test -bench=. -benchmem -run='^$' ./...  # 运行基准测试
 ```
 
-### Code Style
+### 代码风格
 
 ```bash
-make fmt   # Format code
-make vet   # Static analysis
-make lint  # Full linter run
+make fmt   # 格式化代码
+make vet   # 静态分析
+make lint  # 完整的 lint 检查
 ```
 
-All CI checks must pass before a PR can be merged. Run `make check` locally before pushing to catch issues early.
+所有 CI 检查通过后 PR 才能被合并。推送代码前请先在本地运行 `make check`，提前发现问题。
 
 ---
 
-## Making Changes
+## 提交修改
 
-### Branching
+### 分支管理
 
-Always branch off `main` and target `main` in your PR. Never push directly to `main` or any `release/*` branch:
+始终从 `main` 分支切出，并在 PR 中以 `main` 为目标分支。不要直接向 `main` 或任何 `release/*` 分支推送代码：
 
 ```bash
 git checkout main
 git pull upstream main
-git checkout -b your-feature-branch
+git checkout -b 你的功能分支名
 ```
 
-Use descriptive branch names, e.g. `fix/telegram-timeout`, `feat/ollama-provider`, `docs/contributing-guide`.
+请使用描述性的分支名，例如：`fix/telegram-timeout`、`feat/ollama-provider`、`docs/contributing-guide`。
 
-### Commits
+### Commit 规范
 
-- Write clear, concise commit messages in English.
-- Use the imperative mood: "Add retry logic" not "Added retry logic".
-- Reference the related issue when relevant: `Fix session leak (#123)`.
-- Keep commits focused. One logical change per commit is preferred.
-- For minor cleanups or typo fixes, squash them into a single commit before opening a PR.
-- Refer to https://www.conventionalcommits.org/zh-hans/v1.0.0/
+- 使用英文撰写清晰、简洁的 commit 信息。
+- 使用祈使句：写 "Add retry logic"，而不是 "Added retry logic"。
+- 有关联 Issue 时请引用：`Fix session leak (#123)`。
+- 保持 commit 专注，每个 commit 只做一件事。
+- 对于小的清理或拼写修正，提 PR 前请将其合并为一个 commit。
+- 按照 https://www.conventionalcommits.org/zh-hans/v1.0.0/ 规范来撰写
 
-### Keeping Up to Date
+### 保持与上游同步
 
-Rebase your branch onto upstream `main` before opening a PR:
+提 PR 前，请将你的分支变基到上游 `main`：
 
 ```bash
 git fetch upstream
@@ -121,150 +121,149 @@ git rebase upstream/main
 
 ---
 
-## AI-Assisted Contributions
+## AI 辅助贡献
 
-Octopus was built with substantial AI assistance, and we fully embrace AI-assisted development. However, contributors must understand their responsibilities when using AI tools.
+Octopus 在很大程度上借助 AI 辅助开发，我们完全拥抱这种开发方式。但贡献者必须清楚地了解自己在使用 AI 工具时所承担的责任。
 
-### Disclosure Is Required
+### 必须披露 AI 使用情况
 
-Every PR must disclose AI involvement using the PR template's **🤖 AI Code Generation** section. There are three levels:
+每个 PR 都必须通过 PR 模板中的 **🤖 AI 代码生成** 部分披露 AI 参与情况，共分三个级别：
 
-| Level | Description |
+| 级别 | 说明 |
 |---|---|
-| 🤖 Fully AI-generated | AI wrote the code; contributor reviewed and validated it |
-| 🛠️ Mostly AI-generated | AI produced the draft; contributor made significant modifications |
-| 👨‍💻 Mostly Human-written | Contributor led; AI provided suggestions or none at all |
+| 🤖 完全由 AI 生成 | AI 编写代码，贡献者负责审查和验证 |
+| 🛠️ 主要由 AI 生成 | AI 起草，贡献者做了较大修改 |
+| 👨‍💻 主要由人工编写 | 贡献者主导，AI 仅提供辅助或未使用 AI |
 
-Honest disclosure is expected. There is no stigma attached to any level — what matters is the quality of the contribution.
+我们期望你诚实填写。三种级别均可接受，没有任何歧视——重要的是贡献的质量。
 
-### You Are Responsible for What You Submit
+### 你对提交的代码负全责
 
-Using AI to generate code does not reduce your responsibility as the contributor. Before opening a PR with AI-generated code, you must:
+使用 AI 生成代码并不能减轻你作为贡献者的责任。在提交含有 AI 生成代码的 PR 之前，你必须：
 
-- **Read and understand** every line of the generated code.
-- **Test it** in a real environment (see the Test Environment section of the PR template).
-- **Check for security issues** — AI models can generate subtly insecure code (e.g., path traversal, injection, credential exposure). Review carefully.
-- **Verify correctness** — AI-generated logic can be plausible-sounding but wrong. Validate the behavior, not just the syntax.
+- **逐行阅读并理解**生成的代码。
+- **在真实环境中测试**（参见 PR 模板中的测试环境部分）。
+- **检查安全问题** — AI 模型可能生成存在安全隐患的代码（如路径穿越、注入攻击、凭据泄露等），请仔细审查。
+- **验证正确性** — AI 生成的逻辑可能听起来合理但实际上是错误的，请验证行为，而不仅仅是语法。
 
-PRs where it is clear the contributor has not read or tested the AI-generated code will be closed without review.
+如果明显可以看出贡献者没有阅读或测试 AI 生成的代码，该 PR 将被直接关闭，不予审查。
 
-### AI-Generated Code Quality Standards
+### AI 生成代码的质量标准
 
-AI-generated contributions are held to the **same quality bar** as human-written code:
+AI 生成的代码与人工编写的代码遵循**相同的质量要求**：
 
-- It must pass all CI checks (`make check`).
-- It must be idiomatic Go and consistent with the existing codebase style.
-- It must not introduce unnecessary abstractions, dead code, or over-engineering.
-- It must include or update tests where appropriate.
+- 必须通过所有 CI 检查（`make check`）。
+- 必须符合 Go 惯用写法，并与现有代码库的风格保持一致。
+- 不得引入不必要的抽象、死代码或过度设计。
+- 须在适当的地方包含或更新测试。
 
-### Security Review
+### 安全审查
 
-AI-generated code requires extra security scrutiny. Pay special attention to:
+AI 生成的代码需要格外仔细的安全审查。请特别关注以下方面：
 
-- File path handling and sandbox escapes (see commit `244eb0b` for a real example)
-- External input validation in channel handlers and tool implementations
-- Credential or secret handling
-- Command execution (`exec.Command`, shell invocations)
+- 文件路径处理与沙箱逃逸（项目历史中的 commit `244eb0b` 就是真实案例）
+- channel 处理器和 tool 实现中的外部输入校验
+- 凭据或密钥的处理
+- 命令执行（`exec.Command`、shell 调用等）
 
-If you are unsure whether a piece of AI-generated code is safe, say so in the PR — reviewers will help.
-
----
-
-## Pull Request Process
-
-### Before Opening a PR
-
-- [ ] Run `make check` and ensure it passes locally.
-- [ ] Fill in the PR template completely, including the AI disclosure section.
-- [ ] Link any related issue(s) in the PR description.
-- [ ] Keep the PR focused. Avoid bundling unrelated changes together.
-
-### PR Template Sections
-
-The PR template asks for:
-
-- **Description** — What does this change do and why?
-- **Type of Change** — Bug fix, feature, docs, or refactor.
-- **AI Code Generation** — Disclosure of AI involvement (required).
-- **Related Issue** — Link to the issue this addresses.
-- **Technical Context** — Reference URLs and reasoning (skip for pure docs PRs).
-- **Test Environment** — Hardware, OS, model/provider, and channels used for testing.
-- **Evidence** — Optional logs or screenshots demonstrating the change works.
-- **Checklist** — Self-review confirmation.
-
-### PR Size
-
-Prefer small, reviewable PRs. A PR that changes 200 lines across 5 files is much easier to review than one that changes 2000 lines across 30 files. If your feature is large, consider splitting it into a series of smaller, logically complete PRs.
+如果你不确定某段 AI 生成代码是否安全，请在 PR 中说明——审查者会帮助判断。
 
 ---
 
-## Branch Strategy
+## Pull Request 流程
 
-### Long-Lived Branches
+### 提 PR 前的检查
 
-- **`main`** — the active development branch. All feature PRs target `main`. The branch is protected: direct pushes are not permitted, and at least one maintainer approval is required before merging.
-- **`release/x.y`** — stable release branches, cut from `main` when a version is ready to ship. These branches are more strictly protected than `main`.
+- [ ] 在本地运行 `make check` 并确认通过。
+- [ ] 完整填写 PR 模板，包括 AI 披露部分。
+- [ ] 在 PR 描述中关联相关 Issue。
+- [ ] 保持 PR 专注，避免将不相关的修改混在一起。
 
-### Requirements to Merge into `main`
+### PR 模板各部分说明
 
-A PR can only be merged when all of the following are satisfied:
+PR 模板要求填写：
 
-1. **CI passes** — All GitHub Actions workflows (lint, test, build) must be green.
-2. **Reviewer approval** — At least one maintainer has approved the PR.
-3. **No unresolved review comments** — All review threads must be resolved.
-4. **PR template is complete** — Including AI disclosure and test environment.
+- **描述** — 这个改动做了什么，为什么要做？
+- **变更类型** — Bug 修复、新功能、文档或重构。
+- **AI 代码生成** — AI 参与情况披露（必填）。
+- **关联 Issue** — 此 PR 解决的 Issue 链接。
+- **技术背景** — 参考链接和设计理由（纯文档类 PR 可跳过）。
+- **测试环境** — 用于测试的硬件、操作系统、模型/提供商和渠道。
+- **验证证据** — 可选的日志或截图，用于证明改动有效。
+- **检查清单** — 自我审查确认。
 
-### Who Can Merge
+### PR 规模
 
-Only maintainers can merge PRs. Contributors cannot merge their own PRs, even if they have write access.
+请尽量提交小而易于审查的 PR。一个涉及 5 个文件共 200 行改动的 PR，远比涉及 30 个文件共 2000 行改动的 PR 容易审查。如果你的功能较大，可以考虑将其拆分为一系列逻辑完整的小 PR。
 
-### Merge Strategy
+---
 
-We use **squash merge** for most PRs to keep the `main` history clean and readable. Each merged PR becomes a single commit referencing the PR number, e.g.:
+## 分支策略
+
+### 长期分支
+
+- **`main`** — 活跃开发分支。所有功能 PR 均以 `main` 为目标。该分支受保护：禁止直接推送，合并前必须获得至少一名维护者的批准。
+- **`release/x.y`** — 稳定发布分支，在某个版本准备发布时从 `main` 切出。这些分支的保护级别高于 `main`。
+
+### 合并到 `main` 的前提条件
+
+PR 必须同时满足以下所有条件，才能被合并：
+
+1. **CI 全部通过** — 所有 GitHub Actions 工作流（lint、test、build）均为绿色。
+2. **获得审查者批准** — 至少一名维护者已批准该 PR。
+3. **无未解决的审查意见** — 所有审查讨论线程均已关闭。
+4. **PR 模板填写完整** — 包括 AI 披露和测试环境信息。
+
+### 谁可以合并
+
+只有维护者才能合并 PR。贡献者不能合并自己的 PR，即使拥有写权限也不行。
+
+### 合并策略
+
+为保持 `main` 历史清晰可读，我们对大多数 PR 使用 **Squash Merge**。每个合并的 PR 变为一个包含 PR 编号的单独 commit，例如：
 
 ```
 feat: Add Ollama provider support (#491)
 ```
 
-If a PR consists of multiple independent, well-separated commits that tell a clear story, a regular merge may be used at the maintainer's discretion.
+如果一个 PR 包含多个独立、结构清晰、能讲述完整故事的 commit，维护者可视情况使用普通 merge。
 
-### Release Branches
+### Release 分支
 
-When a version is ready, maintainers cut a `release/x.y` branch from `main`. After that point:
+当某个版本准备就绪时，维护者会从 `main` 切出 `release/x.y` 分支。此后：
 
-- **New features are not backported.** The release branch receives no new functionality after it is cut.
-- **Security fixes and critical bug fixes are cherry-picked.** If a fix in `main` qualifies (security vulnerability, data loss, crash), maintainers will cherry-pick the relevant commit(s) onto the affected `release/x.y` branch and issue a patch release.
+- **新功能不会被回溯（backport）。** Release 分支切出后，不再接收任何新功能。
+- **安全修复和关键 Bug 修复会被 cherry-pick 进来。** 若 `main` 上的某个修复属于安全漏洞、数据丢失或崩溃类问题，维护者会将相关 commit cherry-pick 到受影响的 `release/x.y` 分支，并发布补丁版本。
 
-If you believe a fix in `main` should be backported to a release branch, note it in the PR description or open a separate issue. The decision rests with the maintainers.
+如果你认为 `main` 上的某个修复应该被回溯到某个 release 分支，请在 PR 描述中注明，或单独开一个 Issue 说明。最终决定由维护者做出。
 
-Release branches have stricter protections than `main` and are never directly pushed to under any circumstances.
+Release 分支的保护级别高于 `main`，在任何情况下均不允许直接推送。
 
 ---
 
-## Code Review
+## 代码审查
 
-### For Contributors
+### 对贡献者的建议
 
-- Respond to review comments within a reasonable time. If you need more time, say so.
-- When you update a PR in response to feedback, briefly note what changed (e.g., "Updated to use `sync.RWMutex` as suggested").
-- If you disagree with feedback, engage respectfully. Explain your reasoning; reviewers can be wrong too.
-- Do not force-push after a review has started — it makes it harder for reviewers to see what changed. Use additional commits instead; the maintainer will squash on merge.
+- 在合理时间内回复审查意见。如果需要更多时间，请告知。
+- 更新 PR 以响应反馈时，简要说明改动内容（例如："按建议改用了 `sync.RWMutex`"）。
+- 如果你不同意某条反馈，请礼貌地阐述你的理由——审查者也可能有判断失误的时候。
+- 审查开始后请不要 force push——这会让审查者难以追踪变化。请使用额外的 commit，维护者在合并时会进行 squash。
 
-### For Reviewers
+### 对审查者的建议
 
-Review for:
+审查重点：
 
-1. **Correctness** — Does the code do what it claims? Are there edge cases?
-2. **Security** — Especially for AI-generated code, tool implementations, and channel handlers.
-3. **Architecture** — Is the approach consistent with the existing design?
-4. **Simplicity** — Is there a simpler solution? Does this add unnecessary complexity?
-5. **Tests** — Are the changes covered by tests? Are existing tests still meaningful?
+1. **正确性** — 代码是否实现了其声称的功能？是否存在边界情况？
+2. **安全性** — 对 AI 生成代码、tool 实现和 channel 处理器尤其需要关注。
+3. **架构** — 实现方式是否与现有设计一致？
+4. **简洁性** — 是否有更简单的方案？是否引入了不必要的复杂度？
+5. **测试** — 改动是否有测试覆盖？现有测试是否仍然有意义？
 
-Be constructive and specific. "This could have a race condition if two goroutines call this concurrently — consider using a mutex here" is better than "this looks wrong".
+请给出建设性且具体的反馈。"如果两个 goroutine 同时调用这个函数可能会有竞态条件，建议在这里加一个 mutex" 远比 "这里看起来有问题" 更有帮助。
 
-
-### Reviewer List
-Once your PR is submitted, you can reach out to the assigned reviewers listed in the following table.
+### 审查者列表
+提交对应PR后，可以参考下表联系对应的审查人员沟通
 
 |Function| Reviewer|
 |---     |---      |
@@ -280,23 +279,25 @@ Once your PR is submitted, you can reach out to the assigned reviewers listed in
 |UX      ||
 |Document||
 
----
 
-## Communication
-
-- **GitHub Issues** — Bug reports, feature requests, design discussions.
-- **GitHub Discussions** — General questions, ideas, community conversation.
-- **Pull Request comments** — Code-specific feedback.
-- **Wechat&Discord** — We will invite you when you have at least one merged PR
-
-When in doubt, open an issue before writing code. It costs little and prevents wasted effort.
 
 ---
 
-## A Note on the Project's AI-Driven Origin
+## 沟通渠道
 
-Octopus's architecture was substantially designed and implemented with AI assistance, guided by human oversight. If you find something that looks odd or over-engineered, it may be an artifact of that process — opening an issue to discuss it is always welcome.
+- **GitHub Issues** — Bug 报告、功能建议、设计讨论。
+- **GitHub Discussions** — 一般性问题、想法交流、社区讨论。
+- **Pull Request 评论** — 与具体代码相关的反馈。
+- **Wechat&Discord** — 当你有至少一个已合并的PR后，我们会邀请你加入开发者交流群
 
-We believe AI-assisted development done responsibly produces great results. We also believe humans must remain accountable for what they ship. These two beliefs are not in conflict.
+有疑问时，请先开 Issue 讨论，再动手写代码。这几乎没有成本，却能避免大量无效投入。
 
-Thank you for contributing!
+---
+
+## 关于本项目的 AI 驱动起源
+
+Octopus 的架构在人工监督下，经由 AI 辅助完成了大量设计和实现工作。如果你发现某处看起来奇怪或过度设计，这可能是该过程留下的痕迹——欢迎提 Issue 讨论。
+
+我们相信，负责任地使用 AI 辅助开发能产生优秀的成果。我们同样相信，人类必须对自己提交的内容负责。这两点并不矛盾。
+
+感谢你的贡献！
