@@ -165,9 +165,61 @@ AddAgent  Init   Process   OnComplete RemoveAgent
                                                   │
                                                   ▼
                                          ┌──────────────┐
-                                         │  更新状态     │
-                                         │  (updateState)│
+                                         │ 发送到主 Agent│
+                                         │ (route task) │
                                          └──────────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────┐
+                                         │ 主 Agent 智能  │
+                                         │ 选择通知渠道  │
+                                         └──────────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────┐
+                                         │ 通过 Channel  │
+                                         │ 发送通知     │
+                                         └──────────────┘
+```
+
+#### 3.3.3 Cron 与 Agent 集成
+
+**重要设计变更**：Cron 任务不再直接创建看板任务或发送通知，而是统一发送到主 Agent，由主 Agent 根据任务性质智能选择通知渠道。
+
+**优势**：
+- **智能路由**：主 Agent 可以根据任务优先级、内容类型、目标受众自动选择单个或多个通知渠道
+- **统一管理**：所有通知逻辑集中在主 Agent，避免代码重复
+- **灵活性**：支持动态调整通知策略，无需修改 Cron 服务
+- **上下文感知**：主 Agent 可以利用历史对话和会话状态优化通知方式
+
+**集成流程**：
+```go
+// Cron 服务触发任务
+cronService.SetOnJob(func(job *CronJob) (string, error) {
+    // 将任务发送到主 Agent
+    mainAgent.ReceiveTask(&AgentTask{
+        Source:   "cron",
+        JobID:    job.ID,
+        Message:  job.Payload.Message,
+        Metadata: job.Payload.Metadata, // 包含 channel 提示等信息
+    })
+    return "Task sent to main agent", nil
+})
+
+// 主 Agent 处理任务
+func (a *MainAgent) ReceiveTask(task *AgentTask) {
+    // 1. 分析任务元数据
+    priority := task.Metadata["priority"]
+    contentType := task.Metadata["content_type"]
+    
+    // 2. 智能选择通知渠道
+    channels := a.selectChannels(task)
+    
+    // 3. 通过选定渠道发送通知
+    for _, ch := range channels {
+        ch.SendNotification(task.Message)
+    }
+}
 ```
 
 ### 3.4 消息总线 (`pkg/bus`)
@@ -385,17 +437,13 @@ sequenceDiagram
 
 ### 7.3 可观测性
 
-1. **指标收集**
-   - 缺少 Prometheus 指标导出
-   - 建议添加任务完成率、Agent 利用率等指标
+1. **日志统计**
+   - 实现关键指标的日志统计
+   - 包括任务完成率、Agent 利用率等
 
-2. **分布式追踪**
-   - 缺少请求链路追踪
-   - 建议集成 OpenTelemetry
-
-3. **健康检查**
-   - 缺少组件健康状态检查
-   - 建议实现 readiness/liveness 探针
+2. **告警机制**
+   - 基于日志的关键错误告警
+   - 任务失败率超阈值通知
 
 ---
 
@@ -425,14 +473,15 @@ AGENT_TIMEOUT=5m
 CRON_STORE_PATH=/var/lib/octopus/cron.json
 ```
 
-### 8.3 监控告警
+### 8.3 监控建议
 
-建议监控以下指标：
+建议监控以下关键指标：
 - 看板待处理任务数量
 - Agent 活跃数量
 - 任务平均完成时间
 - Cron 任务失败率
 - 消息总线积压量
+- 各 Channel 通知成功率
 
 ---
 

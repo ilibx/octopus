@@ -24,12 +24,11 @@ type CronSchedule struct {
 }
 
 type CronPayload struct {
-	Kind    string `json:"kind"`
-	Message string `json:"message"`
-	Command string `json:"command,omitempty"`
-	Deliver bool   `json:"deliver"`
-	Channel string `json:"channel,omitempty"`
-	To      string `json:"to,omitempty"`
+	Kind     string `json:"kind"`
+	Message  string `json:"message"`
+	Command  string `json:"command,omitempty"`
+	Deliver  bool   `json:"deliver"`
+	Metadata map[string]string `json:"metadata,omitempty"` // 用于存储任务元数据，帮助 Agent 判断通知渠道
 }
 
 type CronJobState struct {
@@ -195,8 +194,14 @@ func (cs *CronService) executeJobByID(jobID string) {
 	}
 
 	// Log job execution start
+	channelStr := ""
+	if callbackJob.Payload.Metadata != nil {
+		if ch, ok := callbackJob.Payload.Metadata["channel"]; ok {
+			channelStr = ch
+		}
+	}
 	log.Printf("[cron] ▶ executing job '%s' (id: %s, schedule: %s, channel: %s)",
-		callbackJob.Name, jobID, callbackJob.Schedule.Kind, callbackJob.Payload.Channel)
+		callbackJob.Name, jobID, callbackJob.Schedule.Kind, channelStr)
 
 	var err error
 	if cs.onJob != nil {
@@ -365,7 +370,7 @@ func (cs *CronService) AddJob(
 	schedule CronSchedule,
 	message string,
 	deliver bool,
-	channel, to string,
+	metadata map[string]string,
 ) (*CronJob, error) {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
@@ -381,11 +386,10 @@ func (cs *CronService) AddJob(
 		Enabled:  true,
 		Schedule: schedule,
 		Payload: CronPayload{
-			Kind:    "agent_turn",
-			Message: message,
-			Deliver: deliver,
-			Channel: channel,
-			To:      to,
+			Kind:     "agent_turn",
+			Message:  message,
+			Deliver:  deliver,
+			Metadata: metadata,
 		},
 		State: CronJobState{
 			NextRunAtMS: cs.computeNextRun(&schedule, now),

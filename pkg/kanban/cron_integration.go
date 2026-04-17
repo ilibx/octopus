@@ -122,8 +122,7 @@ func (i *CronKanbanIntegration) ScheduleRecurringTask(zoneID, title, description
 		schedule,
 		string(payloadJSON),
 		false, // deliver
-		"",    // channel
-		"",    // to
+		metadata,
 	)
 
 	if err != nil {
@@ -172,8 +171,7 @@ func (i *CronKanbanIntegration) ScheduleOneTimeTask(zoneID, title, description s
 		schedule,
 		string(payloadJSON),
 		false, // deliver
-		"",    // channel
-		"",    // to
+		metadata,
 	)
 
 	if err != nil {
@@ -272,8 +270,7 @@ func (i *CronKanbanIntegration) ImportCronConfig(configData []byte) error {
 			job.Schedule,
 			job.Payload.Message,
 			job.Payload.Deliver,
-			job.Payload.Channel,
-			job.Payload.To,
+			job.Payload.Metadata,
 		)
 		if err == nil {
 			imported++
