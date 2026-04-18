@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/ilibx/octopus/pkg/bus"
-	"github.com/ilibx/octopus/pkg/kanban"
+	kanbantypes "github.com/ilibx/octopus/pkg/kanban/types"
 	"github.com/ilibx/octopus/pkg/logger"
 )
 
 // KanbanIntegration handles integration between channels and kanban board
 // This is the ONLY way for channels to create tasks on the kanban board
 type KanbanIntegration struct {
-	kanbanService *kanban.KanbanService
+	kanbanService kanbantypes.KanbanBoardService
 	msgBus        *bus.MessageBus
 }
 
 // NewKanbanIntegration creates a new channel-kanban integration instance
-func NewKanbanIntegration(kanbanService *kanban.KanbanService, msgBus *bus.MessageBus) *KanbanIntegration {
+func NewKanbanIntegration(kanbanService kanbantypes.KanbanBoardService, msgBus *bus.MessageBus) *KanbanIntegration {
 	return &KanbanIntegration{
 		kanbanService: kanbanService,
 		msgBus:        msgBus,
@@ -234,17 +234,17 @@ func (ki *KanbanIntegration) SubscribeToEvents(ctx context.Context) {
 
 // Helper functions
 
-func getStatusEmoji(status kanban.TaskStatus) string {
+func getStatusEmoji(status kanbantypes.TaskStatus) string {
 	switch status {
-	case kanban.TaskPending:
+	case kanbantypes.TaskPending:
 		return "⏳"
-	case kanban.TaskRunning, kanban.TaskInProgress:
+	case kanbantypes.TaskRunning, kanbantypes.TaskInProgress:
 		return "🔄"
-	case kanban.TaskCompleted:
+	case kanbantypes.TaskCompleted:
 		return "✅"
-	case kanban.TaskFailed:
+	case kanbantypes.TaskFailed:
 		return "❌"
-	case kanban.TaskBlocked:
+	case kanbantypes.TaskBlocked:
 		return "🚫"
 	default:
 		return "❓"
@@ -273,15 +273,15 @@ func getTimestamp() int64 {
 	return time.Now().UnixNano() / 1e6
 }
 
-func parseTaskEvent(msg string) (*kanban.TaskEvent, error) {
+func parseTaskEvent(msg string) (*kanbantypes.TaskEvent, error) {
 	// In production, this would properly unmarshal JSON
 	// For now, return a simple implementation
-	event := &kanban.TaskEvent{}
+	event := &kanbantypes.TaskEvent{}
 	// TODO: Implement proper JSON unmarshaling
 	return event, nil
 }
 
-func formatTaskNotification(event *kanban.TaskEvent) string {
+func formatTaskNotification(event *kanbantypes.TaskEvent) string {
 	statusEmoji := getStatusEmoji(event.Status)
 
 	var sb strings.Builder

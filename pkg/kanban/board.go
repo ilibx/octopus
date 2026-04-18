@@ -225,7 +225,7 @@ func (k *KanbanBoard) GetZone(zoneID string) (*Zone, error) {
 	return zone, nil
 }
 
-// GetTasksByStatus returns all tasks in a zone with a specific status
+// GetTasksByStatus returns all tasks in a zone with a specific status with optimized memory allocation
 func (k *KanbanBoard) GetTasksByStatus(zoneID string, status TaskStatus) []*Task {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
@@ -235,7 +235,19 @@ func (k *KanbanBoard) GetTasksByStatus(zoneID string, status TaskStatus) []*Task
 		return nil
 	}
 
-	var tasks []*Task
+	// Pre-count matching tasks to avoid slice resizing
+	count := 0
+	for _, task := range zone.Tasks {
+		if task.Status == status {
+			count++
+		}
+	}
+
+	if count == 0 {
+		return nil
+	}
+
+	tasks := make([]*Task, 0, count)
 	for _, task := range zone.Tasks {
 		if task.Status == status {
 			tasks = append(tasks, task)
@@ -245,20 +257,39 @@ func (k *KanbanBoard) GetTasksByStatus(zoneID string, status TaskStatus) []*Task
 	return tasks
 }
 
-// GetPendingTasks returns all pending tasks across all zones
+// GetPendingTasks returns all pending tasks across all zones with optimized memory allocation
 func (k *KanbanBoard) GetPendingTasks() map[string][]*Task {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
-	result := make(map[string][]*Task)
-	for zoneID, zone := range k.Zones {
-		var pending []*Task
+	// Pre-count zones with pending tasks to avoid map resizing
+	zonesWithPending := 0
+	for _, zone := range k.Zones {
 		for _, task := range zone.Tasks {
 			if task.Status == TaskPending {
-				pending = append(pending, task)
+				zonesWithPending++
+				break
 			}
 		}
-		if len(pending) > 0 {
+	}
+
+	result := make(map[string][]*Task, zonesWithPending)
+	for zoneID, zone := range k.Zones {
+		// Count pending tasks in this zone for pre-allocation
+		pendingCount := 0
+		for _, task := range zone.Tasks {
+			if task.Status == TaskPending {
+				pendingCount++
+			}
+		}
+		
+		if pendingCount > 0 {
+			pending := make([]*Task, 0, pendingCount)
+			for _, task := range zone.Tasks {
+				if task.Status == TaskPending {
+					pending = append(pending, task)
+				}
+			}
 			result[zoneID] = pending
 		}
 	}
