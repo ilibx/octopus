@@ -14,8 +14,13 @@ func DefaultConfig() *Config {
 	if octopusHome := os.Getenv("OCTOPUS_HOME"); octopusHome != "" {
 		homePath = octopusHome
 	} else {
-		userHome, _ := os.UserHomeDir()
-		homePath = filepath.Join(userHome, ".octopus")
+		userHome, err := os.UserHomeDir()
+		if err != nil {
+			// Fallback to current directory if home directory cannot be determined
+			homePath = ".octopus"
+		} else {
+			homePath = filepath.Join(userHome, ".octopus")
+		}
 	}
 	workspacePath := filepath.Join(homePath, "workspace")
 

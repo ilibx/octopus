@@ -5,7 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
@@ -18,12 +18,12 @@ import (
 const blockSize = 32
 
 // computeSignature computes the WeCom message signature from the given parameters.
-// It sorts [token, timestamp, nonce, encrypt], concatenates them and returns the SHA1 hex digest.
+// It sorts [token, timestamp, nonce, encrypt], concatenates them and returns the SHA256 hex digest.
 func computeSignature(token, timestamp, nonce, encrypt string) string {
 	params := []string{token, timestamp, nonce, encrypt}
 	sort.Strings(params)
 	str := strings.Join(params, "")
-	hash := sha1.Sum([]byte(str))
+	hash := sha256.Sum256([]byte(str))
 	return fmt.Sprintf("%x", hash)
 }
 

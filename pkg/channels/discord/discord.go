@@ -183,7 +183,7 @@ func (c *DiscordChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMes
 			})
 			continue
 		}
-		// Note: discordgo reads from the Reader and we can't close it before send
+		defer func() { _ = file.Close() }()
 
 		filename := part.Filename
 		if filename == "" {
@@ -219,23 +219,11 @@ func (c *DiscordChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMes
 
 	select {
 	case err := <-done:
-		// Close all file readers
-		for _, f := range files {
-			if closer, ok := f.Reader.(*os.File); ok {
-				closer.Close()
-			}
-		}
 		if err != nil {
 			return fmt.Errorf("discord send media: %w", channels.ErrTemporary)
 		}
 		return nil
 	case <-sendCtx.Done():
-		// Close all file readers
-		for _, f := range files {
-			if closer, ok := f.Reader.(*os.File); ok {
-				closer.Close()
-			}
-		}
 		return sendCtx.Err()
 	}
 }
