@@ -358,6 +358,7 @@ func (c *MatrixChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMess
 			})
 			continue
 		}
+		defer file.Close()
 
 		filename := strings.TrimSpace(part.Filename)
 		if filename == "" {
@@ -387,7 +388,6 @@ func (c *MatrixChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMess
 			ContentType:   contentType,
 			FileName:      filename,
 		})
-		file.Close()
 		if err != nil {
 			logger.ErrorCF("matrix", "Failed to upload media", map[string]any{
 				"path":  localPath,

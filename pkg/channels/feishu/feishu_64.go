@@ -635,6 +635,11 @@ func (c *FeishuChannel) downloadResource(
 		})
 		return ""
 	}
+	defer func() {
+		if cErr := out.Close(); cErr != nil {
+			logger.WarnCF("feishu", "Failed to close file", map[string]any{"error": cErr.Error()})
+		}
+	}()
 
 	if _, copyErr := io.Copy(out, resp.File); copyErr != nil {
 		out.Close()
@@ -644,7 +649,6 @@ func (c *FeishuChannel) downloadResource(
 		})
 		return ""
 	}
-	out.Close()
 
 	ref, err := store.Store(localPath, media.MediaMeta{
 		Filename: filename,

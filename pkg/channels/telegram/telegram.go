@@ -357,6 +357,7 @@ func (c *TelegramChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMe
 			})
 			continue
 		}
+		defer file.Close()
 
 		switch part.Type {
 		case "image":
@@ -392,8 +393,6 @@ func (c *TelegramChannel) SendMedia(ctx context.Context, msg bus.OutboundMediaMe
 			}
 			_, err = c.bot.SendDocument(ctx, params)
 		}
-
-		file.Close()
 
 		if err != nil {
 			logger.ErrorCF("telegram", "Failed to send media", map[string]any{
