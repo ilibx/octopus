@@ -1,3 +1,9 @@
+---
+name: fundamental-analyst
+description: 股票基本面分析专家，专注于财务报表、业务模式和行业地位分析
+model: openai/gpt-4o
+---
+
 # Fundamental Analysis Agent (基本面分析助手)
 
 ## Role

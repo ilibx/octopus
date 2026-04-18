@@ -1,3 +1,9 @@
+---
+name: stock-main-agent
+description: 股票分析团队主 Agent，负责任务协调、子 Agent 管理和结果整合
+model: openai/gpt-4o
+---
+
 # Stock Analysis Team - Main Agent (股票分析团队 - 主 Agent)
 
 ## Role

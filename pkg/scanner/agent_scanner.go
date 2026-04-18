@@ -10,22 +10,24 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/parser"
+	"gopkg.in/yaml.v3"
 
 	"github.com/ilibx/octopus/pkg/config"
 	"github.com/ilibx/octopus/pkg/logger"
 )
 
-// AgentScanner scans the agents directory for main.md files and extracts agent metadata
+// AgentScanner scans the agents directory for AGENT.md files and extracts agent metadata
 type AgentScanner struct {
 	agentsDir string
 }
 
-// AgentMetadata represents metadata extracted from a main.md file
+// AgentMetadata represents metadata extracted from an AGENT.md file
 type AgentMetadata struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Path        string `json:"path"`
-	Directory   string `json:"directory"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Model       *config.AgentModelConfig `json:"model,omitempty"`
+	Path        string              `json:"path"`
+	Directory   string              `json:"directory"`
 }
 
 // NewAgentScanner creates a new agent scanner
@@ -60,22 +62,28 @@ func (s *AgentScanner) ScanAgents() ([]AgentMetadata, error) {
 		}
 
 		dirPath := filepath.Join(s.agentsDir, entry.Name())
+		// Support both AGENT.md (new standard) and main.md (legacy)
+		agentMdPath := filepath.Join(dirPath, "AGENT.md")
 		mainMdPath := filepath.Join(dirPath, "main.md")
-
-		// Check if main.md exists
-		if _, err := os.Stat(mainMdPath); os.IsNotExist(err) {
+		
+		var agentFilePath string
+		if _, err := os.Stat(agentMdPath); err == nil {
+			agentFilePath = agentMdPath
+		} else if _, err := os.Stat(mainMdPath); err == nil {
+			agentFilePath = mainMdPath
+		} else {
 			continue
 		}
 
-		// Extract metadata from main.md
-		metadata, err := s.extractMetadata(mainMdPath)
+		// Extract metadata from agent file
+		metadata, err := s.extractMetadata(agentFilePath)
 		if err != nil {
-			logger.WarnCF("agent_scanner", "Failed to extract metadata from main.md",
-				map[string]any{"path": mainMdPath, "error": err.Error()})
+			logger.WarnCF("agent_scanner", "Failed to extract metadata from agent file",
+				map[string]any{"path": agentFilePath, "error": err.Error()})
 			continue
 		}
 
-		metadata.Path = mainMdPath
+		metadata.Path = agentFilePath
 		metadata.Directory = dirPath
 		agents = append(agents, *metadata)
 	}
@@ -90,7 +98,7 @@ func (s *AgentScanner) ScanAgents() ([]AgentMetadata, error) {
 	return agents, nil
 }
 
-// extractMetadata extracts name and description from a main.md file
+// extractMetadata extracts name, description and model from an agent file
 func (s *AgentScanner) extractMetadata(path string) (*AgentMetadata, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -99,14 +107,124 @@ func (s *AgentScanner) extractMetadata(path string) (*AgentMetadata, error) {
 
 	metadata := &AgentMetadata{}
 
-	// Parse markdown to extract title and first paragraph
-	p := parser.NewWithExtensions(parser.CommonExtensions)
-	doc := markdown.Parse(content, p)
-	if doc == nil {
-		return nil, fmt.Errorf("failed to parse markdown")
+	// Parse YAML frontmatter
+	frontmatter, bodyContent := splitFrontmatter(string(content))
+	
+	// Extract metadata from frontmatter if present
+	if frontmatter != "" {
+		var fmData struct {
+			Name        string              `yaml:"name"`
+			Description string              `yaml:"description"`
+			Model       interface{}         `yaml:"model,omitempty"`
+		}
+		if err := yaml.Unmarshal([]byte(frontmatter), &fmData); err == nil {
+			if fmData.Name != "" {
+				metadata.Name = fmData.Name
+			}
+			if fmData.Description != "" {
+				metadata.Description = fmData.Description
+			}
+			// Parse model config (supports both string and object format)
+			if fmData.Model != nil {
+				modelConfig, err := parseModelConfig(fmData.Model)
+				if err == nil && modelConfig != nil {
+					metadata.Model = modelConfig
+				}
+			}
+		}
 	}
 
-	var title, description string
+	// Use directory name as fallback for name
+	dirName := filepath.Base(filepath.Dir(path))
+	if metadata.Name == "" {
+		metadata.Name = dirName
+	}
+
+	// If no description found, extract from markdown body
+	if metadata.Description == "" {
+		directory := filepath.Base(filepath.Dir(path))
+		title, bodyDescription := extractMarkdownMetadata(bodyContent)
+		if title != "" && metadata.Name == directory {
+			metadata.Name = title
+		}
+		if bodyDescription != "" {
+			metadata.Description = bodyDescription
+		} else {
+			metadata.Description = extractFirstParagraph(string(content))
+		}
+	}
+
+	return metadata, nil
+}
+
+// parseModelConfig parses model configuration from YAML frontmatter
+// Supports both string format ("openai/gpt-4o") and object format ({primary: "openai/gpt-4o", fallbacks: [...]})
+func parseModelConfig(modelData interface{}) (*config.AgentModelConfig, error) {
+	switch v := modelData.(type) {
+	case string:
+		// String format: just the primary model name
+		if v == "" {
+			return nil, nil
+		}
+		return &config.AgentModelConfig{
+			Primary:   v,
+			Fallbacks: nil,
+		}, nil
+	case map[string]interface{}:
+		// Object format: {primary: "...", fallbacks: [...]}
+		modelConfig := &config.AgentModelConfig{}
+		if primary, ok := v["primary"].(string); ok {
+			modelConfig.Primary = primary
+		}
+		if fallbacks, ok := v["fallbacks"].([]interface{}); ok {
+			for _, f := range fallbacks {
+				if fs, ok := f.(string); ok {
+					modelConfig.Fallbacks = append(modelConfig.Fallbacks, fs)
+				}
+			}
+		}
+		if modelConfig.Primary == "" {
+			return nil, nil
+		}
+		return modelConfig, nil
+	default:
+		return nil, fmt.Errorf("unsupported model format: %T", modelData)
+	}
+}
+
+// splitFrontmatter splits markdown content into frontmatter and body
+func splitFrontmatter(content string) (frontmatter, body string) {
+	normalized := string(parser.NormalizeNewlines([]byte(content)))
+	lines := strings.Split(normalized, "\n")
+	if len(lines) == 0 || lines[0] != "---" {
+		return "", content
+	}
+
+	end := -1
+	for i := 1; i < len(lines); i++ {
+		if lines[i] == "---" {
+			end = i
+			break
+		}
+	}
+
+	if end == -1 {
+		return "", content
+	}
+
+	frontmatter = strings.Join(lines[1:end], "\n")
+	body = strings.Join(lines[end+1:], "\n")
+	return frontmatter, strings.TrimLeft(body, "\n")
+}
+
+// extractMarkdownMetadata extracts title and first paragraph from markdown body
+func extractMarkdownMetadata(content string) (title, description string) {
+	p := parser.NewWithExtensions(parser.CommonExtensions)
+	doc := markdown.Parse([]byte(content), p)
+	if doc == nil {
+		return "", ""
+	}
+
 	ast.WalkFunc(doc, func(node ast.Node, entering bool) ast.WalkStatus {
 		if !entering {
 			return ast.GoToNext
@@ -134,21 +252,7 @@ func (s *AgentScanner) extractMetadata(path string) (*AgentMetadata, error) {
 		return ast.GoToNext
 	})
 
-	// Use directory name as fallback for name
-	dirName := filepath.Base(filepath.Dir(path))
-	if title == "" {
-		title = dirName
-	}
-
-	// If no description found, use a portion of the content
-	if description == "" {
-		description = extractFirstParagraph(string(content))
-	}
-
-	metadata.Name = title
-	metadata.Description = description
-
-	return metadata, nil
+	return title, description
 }
 
 // nodeText extracts text content from an AST node
@@ -224,7 +328,7 @@ func getAgentNames(agents []AgentMetadata) []string {
 }
 
 // BuildAgentConfigsFromScannedAgents builds agent configurations from scanned agents
-// Agents without model configuration are treated as skill-based agents
+// Agents with model configuration use the specified model; others use default model
 func BuildAgentConfigsFromScannedAgents(scannedAgents []AgentMetadata, existingConfigs []config.AgentConfig) []config.AgentConfig {
 	var configs []config.AgentConfig
 	existingIDs := make(map[string]bool)
@@ -247,22 +351,31 @@ func BuildAgentConfigsFromScannedAgents(scannedAgents []AgentMetadata, existingC
 			continue
 		}
 
-		// Create agent config - no model specified means it will use skill-based execution
+		// Create agent config with model if specified in frontmatter
 		cfg := config.AgentConfig{
 			ID:      agentID,
 			Name:    agent.Name,
 			Default: false,
-			// Model is intentionally left nil - this indicates skill-based agent
-			// The agent will be created dynamically when needed
+			Model:   agent.Model, // Will be nil if not specified in frontmatter
 		}
 
 		configs = append(configs, cfg)
+		
+		modelInfo := "default model"
+		if agent.Model != nil {
+			modelInfo = agent.Model.Primary
+			if len(agent.Model.Fallbacks) > 0 {
+				modelInfo += fmt.Sprintf(" (+%d fallbacks)", len(agent.Model.Fallbacks))
+			}
+		}
+		
 		logger.InfoCF("agent_scanner", "Added auto-scanned agent config",
 			map[string]any{
 				"agent_id":    agentID,
 				"name":        agent.Name,
 				"description": truncateString(agent.Description, 100),
 				"path":        agent.Path,
+				"model":       modelInfo,
 			})
 	}
 
@@ -290,7 +403,8 @@ func truncateString(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
-// LoadAgentPrompt loads the prompt from main.md file for agent execution
+// LoadAgentPrompt loads the system prompt from agent file (AGENT.md or main.md) for agent execution.
+// The entire markdown body (after frontmatter) is used as the system prompt.
 func LoadAgentPrompt(path string) (string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
