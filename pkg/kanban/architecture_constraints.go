@@ -3,10 +3,9 @@ package kanban
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"stock-analyzer/pkg/cron"
-	"stock-analyzer/pkg/messagebus"
+	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/cron"
 )
 
 // =============================================================================
@@ -42,15 +41,15 @@ type MainAgentCoordinator interface {
 	SubAgentTaskClient // 主代理也具备子代理的所有能力（用于测试或特殊处理）
 
 	// Cron 访问
-	GetCronService() *cron.Service
+	GetCronService() *cron.CronService
 	ScheduleJob(spec string, job func()) error
 
 	// Channel 访问
-	GetMessageBus() *messagebus.MessageBus
+	GetMessageBus() *bus.MessageBus
 	PublishToChannels(eventType string, payload interface{}) error
 
 	// Board 全局访问 (子代理不可用)
-	GetBoardSnapshot() *Board
+	GetBoardSnapshot() *KanbanBoard
 	ForceAssignTask(taskID string, agentID string) error
 }
 
@@ -61,11 +60,11 @@ type MainAgentCoordinator interface {
 // subAgentClientImpl 是 SubAgentTaskClient 的唯一实现。
 // 注意：它只持有了 board 的弱引用（通过特定的安全方法），完全没有 cron 或 msgbus 的字段。
 type subAgentClientImpl struct {
-	board *Board
+	board *KanbanBoard
 	agentID string
 }
 
-func NewSubAgentClient(board *Board, agentID string) SubAgentTaskClient {
+func NewSubAgentClient(board *KanbanBoard, agentID string) SubAgentTaskClient {
 	return &subAgentClientImpl{
 		board: board,
 		agentID: agentID,
@@ -98,13 +97,13 @@ func (s *subAgentClientImpl) Heartbeat(ctx context.Context, taskID string) error
 // mainAgentCoordinatorImpl 是主代理的实现。
 // 它持有所有核心组件的引用。
 type mainAgentCoordinatorImpl struct {
-	board     *Board
-	cronSvc   *cron.Service
-	msgBus    *messagebus.MessageBus
+	board     *KanbanBoard
+	cronSvc   *cron.CronService
+	msgBus    *bus.MessageBus
 	agentID   string
 }
 
-func NewMainAgentCoordinator(board *Board, cronSvc *cron.Service, msgBus *messagebus.MessageBus) MainAgentCoordinator {
+func NewMainAgentCoordinator(board *KanbanBoard, cronSvc *cron.CronService, msgBus *bus.MessageBus) MainAgentCoordinator {
 	return &mainAgentCoordinatorImpl{
 		board:   board,
 		cronSvc: cronSvc,
@@ -126,7 +125,7 @@ func (m *mainAgentCoordinatorImpl) Heartbeat(ctx context.Context, taskID string)
 }
 
 // 实现 MainAgentCoordinator 特有接口
-func (m *mainAgentCoordinatorImpl) GetCronService() *cron.Service {
+func (m *mainAgentCoordinatorImpl) GetCronService() *cron.CronService {
 	return m.cronSvc
 }
 
@@ -135,7 +134,7 @@ func (m *mainAgentCoordinatorImpl) ScheduleJob(spec string, job func()) error {
 	return err
 }
 
-func (m *mainAgentCoordinatorImpl) GetMessageBus() *messagebus.MessageBus {
+func (m *mainAgentCoordinatorImpl) GetMessageBus() *bus.MessageBus {
 	return m.msgBus
 }
 
@@ -148,7 +147,7 @@ func (m *mainAgentCoordinatorImpl) PublishToChannels(eventType string, payload i
 	})
 }
 
-func (m *mainAgentCoordinatorImpl) GetBoardSnapshot() *Board {
+func (m *mainAgentCoordinatorImpl) GetBoardSnapshot() *KanbanBoard {
 	return m.board
 }
 
