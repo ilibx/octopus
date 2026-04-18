@@ -1,359 +1,81 @@
 ---
-name: {{agent_name}}
-description: "{{Brief description of agent purpose and capabilities}}"
+name: {{agent_id}}
+description: "{{Concise one-line description of agent purpose and capabilities}}"
+model: {{provider/model-name}}
 metadata: {"octopus":{"emoji":"{{emoji}}","requires":{"bins":[{{binary_dependencies}}]},"install":[{{installation_steps}}]}}
 ---
 
-# {{Agent Name}} Agent
+# System Prompt
 
-{{One paragraph overview of the agent's role in the Octopus system}}
+{{Define the agent's core identity, role, and behavior here. This entire section becomes the agent's system prompt.}}
+
+You are the {{agent_name}}, {{brief role description}}.
 
 ## Core Responsibilities
 
-### 1. {{Primary Responsibility}}
-- {{Specific capability or task}}
-- {{Another specific capability}}
-- {{Third capability if applicable}}
+1. **{{Primary Responsibility}}**: {{description}}
+2. **{{Secondary Responsibility}}**: {{description}}
+3. **{{Tertiary Responsibility}}**: {{description}}
 
-### 2. {{Secondary Responsibility}}
-- {{Detail}}
-- {{Detail}}
+## Behavior Guidelines
 
-### 3. {{Tertiary Responsibility}}
-- {{Detail}}
-- {{Detail}}
+### Do
+- {{Specific behavior guideline 1}}
+- {{Specific behavior guideline 2}}
+- {{Specific behavior guideline 3}}
 
-## Model Configuration
+### Don't
+- {{Specific restriction 1}}
+- {{Specific restriction 2}}
 
-```yaml
-agents:
-  - id: {{agent_id}}
-    name: {{Agent Display Name}}
-    model: {{provider/model-name}}  # e.g., openai/gpt-4o
-    # Optional: specify thinking level for complex reasoning
-    # thinking_level: {{low|medium|high}}
-    temperature: {{0.0-1.0}}
-    max_tokens: {{integer}}
-    
-    # Model routing for cost optimization (optional)
-    routing:
-      enabled: {{true|false}}
-      light_model: {{provider/light-model-name}}
-      threshold: {{0.0-1.0}}  # Messages scoring below this use light model
-    
-    # Fallback models if primary fails
-    fallbacks:
-      - {{fallback_model_1}}
-      - {{fallback_model_2}}
-    
-    # Sub-agent spawning permissions (if this agent can spawn others)
-    subagents:
-      allow_agents:
-        - "*"  # Allow spawning any configured sub-agent
-        # Or specify explicitly:
-        # - {{subagent_id_1}}
-        # - {{subagent_id_2}}
-    
-    # Skills filter (optional - restrict available skills)
-    skills:
-      - {{skill_1}}
-      - {{skill_2}}
-```
+## Workflow Instructions
 
-## When to Use This Agent
+{{Describe step-by-step how the agent should approach tasks}}
 
-### Trigger Phrases
-Use this agent when the user asks for:
-- "{{example trigger phrase 1}}"
-- "{{example trigger phrase 2}}"
-- "{{example trigger phrase 3}}"
+1. When receiving a task, first {{step 1}}
+2. Then {{step 2}}
+3. If {{condition}}, then {{action}}
+4. Finally {{step 4}}
 
-### Task Types
-This agent is optimized for:
-- {{task type 1}}
-- {{task type 2}}
-- {{task type 3}}
+## Tool Usage
 
-### Avoid Using For
-Do NOT use this agent for:
-- {{unsuitable task 1}}
-- {{unsuitable task 2}}
+### Available Tools
+- `read_file` / `write_file` / `edit_file` - File operations
+- `list_dir` - Directory listing
+- `exec` - Command execution (sandboxed)
 
-## Workflow Examples
-
-### Example 1: {{Common Use Case Name}}
-
-```
-1. {{Step 1 description}}
-   ↓
-2. {{Step 2 description}}
-   ↓
-3. {{Step 3 description}}
-   ↓
-4. {{Expected outcome}}
-```
-
-**Input:**
-```
-{{example input}}
-```
-
-**Output:**
-```
-{{expected output}}
-```
-
-### Example 2: {{Advanced Use Case Name}}
-
-```
-{{Detailed workflow diagram or steps}}
-```
-
-## Tools & Skills
-
-### Required Tools
-- `{{tool_name}}` - {{brief description}}
-- `{{tool_name}}` - {{brief description}}
-
-### Optional Tools
-- `{{tool_name}}` - {{brief description}} (used when {{condition}})
-
-### Skill Dependencies
-
-This agent uses the following skills from `/workspace/workspace/skills/`:
-
-```markdown
-# Example skill reference
----
-name: {{skill_name}}
-description: {{skill description}}
-metadata: {
-  "octopus": {
-    "emoji": "{{emoji}}",
-    "requires": {"bins": ["{{binary}}"]},
-    "install": [
-      {"id": "{{installer}}", "kind": "{{kind}}", "formula": "{{package}}"}
-    ]
-  }
-}
----
-```
+### Skills
+This agent has access to the following skills:
+- {{skill_1}}: {{description}}
+- {{skill_2}}: {{description}}
 
 ## Context Management
 
-### Session Configuration
+{{Instructions for managing conversation history and memory}}
 
-```yaml
-sessions:
-  persist: {{true|false}}
-  max_history: {{N}}  # Messages to keep in context
-  summarize_threshold: {{N}}  # Summarize after N messages
-  token_limit_percent: {{N}}  # Use N% of context window before summarizing
-```
-
-### Memory Strategy
-
-{{Describe how this agent manages short-term and long-term memory}}
-
-```
-{{Diagram or description of memory flow}}
-```
+- Keep conversations concise, summarize when exceeding {{N}} messages
+- Persist important context for future sessions
+- Reference previous interactions when relevant
 
 ## Error Handling
 
-### Known Failure Modes
+{{Guidance on handling failures and edge cases}}
 
-1. **{{Error Type 1}}**
-   - Cause: {{what causes this}}
-   - Recovery: {{how to handle}}
-   - Retry Strategy: {{retry logic}}
+- If a tool fails, retry up to {{N}} times with adjusted parameters
+- If unable to complete a task, clearly explain what went wrong
+- Escalate to human when encountering {{specific conditions}}
 
-2. **{{Error Type 2}}**
-   - Cause: {{what causes this}}
-   - Recovery: {{how to handle}}
+## Response Format
 
-### Fallback Behavior
+{{Specify preferred response formatting}}
 
-When primary action fails:
-1. {{Fallback step 1}}
-2. {{Fallback step 2}}
-3. {{Final fallback or escalation}}
-
-## Performance Characteristics
-
-### Latency Expectations
-
-| Operation | Expected Duration | Notes |
-|-----------|------------------|-------|
-| {{operation 1}} | {{X}}ms | {{conditions}} |
-| {{operation 2}} | {{X}}ms | {{conditions}} |
-| {{operation 3}} | {{X}}ms | {{conditions}} |
-
-### Resource Usage
-
-- **Token Consumption**: {{average}} tokens per typical task
-- **Memory**: {{MB}} MB working set
-- **CPU**: {{description}}
-
-### Optimization Tips
-
-1. {{optimization tip 1}}
-2. {{optimization tip 2}}
-3. {{optimization tip 3}}
-
-## Security Considerations
-
-### Permissions Required
-
-- {{permission 1}}: {{reason}}
-- {{permission 2}}: {{reason}}
-
-### Workspace Restrictions
-
-{{Describe workspace access patterns and restrictions}}
-
-### Sensitive Data Handling
-
-{{How this agent handles API keys, credentials, or user data}}
-
-## Testing Guidelines
-
-### Unit Test Cases
-
-```yaml
-test_cases:
-  - name: {{test name}}
-    input: {{test input}}
-    expected: {{expected behavior}}
-    
-  - name: {{test name}}
-    input: {{test input}}
-    expected: {{expected behavior}}
-```
-
-### Integration Tests
-
-{{Describe how to test this agent in the full system}}
-
-### Edge Cases
-
-- {{edge case 1}}: {{how handled}}
-- {{edge case 2}}: {{how handled}}
-- {{edge case 3}}: {{how handled}}
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: {{symptom}}
-- Check: {{diagnostic step}}
-- Solution: {{fix}}
-
-**Issue**: {{symptom}}
-- Check: {{diagnostic step}}
-- Solution: {{fix}}
-
-### Debug Logging
-
-Enable detailed logging:
-
-```yaml
-logging:
-  level: debug
-  components:
-    - {{agent_id}}
-    - {{related_component}}
-```
-
-### Performance Debugging
-
-{{How to profile and debug performance issues}}
-
-## Monitoring & Observability
-
-### Key Metrics
-
-Track these metrics for health monitoring:
-
-1. **{{metric 1}}**: {{description}} - Alert threshold: {{value}}
-2. **{{metric 2}}**: {{description}} - Alert threshold: {{value}}
-3. **{{metric 3}}**: {{description}} - Alert threshold: {{value}}
-
-### Log Patterns
-
-Important log messages to monitor:
-
-```
-{{example log pattern}}  # Indicates {{meaning}}
-{{example log pattern}}  # Indicates {{meaning}}
-```
-
-### Health Checks
-
-```bash
-# Example health check command
-{{health_check_command}}
-```
-
-## Configuration Reference
-
-### Required Environment Variables
-
-```bash
-export {{VAR_NAME}}={{value}}
-export {{VAR_NAME}}={{value}}
-```
-
-### Optional Configuration
-
-```yaml
-{{optional_config_key}}: {{default_value}}
-{{optional_config_key}}: {{default_value}}
-```
-
-### Dynamic Configuration
-
-{{Describe any runtime configuration changes or feature flags}}
-
-## Upgrade & Migration
-
-### Version Compatibility
-
-- Requires Octopus version: {{min_version}}+
-- Compatible with agents: {{list}}
-- Breaking changes in version {{X}}: {{description}}
-
-### Migration Steps
-
-When upgrading from {{old_version}} to {{new_version}}:
-
-1. {{step 1}}
-2. {{step 2}}
-3. {{step 3}}
-
-## Related Agents
-
-- **{{agent_id}}**: {{relationship}} - {{when to use instead}}
-- **{{agent_id}}**: {{relationship}} - {{when to use instead}}
-
-## References
-
-- [Architecture Documentation]({{link}})
-- [API Reference]({{link}})
-- [Related Issues]({{link}})
-
-## Changelog
-
-### Version {{X.Y.Z}} ({{date}})
-- {{change 1}}
-- {{change 2}}
-
-### Version {{X.Y.Z}} ({{date}})
-- {{change 1}}
-- {{change 2}}
+- Use clear, structured responses
+- Include code blocks for technical content
+- Provide actionable next steps
 
 ---
 
+<!-- 
 ## Template Usage Instructions
 
 To use this template for a new agent:
@@ -364,44 +86,76 @@ To use this template for a new agent:
    cp AGENT.md.template /workspace/workspace/agents/{{agent_id}}/AGENT.md
    ```
 
-2. **Replace all placeholders**:
-   - `{{agent_name}}` → Your agent's name (e.g., "github")
-   - `{{agent_id}}` → Unique identifier (e.g., "github-bot")
-   - `{{emoji}}` → Relevant emoji (e.g., "🐙")
-   - Fill in all sections with agent-specific details
+2. **Replace frontmatter placeholders**:
+   - `{{agent_id}}` → Unique identifier (e.g., "github", "data-analyst")
+   - `{{description}}` → One-line description in quotes
+   - `{{provider/model-name}}` → Default model (e.g., "openai/gpt-4o", "anthropic/claude-sonnet-4-5-20250929")
+   - `{{emoji}}` → Visual identifier (e.g., "🐙", "📊", "🔧")
+   - `{{binary_dependencies}}` → Comma-separated list or empty (e.g., `"gh", "kubectl"` or leave empty)
+   - `{{installation_steps}}` → JSON array of installation configs or empty
 
-3. **Update metadata**:
-   - Set correct binary dependencies
-   - Specify installation steps for different platforms
+3. **Customize the System Prompt section**:
+   - Replace all `{{placeholders}}` in the body
+   - Define clear behavioral guidelines
+   - Specify workflow steps unique to this agent
+   - List relevant skills and tools
 
-4. **Document workflows**:
-   - Add real examples from your use cases
-   - Include actual input/output samples
+4. **Best Practices**:
+   - Keep the system prompt focused and actionable
+   - Use clear section headers for organization
+   - Include concrete examples where helpful
+   - Document failure modes and recovery strategies
 
-5. **Test documentation**:
-   - Verify all configuration examples work
-   - Ensure troubleshooting steps are accurate
+### Frontmatter Field Reference
 
-6. **Review and iterate**:
-   - Have team members review for clarity
-   - Update based on operational experience
+| Field | Required | Description | Example |
+|-------|----------|-------------|---------|
+| `name` | ✅ | Agent identifier (lowercase, hyphenated) | `github-bot` |
+| `description` | ✅ | One-line capability summary | "GitHub PR and issue management" |
+| `model` | ✅ | Default LLM model string | `openai/gpt-4o` |
+| `metadata.octopus.emoji` | Optional | Visual identifier | `🐙` |
+| `metadata.octopus.requires.bins` | Optional | Required binaries | `["gh", "jq"]` |
+| `metadata.octopus.install` | Optional | Installation instructions | See examples below |
 
-### Placeholder Legend
+### Example Frontmatter
 
-| Placeholder | Description | Example |
-|-------------|-------------|---------|
-| `{{agent_name}}` | Human-readable name | "GitHub Bot" |
-| `{{agent_id}}` | Machine identifier | "github-bot" |
-| `{{emoji}}` | Visual identifier | "🐙" |
-| `{{provider/model-name}}` | LLM model string | "openai/gpt-4o" |
-| `{{skill_name}}` | Skill directory name | "github" |
-| `{{tool_name}}` | Built-in tool name | "exec" |
+Minimal example:
+```yaml
+---
+name: code-reviewer
+description: Automated code review and style checking
+model: anthropic/claude-sonnet-4-5-20250929
+metadata: {"octopus":{"emoji":"🔍"}}
+---
+```
 
-### Best Practices for Agent Documentation
+Full example with dependencies:
+```yaml
+---
+name: github-bot
+description: GitHub PR reviews, issue triage, and CI monitoring
+model: openai/gpt-4o
+metadata: {
+  "octopus": {
+    "emoji": "🐙",
+    "requires": {"bins": ["gh", "jq"]},
+    "install": [
+      {"id": "brew", "kind": "brew", "formula": "gh"},
+      {"id": "jq-brew", "kind": "brew", "formula": "jq"}
+    ]
+  }
+}
+---
+```
 
-1. **Be specific**: Avoid vague descriptions, use concrete examples
-2. **Keep updated**: Revise documentation when agent behavior changes
-3. **Include failures**: Document what doesn't work and why
-4. **Add visuals**: Use diagrams for complex workflows
-5. **Link related docs**: Cross-reference architecture, skills, channels
-6. **Test examples**: Ensure all code snippets actually work
+### Model Selection Guide
+
+| Use Case | Recommended Model | Reason |
+|----------|------------------|--------|
+| General orchestration | `openai/gpt-4o` | Balanced performance and cost |
+| Code analysis | `anthropic/claude-sonnet-4-5-20250929` | Strong code understanding |
+| Quick responses | `openai/gpt-4o-mini` | Low latency, cost-effective |
+| Complex reasoning | `openai/o1-preview` | Advanced problem solving |
+| Long context | `google/gemini-2.5-pro` | Large context window |
+
+-->

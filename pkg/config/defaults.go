@@ -23,6 +23,7 @@ func DefaultConfig() *Config {
 		}
 	}
 	workspacePath := filepath.Join(homePath, "workspace")
+	agentsDir := filepath.Join(workspacePath, "agents")
 
 	return &Config{
 		Agents: AgentsConfig{
@@ -37,6 +38,7 @@ func DefaultConfig() *Config {
 				SummarizeMessageThreshold: 20,
 				SummarizeTokenPercent:     75,
 			},
+			AgentsDir: agentsDir,
 		},
 		Bindings: []AgentBinding{},
 		Session: SessionConfig{

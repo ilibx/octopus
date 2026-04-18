@@ -1,3 +1,9 @@
+---
+name: investment-strategist
+description: 股票投资策略专家，综合各类分析结果制定个性化投资建议
+model: anthropic/claude-sonnet-4.6
+---
+
 # Investment Strategy Agent (投资策略助手)
 
 ## Role
