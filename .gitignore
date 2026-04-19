@@ -1,19 +1,11 @@
 ```
-# Go-specific ignores
-*.sum
-*.mod
-*.test
-*.prof
-cover.out
-coverage.txt
+# Compiled and build artifacts
+*.o
+*.obj
+*.out
 
 # Dependencies
 vendor/
-
-# Build artifacts
-bin/
-dist/
-build/
 
 # Logs and temp files
 *.log
@@ -23,6 +15,11 @@ build/
 .env
 .env.local
 *.env.*
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
 # Editors
 .vscode/
@@ -34,12 +31,9 @@ build/
 .DS_Store
 Thumbs.db
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Testing
+# Go-specific
 *.test
-*_test.go
+*.prof
+go.mod
+go.sum
 ```

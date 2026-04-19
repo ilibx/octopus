@@ -169,7 +169,7 @@ grep -r "CreateTaskWithEvent" /workspace/pkg --include="*.go" | grep -v "_test.g
 grep -r "msgBus.Publish" /workspace/pkg/kanban/*.go | grep -v "_test.go"
 
 # 3. 验证子 Agent 无 Cron/Channel 引用
-grep -r "cron.Service\|messagebus.MessageBus" /workspace/agents/stock/*.md
+grep -r "cron.Service\|messagebus.MessageBus" /workspace/workspace/agents-stock/*.md
 # 应无输出（.md 文件不应包含 Go 类型引用）
 ```
 
