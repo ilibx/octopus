@@ -92,6 +92,12 @@ type BM25Result[T any] struct {
 // Returns an empty slice (not nil) when there are no matches.
 //
 // Complexity: O(N×L) for indexing + O(|Q|×avgPostingLen) for scoring,
+// docEntry holds per-document term frequency and length information.
+type docEntry struct {
+	tf     map[string]uint32
+	rawLen int
+}
+
 // where N = corpus size, L = average document length, Q = query terms.
 // Top-k extraction uses a fixed-size min-heap: O(candidates × log k).
 func (e *BM25Engine[T]) Search(query string, topK int) []BM25Result[T] {
@@ -110,11 +116,6 @@ func (e *BM25Engine[T]) Search(query string, topK int) []BM25Result[T] {
 	}
 
 	// Step 1: build per-document tf + raw doc lengths
-	type docEntry struct {
-		tf     map[string]uint32
-		rawLen int
-	}
-
 	entries := make([]docEntry, N)
 	df := make(map[string]int, 64)
 	totalLen := 0

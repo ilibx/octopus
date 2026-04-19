@@ -39,7 +39,7 @@ $ grep -r "msgBus.Publish" /workspace/pkg/kanban/*.go | grep -v "_test.go"
 > **要求：子 Agent 只能与看板进行数据交互，无法访问 Cron 和 Channel**
 
 ```bash
-$ grep -r "cron.Service\|messagebus.MessageBus" /workspace/agents/stock/*.md
+$ grep -r "cron.Service\|messagebus.MessageBus" /workspace/workspace/agents-stock/*.md
 ✅ 验证通过：子 Agent .md 文件中无 Go 类型引用
 ```
 

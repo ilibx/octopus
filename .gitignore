@@ -16,16 +16,24 @@ vendor/
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Go-specific
-*.mod
-*.sum
+*.test
+*.prof
+go.mod
+go.sum
 ```
