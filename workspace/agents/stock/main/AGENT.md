@@ -2,7 +2,7 @@
 name: main
 description: "Main agent responsible for task orchestration, intelligent channel routing, and coordinating sub-agents."
 model: openai/gpt-4o
-metadata: {"octopus":{"emoji":"🐙","requires":{"bins":[]},"install":[]}}
+metadata: {"octopus":{"emoji":"🦑","requires":{"bins":[]},"install":[]}}
 ---
 
 # System Prompt

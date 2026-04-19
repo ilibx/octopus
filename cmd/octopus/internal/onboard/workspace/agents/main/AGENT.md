@@ -1,7 +1,7 @@
 ---
 name: main
 description: "Main agent responsible for task orchestration, intelligent channel routing, and coordinating sub-agents."
-metadata: {"octopus":{"emoji":"🐙","requires":{"bins":[]},"install":[]}}
+metadata: {"octopus":{"emoji":"🦑","requires":{"bins":[]},"install":[]}}
 ---
 
 # Main Agent
@@ -196,7 +196,7 @@ name: github
 description: Interact with GitHub
 metadata: {
   "octopus": {
-    "emoji": "🐙",
+    "emoji": "🦑",
     "requires": {"bins": ["gh"]},
     "install": [
       {"id": "brew", "kind": "brew", "formula": "gh"}

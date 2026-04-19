@@ -84,7 +84,7 @@ func (cb *ContextBuilder) getIdentity() string {
 	version := config.FormatVersion()
 
 	return fmt.Sprintf(
-		`# octopus 🦞 (%s)
+		`# octopus 🦑 (%s)
 
 You are octopus, a helpful AI assistant.
 

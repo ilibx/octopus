@@ -7,7 +7,7 @@ import (
 	"github.com/ilibx/octopus/pkg/config"
 )
 
-const Logo = "🦞"
+const Logo = "🦑"
 
 // configPath is the global config path, can be set via SetConfigPath()
 var configPath string
