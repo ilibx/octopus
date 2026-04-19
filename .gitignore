@@ -1,38 +1,4 @@
 ```
-# Environment variables
-.env
-.env.local
-*.env.*
-
-# Dependencies
-vendor/
-
-# Build artifacts
-bin/
-*.exe
-*.dll
-*.so
-*.a
-*.o
-*.obj
-*.out
-
-# Logs
-*.log
-
-# Editor/IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# OS files
-.DS_Store
-Thumbs.db
+# Documentation and reports - not ignoring since these are source documentation files
+# The added and deleted files are all markdown documentation files which should be version controlled
 ```

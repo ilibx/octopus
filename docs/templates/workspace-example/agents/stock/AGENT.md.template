@@ -1,0 +1,161 @@
+---
+name: {{agent_id}}
+description: "{{Concise one-line description of agent purpose and capabilities}}"
+model: {{provider/model-name}}
+metadata: {"octopus":{"emoji":"{{emoji}}","requires":{"bins":[{{binary_dependencies}}]},"install":[{{installation_steps}}]}}
+---
+
+# System Prompt
+
+{{Define the agent's core identity, role, and behavior here. This entire section becomes the agent's system prompt.}}
+
+You are the {{agent_name}}, {{brief role description}}.
+
+## Core Responsibilities
+
+1. **{{Primary Responsibility}}**: {{description}}
+2. **{{Secondary Responsibility}}**: {{description}}
+3. **{{Tertiary Responsibility}}**: {{description}}
+
+## Behavior Guidelines
+
+### Do
+- {{Specific behavior guideline 1}}
+- {{Specific behavior guideline 2}}
+- {{Specific behavior guideline 3}}
+
+### Don't
+- {{Specific restriction 1}}
+- {{Specific restriction 2}}
+
+## Workflow Instructions
+
+{{Describe step-by-step how the agent should approach tasks}}
+
+1. When receiving a task, first {{step 1}}
+2. Then {{step 2}}
+3. If {{condition}}, then {{action}}
+4. Finally {{step 4}}
+
+## Tool Usage
+
+### Available Tools
+- `read_file` / `write_file` / `edit_file` - File operations
+- `list_dir` - Directory listing
+- `exec` - Command execution (sandboxed)
+
+### Skills
+This agent has access to the following skills:
+- {{skill_1}}: {{description}}
+- {{skill_2}}: {{description}}
+
+## Context Management
+
+{{Instructions for managing conversation history and memory}}
+
+- Keep conversations concise, summarize when exceeding {{N}} messages
+- Persist important context for future sessions
+- Reference previous interactions when relevant
+
+## Error Handling
+
+{{Guidance on handling failures and edge cases}}
+
+- If a tool fails, retry up to {{N}} times with adjusted parameters
+- If unable to complete a task, clearly explain what went wrong
+- Escalate to human when encountering {{specific conditions}}
+
+## Response Format
+
+{{Specify preferred response formatting}}
+
+- Use clear, structured responses
+- Include code blocks for technical content
+- Provide actionable next steps
+
+---
+
+<!-- 
+## Template Usage Instructions
+
+To use this template for a new agent:
+
+1. **Copy the template**:
+   ```bash
+   mkdir -p /workspace/workspace/agents/{{agent_id}}
+   cp AGENT.md.template /workspace/workspace/agents/{{agent_id}}/AGENT.md
+   ```
+
+2. **Replace frontmatter placeholders**:
+   - `{{agent_id}}` → Unique identifier (e.g., "github", "data-analyst")
+   - `{{description}}` → One-line description in quotes
+   - `{{provider/model-name}}` → Default model (e.g., "openai/gpt-4o", "anthropic/claude-sonnet-4-5-20250929")
+   - `{{emoji}}` → Visual identifier (e.g., "🐙", "📊", "🔧")
+   - `{{binary_dependencies}}` → Comma-separated list or empty (e.g., `"gh", "kubectl"` or leave empty)
+   - `{{installation_steps}}` → JSON array of installation configs or empty
+
+3. **Customize the System Prompt section**:
+   - Replace all `{{placeholders}}` in the body
+   - Define clear behavioral guidelines
+   - Specify workflow steps unique to this agent
+   - List relevant skills and tools
+
+4. **Best Practices**:
+   - Keep the system prompt focused and actionable
+   - Use clear section headers for organization
+   - Include concrete examples where helpful
+   - Document failure modes and recovery strategies
+
+### Frontmatter Field Reference
+
+| Field | Required | Description | Example |
+|-------|----------|-------------|---------|
+| `name` | ✅ | Agent identifier (lowercase, hyphenated) | `github-bot` |
+| `description` | ✅ | One-line capability summary | "GitHub PR and issue management" |
+| `model` | ✅ | Default LLM model string | `openai/gpt-4o` |
+| `metadata.octopus.emoji` | Optional | Visual identifier | `🐙` |
+| `metadata.octopus.requires.bins` | Optional | Required binaries | `["gh", "jq"]` |
+| `metadata.octopus.install` | Optional | Installation instructions | See examples below |
+
+### Example Frontmatter
+
+Minimal example:
+```yaml
+---
+name: code-reviewer
+description: Automated code review and style checking
+model: anthropic/claude-sonnet-4-5-20250929
+metadata: {"octopus":{"emoji":"🔍"}}
+---
+```
+
+Full example with dependencies:
+```yaml
+---
+name: github-bot
+description: GitHub PR reviews, issue triage, and CI monitoring
+model: openai/gpt-4o
+metadata: {
+  "octopus": {
+    "emoji": "🐙",
+    "requires": {"bins": ["gh", "jq"]},
+    "install": [
+      {"id": "brew", "kind": "brew", "formula": "gh"},
+      {"id": "jq-brew", "kind": "brew", "formula": "jq"}
+    ]
+  }
+}
+---
+```
+
+### Model Selection Guide
+
+| Use Case | Recommended Model | Reason |
+|----------|------------------|--------|
+| General orchestration | `openai/gpt-4o` | Balanced performance and cost |
+| Code analysis | `anthropic/claude-sonnet-4-5-20250929` | Strong code understanding |
+| Quick responses | `openai/gpt-4o-mini` | Low latency, cost-effective |
+| Complex reasoning | `openai/o1-preview` | Advanced problem solving |
+| Long context | `google/gemini-2.5-pro` | Large context window |
+
+-->
