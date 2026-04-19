@@ -1,39 +1,38 @@
 ```
-# Compiled and build artifacts
-*.o
-*.obj
-*.out
+# Environment variables
+.env
+.env.local
+*.env.*
 
 # Dependencies
 vendor/
 
-# Logs and temp files
-*.log
-*.tmp
+# Build artifacts
+bin/
+*.exe
+*.dll
+*.so
+*.a
+*.o
+*.obj
+*.out
 
-# Environment
-.env
-.env.local
-*.env.*
+# Logs
+*.log
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+# OS files
 .DS_Store
 Thumbs.db
-
-# Go-specific
-*.test
-*.prof
-go.mod
-go.sum
 ```
