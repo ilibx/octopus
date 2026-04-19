@@ -1,11 +1,19 @@
 ```
-# Compiled and build artifacts
-*.o
-*.obj
-*.out
+# Go-specific ignores
+*.sum
+*.mod
+*.test
+*.prof
+cover.out
+coverage.txt
 
 # Dependencies
 vendor/
+
+# Build artifacts
+bin/
+dist/
+build/
 
 # Logs and temp files
 *.log
@@ -19,13 +27,19 @@ vendor/
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Go-specific
-*.mod
-*.sum
+# Testing
+*.test
+*_test.go
 ```
