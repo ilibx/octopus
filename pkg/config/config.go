@@ -272,6 +272,7 @@ type ChannelsConfig struct {
 	WeComAIBot WeComAIBotConfig `json:"wecom_aibot"`
 	Pico       PicoConfig       `json:"pico"`
 	IRC        IRCConfig        `json:"irc"`
+	Email      EmailConfig      `json:"email"`
 }
 
 // GroupTriggerConfig controls when the bot responds in group chats.
@@ -489,6 +490,19 @@ type IRCConfig struct {
 	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
 	Typing             TypingConfig        `json:"typing,omitempty"`
 	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"OCTOPUS_CHANNELS_IRC_REASONING_CHANNEL_ID"`
+}
+
+// EmailConfig controls email channel settings for IMAP polling.
+type EmailConfig struct {
+	Enabled            bool                `json:"enabled"                 env:"OCTOPUS_CHANNELS_EMAIL_ENABLED"`
+	Server             string              `json:"server"                  env:"OCTOPUS_CHANNELS_EMAIL_SERVER"`
+	TLS                bool                `json:"tls"                     env:"OCTOPUS_CHANNELS_EMAIL_TLS"`
+	Username           string              `json:"username"                env:"OCTOPUS_CHANNELS_EMAIL_USERNAME"`
+	Password           string              `json:"password"                env:"OCTOPUS_CHANNELS_EMAIL_PASSWORD"`
+	PollInterval       int                 `json:"poll_interval"           env:"OCTOPUS_CHANNELS_EMAIL_POLL_INTERVAL"` // seconds
+	MarkAsRead         bool                `json:"mark_as_read,omitempty"  env:"OCTOPUS_CHANNELS_EMAIL_MARK_AS_READ"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"OCTOPUS_CHANNELS_EMAIL_ALLOW_FROM"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"OCTOPUS_CHANNELS_EMAIL_REASONING_CHANNEL_ID"`
 }
 
 type HeartbeatConfig struct {
