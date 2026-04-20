@@ -3,10 +3,12 @@ package tools
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/scanner"
 )
 
 type SubagentTask struct {
@@ -69,6 +71,24 @@ func (sm *SubagentManager) SetTools(tools *ToolRegistry) {
 	sm.tools = tools
 }
 
+// loadAgentPrompt loads the system prompt from AGENT.md or main.md in the workspace.
+// Falls back to a default prompt if no agent file is found.
+func (sm *SubagentManager) loadAgentPrompt() string {
+	// Try AGENT.md first, then main.md
+	agentFiles := []string{"AGENT.md", "main.md"}
+	for _, filename := range agentFiles {
+		filePath := filepath.Join(sm.workspace, filename)
+		if content, err := scanner.LoadAgentPrompt(filePath); err == nil && content != "" {
+			return content
+		}
+	}
+
+	// Fallback to default prompt if no agent file found
+	return `You are a subagent. Complete the given task independently and report the result.
+You have access to tools - use them as needed to complete your task.
+After completing the task, provide a clear summary of what was done.`
+}
+
 // RegisterTool registers a tool for subagent execution.
 func (sm *SubagentManager) RegisterTool(tool Tool) {
 	sm.mu.Lock()
@@ -112,10 +132,8 @@ func (sm *SubagentManager) runTask(ctx context.Context, task *SubagentTask, call
 	task.Status = "running"
 	task.Created = time.Now().UnixMilli()
 
-	// Build system prompt for subagent
-	systemPrompt := `You are a subagent. Complete the given task independently and report the result.
-You have access to tools - use them as needed to complete your task.
-After completing the task, provide a clear summary of what was done.`
+	// Build system prompt for subagent - load from AGENT.md if available
+	systemPrompt := sm.loadAgentPrompt()
 
 	messages := []providers.Message{
 		{
@@ -280,11 +298,14 @@ func (t *SubagentTool) Execute(ctx context.Context, args map[string]any) *ToolRe
 		return ErrorResult("Subagent manager not configured").WithError(fmt.Errorf("manager is nil"))
 	}
 
+	// Build system prompt for subagent - load from AGENT.md if available
+	systemPrompt := t.manager.loadAgentPrompt()
+
 	// Build messages for subagent
 	messages := []providers.Message{
 		{
 			Role:    "system",
-			Content: "You are a subagent. Complete the given task independently and provide a clear, concise result.",
+			Content: systemPrompt,
 		},
 		{
 			Role:    "user",

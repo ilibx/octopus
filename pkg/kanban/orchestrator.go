@@ -3,6 +3,9 @@ package kanban
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,6 +14,7 @@ import (
 	"github.com/ilibx/octopus/pkg/config"
 	"github.com/ilibx/octopus/pkg/logger"
 	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/scanner"
 )
 
 // AgentOrchestrator manages the lifecycle of sub-agents based on kanban board state
@@ -144,6 +148,8 @@ func (o *AgentOrchestrator) checkAndSpawnAgents() bool {
 
 // spawnAgentForZone creates and starts a new sub-agent instance for a specific zone
 // This method is called by the Main Agent to delegate task execution to Sub-Agents
+// The sub-agent's workspace is set to the directory containing its AGENT.md file,
+// which is then loaded as the system prompt by the agent's ContextBuilder.
 func (o *AgentOrchestrator) spawnAgentForZone(zoneID, agentType string) error {
 	// Generate a unique agent ID for this sub-agent
 	agentID := fmt.Sprintf("%s_%s", agentType, zoneID)
@@ -156,12 +162,28 @@ func (o *AgentOrchestrator) spawnAgentForZone(zoneID, agentType string) error {
 		return nil
 	}
 
+	// Find the agent directory based on agent_type
+	// The agent_type should match the directory name in the agents folder
+	agentDir, err := o.findAgentDirectory(agentType)
+	if err != nil {
+		logger.WarnCF("orchestrator", "Failed to find agent directory, using default workspace",
+			map[string]any{"agent_type": agentType, "error": err.Error()})
+		// Fall back to default behavior without specific agent directory
+	}
+
 	// Create sub-agent configuration dynamically
 	// Note: Default is set to false because this is a sub-agent, not the main agent
 	agentCfg := &config.AgentConfig{
 		ID:      agentID,
 		Name:    fmt.Sprintf("Sub-agent for zone %s", zoneID),
 		Default: false, // Explicitly mark as sub-agent
+	}
+
+	// Set workspace to agent directory if found, so ContextBuilder loads AGENT.md from there
+	if agentDir != "" {
+		agentCfg.Workspace = agentDir
+		logger.InfoCF("orchestrator", "Using agent directory as workspace",
+			map[string]any{"agent_type": agentType, "workspace": agentDir})
 	}
 
 	// Add the sub-agent to the registry
@@ -176,12 +198,52 @@ func (o *AgentOrchestrator) spawnAgentForZone(zoneID, agentType string) error {
 			"zone_id":       zoneID,
 			"sub_agent_id":  addedID,
 			"agent_type":    agentType,
+			"workspace":     agentDir,
 		})
 
 	// Mark the zone as having an active sub-agent
 	o.activeAgents[zoneID] = addedID
 
 	return nil
+}
+
+// findAgentDirectory searches for the directory containing the agent's AGENT.md file
+// It searches in the configured agents directory and supports multiple naming conventions
+func (o *AgentOrchestrator) findAgentDirectory(agentType string) (string, error) {
+	agentsDir := o.cfg.Agents.AgentsDir
+	if agentsDir == "" {
+		return "", fmt.Errorf("agents_dir not configured")
+	}
+
+	// Normalize agent type for matching
+	normalizedType := strings.ToLower(strings.ReplaceAll(agentType, "-", "_"))
+
+	// Search strategies:
+	// 1. Direct match: agentsDir/{agentType}/AGENT.md
+	// 2. Underscore variant: agentsDir/{agent_type}/AGENT.md
+	// 3. Hyphen variant: agentsDir/{agent-type}/AGENT.md
+
+	searchPaths := []string{
+		filepath.Join(agentsDir, agentType),
+		filepath.Join(agentsDir, normalizedType),
+		filepath.Join(agentsDir, strings.ReplaceAll(normalizedType, "_", "-")),
+	}
+
+	for _, dirPath := range searchPaths {
+		// Check for AGENT.md first (new standard)
+		agentMdPath := filepath.Join(dirPath, "AGENT.md")
+		if _, err := os.Stat(agentMdPath); err == nil {
+			return dirPath, nil
+		}
+
+		// Fallback to main.md (legacy)
+		mainMdPath := filepath.Join(dirPath, "main.md")
+		if _, err := os.Stat(mainMdPath); err == nil {
+			return dirPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("agent directory not found for type: %s", agentType)
 }
 
 // OnTaskCompleted handles task completion events from sub-agents
@@ -246,7 +308,7 @@ func (o *AgentOrchestrator) ReleaseAllAgents() {
 
 	logger.InfoCF("orchestrator", "Main agent releasing all sub-agents due to empty kanban board",
 		map[string]any{
-			"main_agent_id":   o.mainAgentID,
+			"main_agent_id":       o.mainAgentID,
 			"active_agents_count": len(o.activeAgents),
 		})
 
