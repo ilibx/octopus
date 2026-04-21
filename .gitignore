@@ -1,47 +1,53 @@
-```go
-# Compiled and build artifacts
+```
+# Compiled and binary files
 *.o
 *.obj
 *.out
-*.pyc
-*.class
-*.dll
-*.so
-*.a
 
 # Dependencies
-node_modules/
-venv/
-.venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-target/
-.gradle/
+vendor/
 
 # Logs and temp files
 *.log
 *.tmp
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# IDE files
+.vscode/
+.idea/
 *.swp
 *.swo
 
-# Environment
+# Environment variables
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-
-# System files
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
+# Build artifacts
+dist/
+build/
+target/
+bin/
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Go specific
+*.test
+*.prof
 
 # Compressed files
 *.zip
