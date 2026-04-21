@@ -1,4 +1,3 @@
-
 // Octopus - Ultra-lightweight personal AI agent
 // License: MIT
 //

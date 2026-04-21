@@ -76,8 +76,8 @@ func (c *EmailChannel) Start(ctx context.Context) error {
 
 	c.SetRunning(true)
 	logger.InfoCF("email", "Email channel started", map[string]any{
-		"server":       c.config.Server,
-		"username":     c.config.Username,
+		"server":        c.config.Server,
+		"username":      c.config.Username,
 		"poll_interval": c.config.PollInterval,
 	})
 	return nil
