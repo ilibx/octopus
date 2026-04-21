@@ -71,7 +71,7 @@ func TestAgentOrchestrator_SpawnAgentForZone(t *testing.T) {
 
 	// Try to spawn an agent for the zone
 	err = orchestrator.spawnAgentForZone("zone1", "test-agent")
-	
+
 	// Note: This will likely fail in test environment without proper agent setup
 	// but we're testing the logic flow
 	if err != nil {
@@ -115,7 +115,7 @@ func TestAgentOrchestrator_OnTaskCompleted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get zone: %v", err)
 	}
-	
+
 	for _, task := range zone.Tasks {
 		task.Status = TaskCompleted
 	}

@@ -1,4 +1,3 @@
-
 package config
 
 import (
@@ -541,10 +540,6 @@ func DefaultConfig() *Config {
 		Heartbeat: HeartbeatConfig{
 			Enabled:  true,
 			Interval: 30,
-		},
-		Devices: DevicesConfig{
-			Enabled:    false,
-			MonitorUSB: true,
 		},
 		Voice: VoiceConfig{
 			EchoTranscription: false,

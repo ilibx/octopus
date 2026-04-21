@@ -235,7 +235,30 @@ func Encrypt(passphrase, sshKeyPath, plaintext string) (string, error) {
 // Uses filepath.IsLocal on the relative path for robust cross-platform traversal detection.
 func isWithinDir(path, dir string) bool {
 	rel, err := filepath.Rel(filepath.Clean(dir), filepath.Clean(path))
-	return err == nil && filepath.IsLocal(rel)
+	if err != nil {
+		return false
+	}
+	// filepath.IsLocal was added in Go 1.20, so we implement a simple check
+	// A path is local if it doesn't contain ".." as a path component
+	return !containsParentDir(rel)
+}
+
+// containsParentDir checks if a path contains ".." as a path component
+func containsParentDir(path string) bool {
+	parts := strings.Split(path, string(filepath.Separator))
+	for _, part := range parts {
+		if part == ".." {
+			return true
+		}
+	}
+	// Also check with forward slash for cross-platform compatibility
+	parts = strings.Split(path, "/")
+	for _, part := range parts {
+		if part == ".." {
+			return true
+		}
+	}
+	return false
 }
 
 // allowedSSHKeyPath reports whether path is in a permitted location for SSH key files:
@@ -298,7 +321,7 @@ func deriveKey(passphrase, sshKeyPath string, salt []byte) ([]byte, error) {
 	mac.Write([]byte(passphrase))
 	ikm := mac.Sum(nil)
 
-	key, err := hkdfcompat.Key(sha256.New, ikm, salt, hkdfInfo, keyLen)
+	key, err := hkdfcompat.Key(sha256.New, ikm, salt, []byte(hkdfInfo), keyLen)
 	if err != nil {
 		return nil, fmt.Errorf("credential: HKDF expand failed: %w", err)
 	}

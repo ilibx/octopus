@@ -42,13 +42,13 @@ type CachedTemplate struct {
 
 // TemplateContext holds the context data for template rendering
 type TemplateContext struct {
-	ZoneName       string
-	ZoneID         string
-	TaskContext    string
-	GlobalConfig   *config.Config
-	AgentID        string
-	Timestamp      int64
-	CustomData     map[string]string
+	ZoneName     string
+	ZoneID       string
+	TaskContext  string
+	GlobalConfig *config.Config
+	AgentID      string
+	Timestamp    int64
+	CustomData   map[string]string
 }
 
 // NewTemplateLoader creates a new template loader
@@ -78,7 +78,7 @@ func (l *TemplateLoader) LoadTemplate(zoneID string) (*AgentTemplate, error) {
 
 	// Load from file system
 	templatePath := filepath.Join(l.templateDir, fmt.Sprintf("%s.md", zoneID))
-	
+
 	// Try default template if zone-specific doesn't exist
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
 		templatePath = filepath.Join(l.templateDir, "agent.md")
@@ -124,7 +124,7 @@ func (l *TemplateLoader) parseTemplate(content string) (*AgentTemplate, error) {
 	// description: Description here
 	// system_role: You are a helpful assistant
 	// ---
-	// 
+	//
 	// # Prompt
 	// Your prompt template here...
 
@@ -140,7 +140,7 @@ func (l *TemplateLoader) parseTemplate(content string) (*AgentTemplate, error) {
 
 	for i, line := range lines {
 		trimmed := bytes.TrimSpace(line)
-		
+
 		// Check for frontmatter delimiters
 		if bytes.Equal(trimmed, []byte("---")) {
 			if !inFrontmatter && i == 0 {
@@ -158,7 +158,7 @@ func (l *TemplateLoader) parseTemplate(content string) (*AgentTemplate, error) {
 			if len(parts) == 2 {
 				key := string(bytes.TrimSpace(parts[0]))
 				value := string(bytes.TrimSpace(parts[1]))
-				
+
 				switch key {
 				case "name":
 					tmpl.Name = value
@@ -189,7 +189,7 @@ func (l *TemplateLoader) parseTemplate(content string) (*AgentTemplate, error) {
 	if tmpl.Name == "" {
 		tmpl.Name = "Default Agent"
 	}
-	
+
 	if tmpl.Prompt == "" {
 		return nil, fmt.Errorf("template must have a prompt section")
 	}
@@ -224,7 +224,7 @@ func (l *TemplateLoader) ReloadCache() error {
 	defer l.mu.Unlock()
 
 	logger.InfoCF("template_loader", "Forcing cache reload", nil)
-	
+
 	// Clear cache
 	l.cache = make(map[string]*CachedTemplate)
 	l.lastReload = time.Time{}
@@ -275,7 +275,7 @@ func (l *TemplateLoader) checkForChanges() {
 		if cached != nil && info.ModTime().After(cached.LoadedAt) {
 			logger.InfoCF("template_loader", "Template file changed, reloading",
 				map[string]any{"zone_id": zoneID, "path": templatePath})
-			
+
 			// Remove from cache to force reload on next access
 			l.mu.Lock()
 			delete(l.cache, zoneID)
@@ -333,13 +333,13 @@ func (l *TemplateLoader) LoadTemplateWithInjection(zoneID, taskContext string, c
 	}
 
 	ctx := &TemplateContext{
-		ZoneID:      zoneID,
-		ZoneName:    zoneID,
-		TaskContext: taskContext,
+		ZoneID:       zoneID,
+		ZoneName:     zoneID,
+		TaskContext:  taskContext,
 		GlobalConfig: cfg,
-		AgentID:     agentID,
-		Timestamp:   time.Now().Unix(),
-		CustomData:  make(map[string]string),
+		AgentID:      agentID,
+		Timestamp:    time.Now().Unix(),
+		CustomData:   make(map[string]string),
 	}
 
 	return l.RenderTemplate(tmpl, ctx)

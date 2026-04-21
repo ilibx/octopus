@@ -1,4 +1,3 @@
-
 package channels
 
 import (
@@ -123,7 +122,10 @@ func (m *Manager) SendPlaceholder(ctx context.Context, channel, chatID string) b
 func (m *Manager) RecordTypingStop(channel, chatID string, stop func()) {
 	key := channel + ":" + chatID
 	entry := typingEntry{stop: stop, createdAt: time.Now()}
-	if previous, loaded := m.typingStops.Swap(key, entry); loaded {
+	// Use LoadAndSwap for Go 1.19 compatibility (equivalent to Swap in Go 1.21+)
+	previous, loaded := m.typingStops.LoadAndDelete(key)
+	m.typingStops.Store(key, entry)
+	if loaded && previous != nil {
 		if oldEntry, ok := previous.(typingEntry); ok && oldEntry.stop != nil {
 			oldEntry.stop()
 		}
@@ -561,7 +563,13 @@ func (m *Manager) sendWithRetry(ctx context.Context, name string, w *channelWork
 		}
 
 		// ErrTemporary or unknown error — exponential backoff
-		backoff := min(time.Duration(float64(baseBackoff)*math.Pow(2, float64(attempt))), maxBackoff)
+			calculatedBackoff := time.Duration(float64(baseBackoff) * math.Pow(2, float64(attempt)))
+			var backoff time.Duration
+			if calculatedBackoff > maxBackoff {
+				backoff = maxBackoff
+			} else {
+				backoff = calculatedBackoff
+			}
 		select {
 		case <-time.After(backoff):
 		case <-ctx.Done():

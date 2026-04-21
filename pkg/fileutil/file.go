@@ -1,4 +1,3 @@
-
 // Package fileutil provides file manipulation utilities.
 package fileutil
 

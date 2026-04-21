@@ -1,6 +1,8 @@
 package kanban
 
 import (
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,36 +13,64 @@ import (
 type TaskStatus string
 
 const (
-	TaskPending    TaskStatus = "pending"
-	TaskRunning    TaskStatus = "running"
-	TaskCompleted  TaskStatus = "completed"
-	TaskFailed     TaskStatus = "failed"
-	TaskBlocked    TaskStatus = "blocked"
-	TaskInProgress TaskStatus = "in_progress"
+	TaskPending         TaskStatus = "pending"
+	TaskRunning         TaskStatus = "running"
+	TaskCompleted       TaskStatus = "completed"
+	TaskFailed          TaskStatus = "failed"
+	TaskBlocked         TaskStatus = "blocked"
+	TaskInProgress      TaskStatus = "in_progress"
+	TaskWaitingApproval TaskStatus = "waiting_approval" // For HITL
 )
+
+// ApprovalStatus represents the status of an approval request
+type ApprovalStatus string
+
+const (
+	ApprovalPending  ApprovalStatus = "pending"
+	ApprovalApproved ApprovalStatus = "approved"
+	ApprovalRejected ApprovalStatus = "rejected"
+	ApprovalTimeout  ApprovalStatus = "timeout"
+)
+
+// ApprovalRequest represents a human-in-the-loop approval request
+type ApprovalRequest struct {
+	TaskID    string         `json:"task_id"`
+	Approver  string         `json:"approver,omitempty"`
+	Status    ApprovalStatus `json:"status"`
+	Deadline  time.Time      `json:"deadline,omitempty"`
+	Reason    string         `json:"reason,omitempty"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+}
 
 // TaskDependency represents a dependency relationship between tasks
 type TaskDependency struct {
-	TaskID       string `json:"task_id"`        // The task that this task depends on
+	TaskID         string     `json:"task_id"`         // The task that this task depends on
 	RequiredStatus TaskStatus `json:"required_status"` // Status that must be reached (default: completed)
 }
 
 // Task represents a single task in the kanban system
 // Tasks can have dependencies forming a DAG/Workflow
 type Task struct {
-	ID           string             `json:"id"`
-	Title        string             `json:"title"`
-	Description  string             `json:"description"`
-	Status       TaskStatus         `json:"status"`
-	Priority     int                `json:"priority"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    time.Time          `json:"updated_at"`
-	AssignedTo   string             `json:"assigned_to,omitempty"` // Sub-Agent ID assigned to execute this task
-	Metadata     map[string]string  `json:"metadata,omitempty"`
-	Result       string             `json:"result,omitempty"`
-	Error        string             `json:"error,omitempty"`
-	Dependencies []TaskDependency   `json:"dependencies,omitempty"` // DAG/Workflow dependencies
-	DependsOn    []string           `json:"depends_on,omitempty"`   // Simple list of task IDs this task depends on
+	ID           string            `json:"id"`
+	TraceID      string            `json:"trace_id"`                 // 主任务 ID，用于全链路跟踪
+	ParentTaskID string            `json:"parent_task_id,omitempty"` // 父任务 ID（如果是拆分后的子任务）
+	Title        string            `json:"title"`
+	Description  string            `json:"description"`
+	Status       TaskStatus        `json:"status"`
+	Priority     int               `json:"priority"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
+	AssignedTo   string            `json:"assigned_to,omitempty"` // Sub-Agent ID assigned to execute this task
+	Metadata     map[string]string `json:"metadata,omitempty"`
+	Result       string            `json:"result,omitempty"`
+	Error        string            `json:"error,omitempty"`
+	RetryCount   int               `json:"retry_count"`
+	MaxRetries   int               `json:"max_retries"`
+	Dependencies []TaskDependency  `json:"dependencies,omitempty"` // DAG/Workflow dependencies
+	DependsOn    []string          `json:"depends_on,omitempty"`   // Simple list of task IDs this task depends on
+	SkillIDs     []string          `json:"skill_ids,omitempty"`    // 关联的 SKILL ID 列表
+	Approval     *ApprovalRequest  `json:"approval,omitempty"`     // HITL 审批信息
 }
 
 // Zone represents an independent area in the kanban board
@@ -58,12 +88,12 @@ type Zone struct {
 
 // KanbanBoard represents the main kanban board for task management
 type KanbanBoard struct {
-	ID          string                   `json:"id"`
-	Name        string                   `json:"name"`
-	Zones       map[string]*Zone         `json:"zones"`
-	MainAgentID string                   `json:"main_agent_id"`
-	CreatedAt   time.Time                `json:"created_at"`
-	UpdatedAt   time.Time                `json:"updated_at"`
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Zones       map[string]*Zone `json:"zones"`
+	MainAgentID string           `json:"main_agent_id"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
 	mu          sync.RWMutex
 	zoneLocks   map[string]*sync.RWMutex // Per-zone locks for fine-grained concurrency
 }
@@ -137,15 +167,49 @@ func (k *KanbanBoard) AddTask(zoneID, taskID, title, description string, priorit
 	zoneLock.Lock()
 	defer zoneLock.Unlock()
 
+	// Extract trace_id from metadata or use taskID
+	traceID := taskID
+	if metadata != nil && metadata["trace_id"] != "" {
+		traceID = metadata["trace_id"]
+	}
+
+	// Extract parent_task_id from metadata
+	parentTaskID := ""
+	if metadata != nil && metadata["parent_task_id"] != "" {
+		parentTaskID = metadata["parent_task_id"]
+	}
+
+	// Extract max_retries from metadata or use default
+	maxRetries := 3 // Default retry count
+	if metadata != nil && metadata["max_retries"] != "" {
+		if retries, err := strconv.Atoi(metadata["max_retries"]); err == nil {
+			maxRetries = retries
+		}
+	}
+
+	// Extract skill_ids from metadata
+	var skillIDs []string
+	if metadata != nil && metadata["skill_ids"] != "" {
+		skillIDs = strings.Split(metadata["skill_ids"], ",")
+		for i := range skillIDs {
+			skillIDs[i] = strings.TrimSpace(skillIDs[i])
+		}
+	}
+
 	task := &Task{
-		ID:          taskID,
-		Title:       title,
-		Description: description,
-		Status:      TaskPending,
-		Priority:    priority,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		Metadata:    metadata,
+		ID:           taskID,
+		TraceID:      traceID,
+		ParentTaskID: parentTaskID,
+		Title:        title,
+		Description:  description,
+		Status:       TaskPending,
+		Priority:     priority,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Metadata:     metadata,
+		RetryCount:   0,
+		MaxRetries:   maxRetries,
+		SkillIDs:     skillIDs,
 	}
 
 	zone.Tasks = append(zone.Tasks, task)
@@ -158,11 +222,13 @@ func (k *KanbanBoard) AddTask(zoneID, taskID, title, description string, priorit
 
 	logger.InfoCF("kanban", "Task added",
 		map[string]any{
-			"board_id": k.ID,
-			"zone_id":  zoneID,
-			"task_id":  taskID,
-			"title":    title,
-			"priority": priority,
+			"board_id":    k.ID,
+			"zone_id":     zoneID,
+			"task_id":     taskID,
+			"trace_id":    traceID,
+			"title":       title,
+			"priority":    priority,
+			"max_retries": maxRetries,
 		})
 
 	return task, nil
@@ -282,7 +348,7 @@ func (k *KanbanBoard) GetPendingTasks() map[string][]*Task {
 				pendingCount++
 			}
 		}
-		
+
 		if pendingCount > 0 {
 			pending := make([]*Task, 0, pendingCount)
 			for _, task := range zone.Tasks {
@@ -398,7 +464,7 @@ func (k *KanbanBoard) GetReadyTasks(zoneID string) []*Task {
 		if task.Status == TaskPending {
 			// Check if task has any dependencies
 			hasDependencies := len(task.DependsOn) > 0 || len(task.Dependencies) > 0
-			
+
 			if !hasDependencies {
 				// No dependencies, task is ready
 				readyTasks = append(readyTasks, task)

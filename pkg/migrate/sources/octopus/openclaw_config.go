@@ -17,11 +17,11 @@ type OctopusConfig struct {
 	Agents   *OctopusAgents   `json:"agents"`
 	Tools    *OctopusTools    `json:"tools"`
 	Channels *OctopusChannels `json:"channels"`
-	Cron     json.RawMessage   `json:"cron"`
-	Hooks    json.RawMessage   `json:"hooks"`
+	Cron     json.RawMessage  `json:"cron"`
+	Hooks    json.RawMessage  `json:"hooks"`
 	Skills   *OctopusSkills   `json:"skills"`
-	Memory   json.RawMessage   `json:"memory"`
-	Session  json.RawMessage   `json:"session"`
+	Memory   json.RawMessage  `json:"memory"`
+	Session  json.RawMessage  `json:"session"`
 }
 
 type OctopusAuth struct {
@@ -71,9 +71,9 @@ type OctopusAgents struct {
 
 type OctopusAgentDefaults struct {
 	Model     *OctopusAgentModel `json:"model"`
-	Workspace *string             `json:"workspace"`
+	Workspace *string            `json:"workspace"`
 	Tools     *OctopusAgentTools `json:"tools"`
-	Identity  *string             `json:"identity"`
+	Identity  *string            `json:"identity"`
 }
 
 type OctopusAgentModel struct {
@@ -97,13 +97,13 @@ func (m *OctopusAgentModel) GetFallbacks() []string {
 }
 
 type OctopusAgentEntry struct {
-	ID        string              `json:"id"`
-	Name      *string             `json:"name"`
+	ID        string             `json:"id"`
+	Name      *string            `json:"name"`
 	Model     *OctopusAgentModel `json:"model"`
 	Tools     *OctopusAgentTools `json:"tools"`
-	Workspace *string             `json:"workspace"`
-	Skills    []string            `json:"skills"`
-	Identity  *string             `json:"identity"`
+	Workspace *string            `json:"workspace"`
+	Skills    []string           `json:"skills"`
+	Identity  *string            `json:"identity"`
 }
 
 type OctopusAgentTools struct {

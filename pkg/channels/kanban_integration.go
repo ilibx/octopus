@@ -11,11 +11,15 @@ import (
 	"github.com/ilibx/octopus/pkg/logger"
 )
 
+// Alias for bus.OutboundMessage for convenience
+type OutboundMessage = bus.OutboundMessage
+
 // KanbanIntegration handles integration between channels and kanban board
 // This is the ONLY way for channels to create tasks on the kanban board
 type KanbanIntegration struct {
 	kanbanService kanbantypes.KanbanBoardService
 	msgBus        *bus.MessageBus
+	ctx           context.Context
 }
 
 // NewKanbanIntegration creates a new channel-kanban integration instance
@@ -23,6 +27,7 @@ func NewKanbanIntegration(kanbanService kanbantypes.KanbanBoardService, msgBus *
 	return &KanbanIntegration{
 		kanbanService: kanbanService,
 		msgBus:        msgBus,
+		ctx:           context.Background(),
 	}
 }
 
@@ -214,7 +219,10 @@ func (ki *KanbanIntegration) SubscribeToEvents(ctx context.Context) {
 		notification := formatTaskNotification(event)
 
 		// Publish to channel broadcast
-		ki.msgBus.Publish("channel.broadcast", notification)
+		ki.msgBus.PublishOutbound(ki.ctx, bus.OutboundMessage{
+			Channel: "broadcast",
+			Content: notification,
+		})
 
 		logger.DebugCF("channel_kanban", "Broadcasted task event to channels",
 			map[string]any{

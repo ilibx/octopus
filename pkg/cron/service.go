@@ -24,10 +24,10 @@ type CronSchedule struct {
 }
 
 type CronPayload struct {
-	Kind     string `json:"kind"`
-	Message  string `json:"message"`
-	Command  string `json:"command,omitempty"`
-	Deliver  bool   `json:"deliver"`
+	Kind     string            `json:"kind"`
+	Message  string            `json:"message"`
+	Command  string            `json:"command,omitempty"`
+	Deliver  bool              `json:"deliver"`
 	Metadata map[string]string `json:"metadata,omitempty"` // 用于存储任务元数据，帮助 Agent 判断通知渠道
 }
 

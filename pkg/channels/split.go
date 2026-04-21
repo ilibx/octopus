@@ -4,6 +4,22 @@ import (
 	"strings"
 )
 
+// min returns the smaller of two integers (Go 1.19 compatibility)
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// max returns the larger of two integers (Go 1.19 compatibility)
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 // SplitMessage splits long messages into chunks, preserving code block integrity.
 // The maxLen parameter is measured in runes (Unicode characters), not bytes.
 // The function reserves a buffer (10% of maxLen, min 50) to leave room for closing code blocks,

@@ -29,12 +29,12 @@ type AgentWorker struct {
 }
 
 // NewAgentWorker creates a new agent worker for a specific zone
-func NewAgentWorker(zoneID, agentID string, board *KanbanBoard, service *KanbanService, 
-	agentInstance *agent.AgentInstance, msgBus *bus.MessageBus, cfg *config.Config, 
+func NewAgentWorker(zoneID, agentID string, board *KanbanBoard, service *KanbanService,
+	agentInstance *agent.AgentInstance, msgBus *bus.MessageBus, cfg *config.Config,
 	maxConcurrency int) *AgentWorker {
-	
+
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	return &AgentWorker{
 		zoneID:         zoneID,
 		agentID:        agentID,
@@ -54,8 +54,8 @@ func NewAgentWorker(zoneID, agentID string, board *KanbanBoard, service *KanbanS
 func (w *AgentWorker) Start() {
 	logger.InfoCF("agent_worker", "Starting agent worker",
 		map[string]any{
-			"zone_id":    w.zoneID,
-			"agent_id":   w.agentID,
+			"zone_id":         w.zoneID,
+			"agent_id":        w.agentID,
 			"max_concurrency": w.maxConcurrency,
 		})
 
@@ -161,11 +161,11 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 
 	logger.InfoCF("agent_worker", "Sub-agent executing task",
 		map[string]any{
-			"zone_id":     w.zoneID,
+			"zone_id":      w.zoneID,
 			"sub_agent_id": w.agentID,
-			"task_id":     task.ID,
-			"title":       task.Title,
-			"worker_num":  workerNum,
+			"task_id":      task.ID,
+			"title":        task.Title,
+			"worker_num":   workerNum,
 		})
 
 	// Update task status to running - this notifies the Main Agent
@@ -187,7 +187,7 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 				"task_id":      task.ID,
 				"error":        err.Error(),
 			})
-		
+
 		err = w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskFailed, "", err.Error())
 		if err != nil {
 			logger.ErrorCF("agent_worker", "Failed to update task status to failed",
@@ -200,7 +200,7 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 				"task_id":      task.ID,
 				"result":       result,
 			})
-		
+
 		err = w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskCompleted, result, "")
 		if err != nil {
 			logger.ErrorCF("agent_worker", "Failed to update task status to completed",
@@ -213,7 +213,7 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 func (w *AgentWorker) runTaskExecution(task *Task) (string, error) {
 	// Build the prompt from task description and metadata
 	prompt := fmt.Sprintf("Task: %s\nDescription: %s", task.Title, task.Description)
-	
+
 	if len(task.Metadata) > 0 {
 		prompt += "\nMetadata:"
 		for k, v := range task.Metadata {
@@ -244,10 +244,10 @@ func (w *AgentWorker) runTaskExecution(task *Task) (string, error) {
 func (w *AgentWorker) processTaskWithAgent(ctx context.Context, prompt, taskID string) (string, error) {
 	// For now, we'll create a simple execution context
 	// In a full implementation, this would integrate with the AgentLoop
-	
+
 	// Get the session for this task
 	sessionKey := fmt.Sprintf("task_%s_%s", w.zoneID, taskID)
-	
+
 	// Use the agent's context builder to prepare the execution
 	contextData, err := w.agentInstance.ContextBuilder.BuildContext(ctx, sessionKey, prompt)
 	if err != nil {
@@ -256,7 +256,7 @@ func (w *AgentWorker) processTaskWithAgent(ctx context.Context, prompt, taskID s
 			map[string]any{"task_id": taskID, "error": err.Error()})
 		return prompt, nil
 	}
-	
+
 	// For now, return the context as the result
 	// In production, this would call the LLM provider
 	return contextData, nil
@@ -284,7 +284,7 @@ func (w *AgentWorker) Stop() {
 			w.mu.RLock()
 			remaining := len(w.currentTasks)
 			w.mu.RUnlock()
-			
+
 			if remaining == 0 {
 				logger.InfoCF("agent_worker", "Worker stopped gracefully",
 					map[string]any{"zone_id": w.zoneID})

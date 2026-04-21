@@ -25,7 +25,7 @@ type Metrics struct {
 }
 
 var (
-	metricsOnce sync.Once
+	metricsOnce   sync.Once
 	globalMetrics *Metrics
 )
 
