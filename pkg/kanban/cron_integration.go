@@ -82,10 +82,10 @@ func (i *CronKanbanIntegration) handleCronJob(job *cron.CronJob) (string, error)
 
 	logger.InfoCF("cron_kanban", "Task created from cron job",
 		map[string]any{
-			"job_id":   job.ID,
-			"task_id":  task.ID,
-			"zone_id":  taskPayload.ZoneID,
-			"title":    task.Title,
+			"job_id":  job.ID,
+			"task_id": task.ID,
+			"zone_id": taskPayload.ZoneID,
+			"title":   task.Title,
 		})
 
 	return fmt.Sprintf("Task %s created successfully", task.ID), nil
@@ -98,11 +98,11 @@ func (i *CronKanbanIntegration) ScheduleRecurringTask(zoneID, title, description
 
 	// Create task payload
 	taskPayload := map[string]interface{}{
-		"zone_id":      zoneID,
-		"title":        title,
-		"description":  description,
-		"priority":     priority,
-		"metadata":     metadata,
+		"zone_id":     zoneID,
+		"title":       title,
+		"description": description,
+		"priority":    priority,
+		"metadata":    metadata,
 	}
 
 	payloadJSON, err := json.Marshal(taskPayload)
@@ -147,11 +147,11 @@ func (i *CronKanbanIntegration) ScheduleOneTimeTask(zoneID, title, description s
 
 	// Create task payload
 	taskPayload := map[string]interface{}{
-		"zone_id":      zoneID,
-		"title":        title,
-		"description":  description,
-		"priority":     priority,
-		"metadata":     metadata,
+		"zone_id":     zoneID,
+		"title":       title,
+		"description": description,
+		"priority":    priority,
+		"metadata":    metadata,
 	}
 
 	payloadJSON, err := json.Marshal(taskPayload)
@@ -239,10 +239,10 @@ func (i *CronKanbanIntegration) logIntegrationStats() {
 
 	logger.DebugCF("cron_kanban", "Integration stats",
 		map[string]any{
-			"cron_enabled":      cronStatus["enabled"],
-			"cron_jobs":         cronStatus["jobs"],
-			"pending_tasks":     totalPending,
-			"next_cron_wake":    cronStatus["nextWakeAtMS"],
+			"cron_enabled":   cronStatus["enabled"],
+			"cron_jobs":      cronStatus["jobs"],
+			"pending_tasks":  totalPending,
+			"next_cron_wake": cronStatus["nextWakeAtMS"],
 		})
 }
 

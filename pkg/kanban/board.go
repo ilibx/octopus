@@ -22,6 +22,27 @@ const (
 	TaskWaitingApproval TaskStatus = "waiting_approval" // For HITL
 )
 
+// ApprovalStatus represents the status of an approval request
+type ApprovalStatus string
+
+const (
+	ApprovalPending  ApprovalStatus = "pending"
+	ApprovalApproved ApprovalStatus = "approved"
+	ApprovalRejected ApprovalStatus = "rejected"
+	ApprovalTimeout  ApprovalStatus = "timeout"
+)
+
+// ApprovalRequest represents a human-in-the-loop approval request
+type ApprovalRequest struct {
+	TaskID    string         `json:"task_id"`
+	Approver  string         `json:"approver,omitempty"`
+	Status    ApprovalStatus `json:"status"`
+	Deadline  time.Time      `json:"deadline,omitempty"`
+	Reason    string         `json:"reason,omitempty"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+}
+
 // TaskDependency represents a dependency relationship between tasks
 type TaskDependency struct {
 	TaskID         string     `json:"task_id"`         // The task that this task depends on
@@ -49,6 +70,7 @@ type Task struct {
 	Dependencies []TaskDependency  `json:"dependencies,omitempty"` // DAG/Workflow dependencies
 	DependsOn    []string          `json:"depends_on,omitempty"`   // Simple list of task IDs this task depends on
 	SkillIDs     []string          `json:"skill_ids,omitempty"`    // 关联的 SKILL ID 列表
+	Approval     *ApprovalRequest  `json:"approval,omitempty"`     // HITL 审批信息
 }
 
 // Zone represents an independent area in the kanban board

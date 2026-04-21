@@ -60,13 +60,13 @@ type MainAgentCoordinator interface {
 // subAgentClientImpl 是 SubAgentTaskClient 的唯一实现。
 // 注意：它只持有了 board 的弱引用（通过特定的安全方法），完全没有 cron 或 msgbus 的字段。
 type subAgentClientImpl struct {
-	board *KanbanBoard
+	board   *KanbanBoard
 	agentID string
 }
 
 func NewSubAgentClient(board *KanbanBoard, agentID string) SubAgentTaskClient {
 	return &subAgentClientImpl{
-		board: board,
+		board:   board,
 		agentID: agentID,
 	}
 }
@@ -97,10 +97,10 @@ func (s *subAgentClientImpl) Heartbeat(ctx context.Context, taskID string) error
 // mainAgentCoordinatorImpl 是主代理的实现。
 // 它持有所有核心组件的引用。
 type mainAgentCoordinatorImpl struct {
-	board     *KanbanBoard
-	cronSvc   *cron.CronService
-	msgBus    *bus.MessageBus
-	agentID   string
+	board   *KanbanBoard
+	cronSvc *cron.CronService
+	msgBus  *bus.MessageBus
+	agentID string
 }
 
 func NewMainAgentCoordinator(board *KanbanBoard, cronSvc *cron.CronService, msgBus *bus.MessageBus) MainAgentCoordinator {

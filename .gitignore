@@ -1,17 +1,11 @@
 ```
-# Dependencies
-vendor/
-
-# Build artifacts
-*.exe
-*.dll
-*.so
-*.a
+# Compiled and build artifacts
+*.o
 *.obj
 *.out
-dist/
-build/
-target/
+
+# Dependencies
+vendor/
 
 # Logs and temp files
 *.log
@@ -22,16 +16,10 @@ target/
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
 # Coverage
+.coverage
 coverage/
 htmlcov/
-.coverage
 
 # Go-specific
 *.test

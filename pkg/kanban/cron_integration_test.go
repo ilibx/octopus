@@ -66,9 +66,9 @@ func TestCronKanbanIntegration_HandleCronJob(t *testing.T) {
 
 	// Test with valid task payload
 	taskPayload := map[string]interface{}{
-		"zone_id":   "test-zone",
-		"title":     "Test Task from Cron",
-		"priority":  5,
+		"zone_id":     "test-zone",
+		"title":       "Test Task from Cron",
+		"priority":    5,
 		"description": "Created by cron job",
 	}
 	payloadBytes, _ := json.Marshal(taskPayload)
@@ -158,9 +158,9 @@ func TestCronKanbanIntegration_HandleCronJob_WithTaskID(t *testing.T) {
 	integration := NewCronKanbanIntegration(board, service, cronService, msgBus)
 
 	taskPayload := map[string]interface{}{
-		"zone_id": "test-zone-2",
-		"title":   "Task with custom ID",
-		"task_id": "custom-task-id-123",
+		"zone_id":  "test-zone-2",
+		"title":    "Task with custom ID",
+		"task_id":  "custom-task-id-123",
 		"priority": 3,
 	}
 	payloadBytes, _ := json.Marshal(taskPayload)
@@ -245,18 +245,18 @@ func TestCronKanbanIntegration_ConcurrentJobHandling(t *testing.T) {
 func TestCronKanbanIntegration_MessageBusPublish(t *testing.T) {
 	board := NewKanbanBoard()
 	eventChan := make(chan interface{}, 10)
-	
+
 	// Create a mock message bus that captures events
 	msgBus := &bus.MessageBus{}
-	
+
 	service := NewKanbanService(board, msgBus)
 	cronService := cron.NewCronService()
 
 	integration := NewCronKanbanIntegration(board, service, cronService, msgBus)
 
 	taskPayload := map[string]interface{}{
-		"zone_id": "msgbus-test-zone",
-		"title":   "Message Bus Test Task",
+		"zone_id":  "msgbus-test-zone",
+		"title":    "Message Bus Test Task",
 		"priority": 5,
 	}
 	payloadBytes, _ := json.Marshal(taskPayload)
