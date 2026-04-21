@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/ilibx/octopus/pkg/bus"
 	"github.com/ilibx/octopus/pkg/channels"
 	"github.com/ilibx/octopus/pkg/decomposer"
+	kanbanTypes "github.com/ilibx/octopus/pkg/kanban/types"
 	"github.com/ilibx/octopus/pkg/logger"
 	"github.com/ilibx/octopus/pkg/retry"
 	"github.com/ilibx/octopus/pkg/trace"
@@ -331,11 +333,11 @@ func (s *KanbanService) RequestApproval(taskID string, approvers []string, reaso
 	for _, z := range s.board.Zones {
 		for _, task := range z.Tasks {
 			if task.ID == taskID {
-				return s.approvalManager.RequestApproval(&types.Task{
+				return s.approvalManager.RequestApproval(&kanbanTypes.Task{
 					ID:       task.ID,
 					TraceID:  task.TraceID,
 					Title:    task.Title,
-					Status:   types.TaskStatus(task.Status),
+					Status:   kanbanTypes.TaskStatus(task.Status),
 					Approval: task.Approval,
 					Metadata: task.Metadata,
 				}, approvers, reason)

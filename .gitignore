@@ -4,12 +4,12 @@
 __pycache__/
 *.o
 *.obj
-*.so
-*.dll
-*.exe
 *.class
-*.out
+*.exe
+*.dll
+*.so
 *.a
+*.out
 
 # Dependencies
 node_modules/
@@ -18,11 +18,6 @@ venv/
 .env
 .env.local
 .env.*
-.mypy_cache/
-.pytest_cache/
-.coverage
-coverage/
-htmlcov/
 
 # Build directories
 dist/
@@ -30,19 +25,36 @@ build/
 target/
 .gradle/
 
-# Editors and IDEs
+# Python specific
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+venv/
+ENV/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# IDE specific
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
 
 # Compressed files
 *.zip
@@ -67,4 +79,16 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# Go specific
+*.a
+*.o
+*.so
+*.out
+bin/
+pkg/
+
+# MyPy cache
+.mypy_cache/
+.pytest_cache/
 ```
