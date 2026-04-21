@@ -8,8 +8,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ilibx/octopus/pkg/approval"
 	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/channels"
+	"github.com/ilibx/octopus/pkg/decomposer"
 	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/retry"
+	"github.com/ilibx/octopus/pkg/trace"
 )
 
 // TaskEvent represents an event published when task status changes
@@ -27,12 +32,17 @@ type TaskEvent struct {
 
 // KanbanService manages the kanban board and publishes events
 type KanbanService struct {
-	board     *KanbanBoard
-	msgBus    *bus.MessageBus
-	mu        sync.RWMutex
-	subject   string
-	wsHub     *WSHub
-	wsEnabled bool
+	board           *KanbanBoard
+	msgBus          *bus.MessageBus
+	mu              sync.RWMutex
+	subject         string
+	wsHub           *WSHub
+	wsEnabled       bool
+	traceManager    *trace.TraceManager
+	retryManager    *retry.RetryManager
+	approvalManager *approval.ApprovalManager
+	decomposer      *decomposer.TaskDecomposer
+	channelManager  *channels.Manager
 }
 
 // NewKanbanService creates a new kanban service
@@ -43,6 +53,51 @@ func NewKanbanService(board *KanbanBoard, msgBus *bus.MessageBus) *KanbanService
 		subject:   "kanban.events",
 		wsEnabled: false,
 	}
+}
+
+// NewEnhancedKanbanService creates a kanban service with full feature support (trace, retry, approval, decomposer)
+func NewEnhancedKanbanService(
+	board *KanbanBoard,
+	msgBus *bus.MessageBus,
+	channelMgr *channels.Manager,
+	decomposerInst *decomposer.TaskDecomposer,
+	defaultApprovalTimeout time.Duration,
+) *KanbanService {
+	traceMgr := trace.NewTraceManager()
+	retryMgr := retry.NewRetryManager(channelMgr)
+	approvalMgr := approval.NewApprovalManager(channelMgr, defaultApprovalTimeout)
+
+	return &KanbanService{
+		board:           board,
+		msgBus:          msgBus,
+		subject:         "kanban.events",
+		wsEnabled:       false,
+		traceManager:    traceMgr,
+		retryManager:    retryMgr,
+		approvalManager: approvalMgr,
+		decomposer:      decomposerInst,
+		channelManager:  channelMgr,
+	}
+}
+
+// GetTraceManager returns the trace manager for external access
+func (s *KanbanService) GetTraceManager() *trace.TraceManager {
+	return s.traceManager
+}
+
+// GetRetryManager returns the retry manager for external access
+func (s *KanbanService) GetRetryManager() *retry.RetryManager {
+	return s.retryManager
+}
+
+// GetApprovalManager returns the approval manager for external access
+func (s *KanbanService) GetApprovalManager() *approval.ApprovalManager {
+	return s.approvalManager
+}
+
+// GetDecomposer returns the task decomposer for external access
+func (s *KanbanService) GetDecomposer() *decomposer.TaskDecomposer {
+	return s.decomposer
 }
 
 // EnableWebSocket enables WebSocket support for real-time updates
@@ -88,8 +143,14 @@ func (s *KanbanService) PublishTaskEvent(eventType, zoneID, taskID string, statu
 		})
 }
 
-// CreateTaskWithEvent creates a task and publishes an event
+// CreateTaskWithEvent creates a task and publishes an event with full trace support
 func (s *KanbanService) CreateTaskWithEvent(zoneID, taskID, title, description string, priority int, metadata map[string]string) (*Task, error) {
+	// Start trace for this task
+	var traceID string
+	if s.traceManager != nil {
+		traceID = s.traceManager.StartTrace(taskID, title, metadata)
+	}
+
 	task, err := s.board.AddTask(zoneID, taskID, title, description, priority, metadata)
 	if err != nil {
 		return nil, err
@@ -99,7 +160,81 @@ func (s *KanbanService) CreateTaskWithEvent(zoneID, taskID, title, description s
 	return task, nil
 }
 
-// UpdateTaskStatusWithEvent updates task status and publishes an event
+// DecomposeAndCreateTasks uses LLM to decompose a user request into sub-tasks and creates them on the board
+func (s *KanbanService) DecomposeAndCreateTasks(ctx context.Context, zoneID, mainTaskID, title, description string, priority int) ([]*Task, error) {
+	if s.decomposer == nil {
+		return nil, fmt.Errorf("decomposer not configured")
+	}
+
+	// Use LLM to decompose the task
+	result, err := s.decomposer.DecomposeTask(ctx, mainTaskID, title, description)
+	if err != nil {
+		return nil, fmt.Errorf("task decomposition failed: %w", err)
+	}
+
+	logger.InfoCF("kanban", "Task decomposed by LLM",
+		map[string]any{
+			"trace_id":       result.TraceID,
+			"main_title":     result.MainTaskTitle,
+			"sub_task_count": len(result.SubTasks),
+			"agent_type":     result.AgentType,
+		})
+
+	// Create sub-tasks from decomposition result
+	var createdTasks []*Task
+	for i, subTask := range result.SubTasks {
+		subTaskID := fmt.Sprintf("%s_sub_%d", mainTaskID, i+1)
+
+		// Build metadata with trace info and skill IDs
+		subTaskMetadata := make(map[string]string)
+		if metadata != nil {
+			for k, v := range metadata {
+				subTaskMetadata[k] = v
+			}
+		}
+		subTaskMetadata["trace_id"] = result.TraceID
+		subTaskMetadata["parent_task_id"] = mainTaskID
+
+		// Add skill IDs as comma-separated string
+		if len(subTask.SkillIDs) > 0 {
+			subTaskMetadata["skill_ids"] = strings.Join(subTask.SkillIDs, ",")
+		}
+
+		// Create the sub-task
+		task, err := s.CreateTaskWithEvent(zoneID, subTaskID, subTask.Title, subTask.Description, priority, subTaskMetadata)
+		if err != nil {
+			logger.WarnCF("kanban", "Failed to create sub-task",
+				map[string]any{"sub_task_id": subTaskID, "error": err.Error()})
+			continue
+		}
+
+		createdTasks = append(createdTasks, task)
+
+		// Record dependency if needed
+		if len(subTask.DependsOn) > 0 {
+			s.setTaskDependencies(zoneID, subTaskID, subTask.DependsOn)
+		}
+	}
+
+	return createdTasks, nil
+}
+
+// setTaskDependencies sets dependencies for a task
+func (s *KanbanService) setTaskDependencies(zoneID, taskID string, dependsOn []string) {
+	zone, err := s.board.GetZone(zoneID)
+	if err != nil {
+		return
+	}
+
+	for _, task := range zone.Tasks {
+		if task.ID == taskID {
+			task.DependsOn = dependsOn
+			break
+		}
+	}
+}
+
+// UpdateTaskStatusWithEvent updates task status and publishes an event with retry and approval support
 func (s *KanbanService) UpdateTaskStatusWithEvent(zoneID, taskID string, status TaskStatus, result, errorMsg string) error {
 	err := s.board.UpdateTaskStatus(zoneID, taskID, status, result, errorMsg)
 	if err != nil {
@@ -112,18 +247,103 @@ func (s *KanbanService) UpdateTaskStatusWithEvent(zoneID, taskID string, status 
 	}
 
 	var title string
+	var traceID string
+	var retryCount int
 	zone, err := s.board.GetZone(zoneID)
 	if err == nil {
 		for _, task := range zone.Tasks {
 			if task.ID == taskID {
 				title = task.Title
+				traceID = task.TraceID
+				retryCount = task.RetryCount
 				break
 			}
 		}
 	}
 
+	// Handle task failure with retry logic
+	if status == TaskFailed && s.retryManager != nil {
+		s.handleTaskFailure(zoneID, taskID, title, traceID, errorMsg, retryCount)
+	}
+
+	// Update trace if available
+	if s.traceManager != nil && traceID != "" {
+		if status == TaskCompleted || status == TaskFailed {
+			// End the trace span
+			s.traceManager.EndSpan(traceID, string(status))
+		} else {
+			s.traceManager.UpdateStatus(traceID, string(status))
+		}
+	}
+
 	s.PublishTaskEvent(eventType, zoneID, taskID, status, title, result, errorMsg)
 	return nil
+}
+
+// handleTaskFailure handles task failure with retry and notification logic
+func (s *KanbanService) handleTaskFailure(zoneID, taskID, title, traceID, errorMsg string, retryCount int) {
+	zone, err := s.board.GetZone(zoneID)
+	if err != nil {
+		return
+	}
+
+	var task *Task
+	for _, t := range zone.Tasks {
+		if t.ID == taskID {
+			task = t
+			break
+		}
+	}
+
+	if task == nil {
+		return
+	}
+
+	// Check if we should retry
+	if s.retryManager.ShouldRetry(task) {
+		logger.InfoCF("kanban", "Task will be retried",
+			map[string]any{
+				"task_id":     taskID,
+				"trace_id":    traceID,
+				"retry_count": task.RetryCount,
+				"max_retries": task.MaxRetries,
+			})
+		// Reset task to pending for retry
+		task.Status = TaskPending
+		task.RetryCount++
+		return
+	}
+
+	// All retries exhausted, notify configured channels
+	notifyChannels := s.retryManager.ExtractNotifyChannels(task)
+	if len(notifyChannels) > 0 {
+		s.retryManager.NotifyFailure(task, notifyChannels, errorMsg)
+	}
+}
+
+// RequestApproval creates an approval request for a task (HITL)
+func (s *KanbanService) RequestApproval(taskID string, approvers []string, reason string) error {
+	if s.approvalManager == nil {
+		return fmt.Errorf("approval manager not configured")
+	}
+
+	// Search in all zones for the task
+	for _, z := range s.board.Zones {
+		for _, task := range z.Tasks {
+			if task.ID == taskID {
+				return s.approvalManager.RequestApproval(&types.Task{
+					ID:       task.ID,
+					TraceID:  task.TraceID,
+					Title:    task.Title,
+					Status:   types.TaskStatus(task.Status),
+					Approval: task.Approval,
+					Metadata: task.Metadata,
+				}, approvers, reason)
+			}
+		}
+	}
+
+	return ErrTaskNotFound
 }
 
 // SubscribeToEvents subscribes to kanban events
