@@ -129,6 +129,20 @@ type AgentsConfig struct {
 	AgentsDir string        `json:"agents_dir" env:"OCTOPUS_AGENTS_DIR"`
 }
 
+// KanbanConfig contains configuration for the kanban board system
+type KanbanConfig struct {
+	SnapshotPath     string `json:"snapshot_path,omitempty" env:"KANBAN_SNAPSHOT_PATH"`
+	SnapshotInterval string `json:"snapshot_interval,omitempty" env:"KANBAN_SNAPSHOT_INTERVAL"` // e.g., "60s"
+}
+
+// AgentConfig contains runtime agent configuration
+type AgentRuntimeConfig struct {
+	LoopGuardMaxHistory int `json:"loop_guard_max_history,omitempty" env:"AGENT_LOOP_GUARD_MAX_HISTORY"`
+	DefaultTimeout      int `json:"default_timeout,omitempty" env:"AGENT_DEFAULT_TIMEOUT"`           // seconds
+	DefaultMaxSteps     int `json:"default_max_steps,omitempty" env:"AGENT_DEFAULT_MAX_STEPS"`
+	DefaultRetryLimit   int `json:"default_retry_limit,omitempty" env:"AGENT_DEFAULT_RETRY_LIMIT"`
+}
+
 // AgentModelConfig supports both string and structured model config.
 // String format: "gpt-4" (just primary, no fallbacks)
 // Object format: {"primary": "gpt-4", "fallbacks": ["claude-haiku"]}

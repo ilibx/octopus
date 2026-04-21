@@ -3,6 +3,7 @@ package kanban
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -156,6 +157,7 @@ func (w *AgentWorker) releaseTask(taskID string) {
 
 // executeTask executes a single task using the sub-agent
 // The sub-agent reports status back to the Main Agent via the KanbanService
+// Each task gets its own independent context with timeout for proper isolation
 func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 	defer w.releaseTask(task.ID)
 
@@ -176,8 +178,34 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 		return
 	}
 
-	// Execute the task using the sub-agent instance
-	result, err := w.runTaskExecution(task)
+	// Create independent context for this task with timeout from metadata or default
+	taskTimeout := w.getTaskTimeout(task)
+	taskCtx, cancel := context.WithTimeout(context.Background(), taskTimeout)
+	defer cancel()
+
+	// Monitor for timeout and mark as failed if exceeded
+	go func() {
+		<-taskCtx.Done()
+		if taskCtx.Err() == context.DeadlineExceeded {
+			logger.ErrorCF("agent_worker", "Task execution timeout, marking as failed",
+				map[string]any{
+					"task_id": task.ID,
+					"timeout": taskTimeout.String(),
+				})
+			// Update status to failed due to timeout
+			_ = w.service.UpdateTaskStatusWithEvent(w.zoneID, task.ID, TaskFailed, "", "timeout")
+		}
+	}()
+
+	// Execute the task using the sub-agent instance with independent context
+	result, err := w.runTaskExecution(taskCtx, task)
+
+	// Check if context was cancelled (timeout) before processing result
+	if taskCtx.Err() == context.DeadlineExceeded {
+		logger.WarnCF("agent_worker", "Task cancelled due to timeout, discarding result",
+			map[string]any{"task_id": task.ID})
+		return
+	}
 
 	// Update task status based on result - this notifies the Main Agent
 	if err != nil {
@@ -209,8 +237,30 @@ func (w *AgentWorker) executeTask(task *Task, workerNum int) {
 	}
 }
 
-// runTaskExecution executes the actual task logic using the agent
-func (w *AgentWorker) runTaskExecution(task *Task) (string, error) {
+// getTaskTimeout returns the timeout duration for a task from metadata or default
+func (w *AgentWorker) getTaskTimeout(task *Task) time.Duration {
+	defaultTimeout := 5 * time.Minute
+
+	if task.Metadata == nil {
+		return defaultTimeout
+	}
+
+	// Try to read timeout_seconds from metadata
+	if timeoutStr, exists := task.Metadata["timeout_seconds"]; exists {
+		if timeoutSec, err := time.ParseDuration(timeoutStr + "s"); err == nil {
+			return timeoutSec
+		}
+		// Try parsing as integer seconds
+		if timeoutSec, err := strconv.Atoi(timeoutStr); err == nil {
+			return time.Duration(timeoutSec) * time.Second
+		}
+	}
+
+	return defaultTimeout
+}
+
+// runTaskExecution executes the actual task logic using the agent with independent context
+func (w *AgentWorker) runTaskExecution(ctx context.Context, task *Task) (string, error) {
 	// Build the prompt from task description and metadata
 	prompt := fmt.Sprintf("Task: %s\nDescription: %s", task.Title, task.Description)
 
@@ -225,10 +275,6 @@ func (w *AgentWorker) runTaskExecution(task *Task) (string, error) {
 	if w.agentInstance == nil {
 		return "", fmt.Errorf("agent instance not available")
 	}
-
-	// Execute with timeout
-	ctx, cancel := context.WithTimeout(w.ctx, 5*time.Minute)
-	defer cancel()
 
 	// Create a minimal loop to process the task
 	// We need to use the agent's registry and message bus
