@@ -3,7 +3,10 @@
 // without creating circular dependencies
 package types
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // TaskStatus represents the current state of a task
 type TaskStatus string
@@ -102,6 +105,9 @@ type KanbanBoardService interface {
 	// CreateTask creates a new task and returns it
 	CreateTask(zoneID, taskID, title, description string, priority int, metadata map[string]string) (*Task, error)
 
+	// CreateTaskWithEvent creates a task and publishes an event
+	CreateTaskWithEvent(zoneID, taskID, title, description string, priority int, metadata map[string]string) (*Task, error)
+
 	// GetBoard returns the current board state
 	GetBoard() *KanbanBoardView
 
@@ -117,4 +123,16 @@ type KanbanBoardView struct {
 	MainAgentID string           `json:"main_agent_id"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
+}
+
+// GetZone returns a zone by ID from the board view
+func (v *KanbanBoardView) GetZone(zoneID string) (*Zone, error) {
+	if v.Zones == nil {
+		return nil, fmt.Errorf("zone not found: %s", zoneID)
+	}
+	zone, ok := v.Zones[zoneID]
+	if !ok || zone == nil {
+		return nil, fmt.Errorf("zone not found: %s", zoneID)
+	}
+	return zone, nil
 }
