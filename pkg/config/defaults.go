@@ -542,10 +542,6 @@ func DefaultConfig() *Config {
 			Enabled:  true,
 			Interval: 30,
 		},
-		Devices: DevicesConfig{
-			Enabled:    false,
-			MonitorUSB: true,
-		},
 		Voice: VoiceConfig{
 			EchoTranscription: false,
 		},
