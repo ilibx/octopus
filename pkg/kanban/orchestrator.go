@@ -11,9 +11,12 @@ import (
 
 	"github.com/ilibx/octopus/pkg/agent"
 	"github.com/ilibx/octopus/pkg/bus"
+	"github.com/ilibx/octopus/pkg/circuitbreaker"
 	"github.com/ilibx/octopus/pkg/config"
 	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/observability"
 	"github.com/ilibx/octopus/pkg/providers"
+	"github.com/ilibx/octopus/pkg/queue"
 	"github.com/ilibx/octopus/pkg/scanner"
 )
 
@@ -26,26 +29,46 @@ import (
 // - Execute tasks assigned to their zone
 // - Report task execution status and results back to the board
 type AgentOrchestrator struct {
-	board         *KanbanBoard
-	agentRegistry *agent.AgentRegistry
-	msgBus        *bus.MessageBus
-	activeAgents  map[string]string // zoneID -> agentID
-	mu            sync.RWMutex
-	cfg           *config.Config
-	provider      providers.LLMProvider
-	mainAgentID   string // ID of the main agent that owns this orchestrator
+	board            *KanbanBoard
+	agentRegistry    *agent.AgentRegistry
+	msgBus           *bus.MessageBus
+	activeAgents     map[string]string // zoneID -> agentID
+	mu               sync.RWMutex
+	cfg              *config.Config
+	provider         providers.LLMProvider
+	mainAgentID      string // ID of the main agent that owns this orchestrator
+	taskQueue        *queue.PriorityQueue
+	circuitBreaker   *circuitbreaker.CircuitBreaker
+	metricsCollector *observability.MetricsCollector
 }
 
 // NewAgentOrchestrator creates a new orchestrator for the main agent
 func NewAgentOrchestrator(board *KanbanBoard, registry *agent.AgentRegistry, msgBus *bus.MessageBus, cfg *config.Config, provider providers.LLMProvider) *AgentOrchestrator {
+	// Initialize priority queue
+	taskQueue := queue.NewPriorityQueue()
+
+	// Initialize circuit breaker for LLM provider
+	cbConfig := cfg.CircuitBreaker
+	circuitBreaker := circuitbreaker.NewCircuitBreaker(
+		"llm_provider",
+		cbConfig.FailureThreshold,
+		cbConfig.RecoveryWindow,
+	)
+
+	// Initialize metrics collector
+	metricsCollector := observability.NewMetricsCollector()
+
 	return &AgentOrchestrator{
-		board:         board,
-		agentRegistry: registry,
-		msgBus:        msgBus,
-		activeAgents:  make(map[string]string),
-		cfg:           cfg,
-		provider:      provider,
-		mainAgentID:   board.MainAgentID,
+		board:            board,
+		agentRegistry:    registry,
+		msgBus:           msgBus,
+		activeAgents:     make(map[string]string),
+		cfg:              cfg,
+		provider:         provider,
+		mainAgentID:      board.MainAgentID,
+		taskQueue:        taskQueue,
+		circuitBreaker:   circuitBreaker,
+		metricsCollector: metricsCollector,
 	}
 }
 
