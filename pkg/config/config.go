@@ -77,18 +77,37 @@ func (f *FlexibleStringSlice) UnmarshalText(text []byte) error {
 }
 
 type Config struct {
-	Agents    AgentsConfig    `json:"agents"`
-	Bindings  []AgentBinding  `json:"bindings,omitempty"`
-	Session   SessionConfig   `json:"session,omitempty"`
-	Channels  ChannelsConfig  `json:"channels"`
-	Providers ProvidersConfig `json:"providers,omitempty"`
-	ModelList []ModelConfig   `json:"model_list"` // New model-centric provider configuration
-	Gateway   GatewayConfig   `json:"gateway"`
-	Tools     ToolsConfig     `json:"tools"`
-	Heartbeat HeartbeatConfig `json:"heartbeat"`
-	Voice     VoiceConfig     `json:"voice"`
+	Agents    AgentsConfig       `json:"agents"`
+	Bindings  []AgentBinding     `json:"bindings,omitempty"`
+	Session   SessionConfig      `json:"session,omitempty"`
+	Channels  ChannelsConfig     `json:"channels"`
+	Providers ProvidersConfig    `json:"providers,omitempty"`
+	ModelList []ModelConfig      `json:"model_list"` // New model-centric provider configuration
+	Gateway   GatewayConfig      `json:"gateway"`
+	Tools     ToolsConfig        `json:"tools"`
+	Heartbeat HeartbeatConfig    `json:"heartbeat"`
+	Voice     VoiceConfig        `json:"voice"`
+	Kanban    KanbanConfig       `json:"kanban,omitempty"`
+	Agent     AgentRuntimeConfig `json:"agent,omitempty"`
 	// BuildInfo contains build-time version information
 	BuildInfo BuildInfo `json:"build_info,omitempty"`
+}
+
+// KanbanConfig contains kanban-specific runtime configuration
+type KanbanConfig struct {
+	SnapshotPath     string `json:"snapshot_path" env:"KANBAN_SNAPSHOT_PATH"`
+	SnapshotInterval string `json:"snapshot_interval" env:"KANBAN_SNAPSHOT_INTERVAL"`
+	MaxConcurrency   int    `json:"max_concurrency" env:"MAX_CONCURRENT"`
+}
+
+// AgentRuntimeConfig contains agent runtime configuration
+type AgentRuntimeConfig struct {
+	LoopGuardMaxHistory    int     `json:"loop_guard_max_history" env:"AGENT_LOOP_GUARD_MAX_HISTORY"`
+	DefaultTimeout         int     `json:"default_timeout" env:"AGENT_DEFAULT_TIMEOUT"`
+	DefaultMaxSteps        int     `json:"default_max_steps" env:"AGENT_DEFAULT_MAX_STEPS"`
+	DefaultRetryLimit      int     `json:"default_retry_limit" env:"AGENT_DEFAULT_RETRY_LIMIT"`
+	TokenWarningThreshold  float64 `json:"token_warning_threshold" env:"AGENT_TOKEN_WARNING_THRESHOLD"`
+	TokenCriticalThreshold float64 `json:"token_critical_threshold" env:"AGENT_TOKEN_CRITICAL_THRESHOLD"`
 }
 
 // BuildInfo contains build-time version information
@@ -138,7 +157,7 @@ type KanbanConfig struct {
 // AgentConfig contains runtime agent configuration
 type AgentRuntimeConfig struct {
 	LoopGuardMaxHistory int `json:"loop_guard_max_history,omitempty" env:"AGENT_LOOP_GUARD_MAX_HISTORY"`
-	DefaultTimeout      int `json:"default_timeout,omitempty" env:"AGENT_DEFAULT_TIMEOUT"`           // seconds
+	DefaultTimeout      int `json:"default_timeout,omitempty" env:"AGENT_DEFAULT_TIMEOUT"` // seconds
 	DefaultMaxSteps     int `json:"default_max_steps,omitempty" env:"AGENT_DEFAULT_MAX_STEPS"`
 	DefaultRetryLimit   int `json:"default_retry_limit,omitempty" env:"AGENT_DEFAULT_RETRY_LIMIT"`
 }
