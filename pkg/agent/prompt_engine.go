@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ilibx/octopus/pkg/logger"
+	"github.com/ilibx/octopus/pkg/skills"
 )
 
 // PromptContext contains all data needed to build a dynamic prompt
@@ -27,6 +28,7 @@ type PromptContext struct {
 	TimeoutSeconds  int               `json:"timeout_seconds"`
 	RetryLimit      int               `json:"retry_limit"`
 	LoopGuard       bool              `json:"loop_guard"`
+	MaxTokens       int               `json:"max_tokens"` // Maximum token limit for context window
 }
 
 // ToolDefinition represents a tool configuration
@@ -36,18 +38,53 @@ type ToolDefinition struct {
 	Endpoint string `json:"endpoint"`
 }
 
-// PromptEngine handles dynamic prompt generation with template injection
+// PromptEngine handles dynamic prompt generation with template injection and token management
 type PromptEngine struct {
-	templates map[string]*template.Template
-	cache     sync.RWMutex
-	baseDir   string
+	templates      map[string]*template.Template
+	cache          sync.RWMutex
+	baseDir        string
+	tokenEstimator *TokenEstimator
+	maxTokens      int // Default max tokens for context window
 }
 
-// NewPromptEngine creates a new prompt engine
+// PromptEngineConfig holds configuration for the prompt engine
+type PromptEngineConfig struct {
+	BaseDir           string
+	MaxTokens         int
+	WarningThreshold  float64
+	CriticalThreshold float64
+	AvgCharsPerToken  int
+}
+
+// DefaultPromptEngineConfig returns default configuration
+func DefaultPromptEngineConfig() PromptEngineConfig {
+	return PromptEngineConfig{
+		BaseDir:           "agents",
+		MaxTokens:         8000,
+		WarningThreshold:  0.8,
+		CriticalThreshold: 0.95,
+		AvgCharsPerToken:  4,
+	}
+}
+
+// NewPromptEngine creates a new prompt engine with default configuration
 func NewPromptEngine(agentsDir string) (*PromptEngine, error) {
+	return NewPromptEngineWithConfig(PromptEngineConfig{
+		BaseDir: agentsDir,
+	})
+}
+
+// NewPromptEngineWithConfig creates a new prompt engine with custom configuration
+func NewPromptEngineWithConfig(cfg PromptEngineConfig) (*PromptEngine, error) {
 	engine := &PromptEngine{
 		templates: make(map[string]*template.Template),
-		baseDir:   agentsDir,
+		baseDir:   cfg.BaseDir,
+		maxTokens: cfg.MaxTokens,
+		tokenEstimator: NewTokenEstimator(
+			cfg.WarningThreshold,
+			cfg.CriticalThreshold,
+			cfg.AvgCharsPerToken,
+		),
 	}
 
 	// Pre-load templates if directory exists
@@ -67,6 +104,7 @@ func (pe *PromptEngine) loadTemplates() error {
 }
 
 // BuildPrompt builds a complete prompt by rendering the template with context
+// and applies token estimation/truncation if needed
 func (pe *PromptEngine) BuildPrompt(agentType string, context PromptContext) (string, error) {
 	pe.cache.RLock()
 	tmpl, exists := pe.templates[agentType]
@@ -92,7 +130,69 @@ func (pe *PromptEngine) BuildPrompt(agentType string, context PromptContext) (st
 		return "", fmt.Errorf("template execution failed: %w", err)
 	}
 
-	return buf.String(), nil
+	prompt := buf.String()
+
+	// Apply token estimation and truncation if max tokens is configured
+	maxTokens := context.MaxTokens
+	if maxTokens <= 0 {
+		maxTokens = pe.maxTokens
+	}
+
+	if maxTokens > 0 && pe.tokenEstimator != nil {
+		truncatedPrompt, wasTruncated := pe.tokenEstimator.EstimateAndTruncate(prompt, maxTokens)
+		if wasTruncated {
+			logger.WarnCF("prompt_engine", "Prompt truncated due to token limit",
+				map[string]any{
+					"agent_type": agentType,
+					"max_tokens": maxTokens,
+				})
+		}
+		prompt = truncatedPrompt
+	}
+
+	return prompt, nil
+}
+
+// BuildPromptWithSkills builds a prompt with SKILL template injection
+func (pe *PromptEngine) BuildPromptWithSkills(
+	agentType string,
+	context PromptContext,
+	skillLoader *skills.TemplateLoader,
+	skillNames []string,
+	taskDescription string,
+	inputFrom map[string]string,
+) (string, error) {
+	// Inject skills context if skill loader is provided
+	if skillLoader != nil && len(skillNames) > 0 {
+		// Create template context for skill rendering
+		tmplCtx := skills.TemplateContext{
+			TaskDescription: taskDescription,
+			InputFrom:       inputFrom,
+			UserVars:        make(map[string]string),
+			SystemVars:      make(map[string]string),
+		}
+
+		// Use TemplateLoader to inject skills context
+		skillsContext, err := skillLoader.InjectSkillsContext(skillNames, tmplCtx)
+		if err != nil {
+			logger.WarnCF("prompt_engine", "Failed to inject skills context",
+				map[string]any{
+					"agent_type": agentType,
+					"error":      err.Error(),
+				})
+			// Continue with empty skills context rather than failing completely
+			context.SkillsContext = fmt.Sprintf("[SKILL injection failed for: %v]", skillNames)
+		} else {
+			context.SkillsContext = skillsContext
+		}
+	}
+
+	context.TaskDescription = taskDescription
+	if inputFrom != nil {
+		context.InputFrom = inputFrom
+	}
+
+	return pe.BuildPrompt(agentType, context)
 }
 
 // loadTemplate loads a template from file or returns a default template
